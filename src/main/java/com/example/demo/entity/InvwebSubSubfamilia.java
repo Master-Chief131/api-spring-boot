@@ -23,13 +23,13 @@ public class InvwebSubSubfamilia implements Serializable {
     @Column(name = "no_sub_subfamilia")
     private Integer noSubSubfamilia;
 
-    @Column(name = "nombre")
+    @Column(name = "nombre", length = 50)
     private String nombre;
 
-    @Column(name = "activo")
+    @Column(name = "activo", length = 1)
     private String activo;
 
-    @Column(name = "identificador")
+    @Column(name = "identificador", length = 3)
     private String identificador;
 
     public Integer getNoCia() { return noCia; }

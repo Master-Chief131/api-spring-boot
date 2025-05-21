@@ -17,13 +17,13 @@ public class InvwebServicio implements Serializable {
     @Column(name = "no_servicio")
     private Integer noServicio;
 
-    @Column(name = "Descripcion")
+    @Column(name = "Descripcion", length = 50)
     private String descripcion;
 
     @Column(name = "no_unidad")
     private Integer noUnidad;
 
-    @Column(name = "Cuenta_Contable")
+    @Column(name = "Cuenta_Contable", length = 50)
     private String cuentaContable;
 
     @Column(name = "no_impuesto")
@@ -49,7 +49,7 @@ public class InvwebServicio implements Serializable {
     @Temporal(TemporalType.DATE)
     private Date fechaUltimaVenta;
 
-    @Column(name = "usuario_vendio")
+    @Column(name = "usuario_vendio", length = 50)
     private String usuarioVendio;
 
     @Column(name = "costo")
@@ -73,7 +73,7 @@ public class InvwebServicio implements Serializable {
     @Column(name = "precio_venta_lista")
     private BigDecimal precioVentaLista;
 
-    @Column(name = "usuario_lista_mod")
+    @Column(name = "usuario_lista_mod", length = 50)
     private String usuarioListaMod;
 
     @Column(name = "precio_base_ant")
@@ -82,7 +82,7 @@ public class InvwebServicio implements Serializable {
     @Column(name = "precio_venta_ant")
     private BigDecimal precioVentaAnt;
 
-    @Column(name = "usuario_lista_apr")
+    @Column(name = "usuario_lista_apr", length = 50)
     private String usuarioListaApr;
 
     @Column(name = "factor_ant")
@@ -91,14 +91,14 @@ public class InvwebServicio implements Serializable {
     @Column(name = "costo_ant")
     private BigDecimal costoAnt;
 
-    @Column(name = "usuario_crea")
+    @Column(name = "usuario_crea", length = 50)
     private String usuarioCrea;
 
     @Column(name = "fecha_crea")
     @Temporal(TemporalType.TIMESTAMP)
     private Date fechaCrea;
 
-    @Column(name = "usuario_mod")
+    @Column(name = "usuario_mod", length = 50)
     private String usuarioMod;
 
     @Column(name = "fecha_mod")
@@ -108,7 +108,7 @@ public class InvwebServicio implements Serializable {
     @Column(name = "acepta_descuento")
     private String aceptaDescuento;
 
-    @Column(name = "ruta_foto")
+    @Column(name = "ruta_foto", length = 150)
     private String rutaFoto;
 
     @Column(name = "ind_pago_comision")

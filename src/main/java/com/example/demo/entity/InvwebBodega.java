@@ -19,34 +19,34 @@ public class InvwebBodega implements Serializable {
     @Column(name = "NO_BODEGA")
     private Integer noBodega;
 
-    @Column(name = "NOMBRE")
+    @Column(name = "NOMBRE", length = 100)
     private String nombre;
 
-    @Column(name = "ACTIVO")
+    @Column(name = "ACTIVO", length = 1)
     private String activo;
 
-    @Column(name = "NO_UBICACION")
+    @Column(name = "NO_UBICACION", length = 50)
     private String noUbicacion;
 
-    @Column(name = "POR_DESPACHO")
+    @Column(name = "POR_DESPACHO", length = 1)
     private String porDespacho;
 
-    @Column(name = "VER_PORTAL")
+    @Column(name = "VER_PORTAL", length = 1)
     private String verPortal;
 
-    @Column(name = "TIPO_DESPACHO")
+    @Column(name = "TIPO_DESPACHO", length = 2)
     private String tipoDespacho;
 
-    @Column(name = "tipo_bodega")
+    @Column(name = "tipo_bodega", length = 2)
     private String tipoBodega;
 
     @Column(name = "no_temperatura")
     private Integer noTemperatura;
 
-    @Column(name = "ind_traslado_automatico")
+    @Column(name = "ind_traslado_automatico", length = 1)
     private String indTrasladoAutomatico;
 
-    @Column(name = "genera_orden")
+    @Column(name = "genera_orden", length = 1)
     private String generaOrden;
 
     public Integer getNoCia() { return noCia; }

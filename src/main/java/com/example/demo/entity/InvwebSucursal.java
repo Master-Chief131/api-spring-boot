@@ -16,41 +16,41 @@ public class InvwebSucursal implements Serializable {
     @Column(name = "NO_SUCURSAL")
     private Integer noSucursal;
 
-    @Column(name = "NOMBRE")
+    @Column(name = "NOMBRE", length = 100)
     private String nombre;
 
-    @Column(name = "DIRECCION")
+    @Column(name = "DIRECCION", length = 100)
     private String direccion;
 
-    @Column(name = "TELEFONO1")
+    @Column(name = "TELEFONO1", length = 20)
     private String telefono1;
 
-    @Column(name = "TELEFONO2")
+    @Column(name = "TELEFONO2", length = 20)
     private String telefono2;
 
-    @Column(name = "FAX")
+    @Column(name = "FAX", length = 20)
     private String fax;
 
-    @Column(name = "EMAIL")
+    @Column(name = "EMAIL", length = 100)
     private String email;
 
-    @Column(name = "ACTIVO")
+    @Column(name = "ACTIVO", length = 1)
     private String activo;
 
-    @Column(name = "CENTRO_COSTO")
+    @Column(name = "CENTRO_COSTO", length = 9)
     private String centroCosto;
 
-    @Column(name = "CUENTA_CAJA")
+    @Column(name = "CUENTA_CAJA", length = 15)
     private String cuentaCaja;
 
-    @Column(name = "usuario_crea")
+    @Column(name = "usuario_crea", length = 50)
     private String usuarioCrea;
 
     @Column(name = "fecha_crea")
     @Temporal(TemporalType.TIMESTAMP)
     private Date fechaCrea;
 
-    @Column(name = "usuario_mod")
+    @Column(name = "usuario_mod", length = 50)
     private String usuarioMod;
 
     @Column(name = "fecha_mod")

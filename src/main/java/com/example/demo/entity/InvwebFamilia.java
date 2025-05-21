@@ -15,34 +15,34 @@ public class InvwebFamilia implements Serializable {
     @Column(name = "NO_FAMILIA")
     private Integer noFamilia;
 
-    @Column(name = "NOMBRE")
+    @Column(name = "NOMBRE", length = 50)
     private String nombre;
 
     @Column(name = "NO_IMPUESTO")
     private Integer noImpuesto;
 
-    @Column(name = "APLICA_IMPUESTO")
+    @Column(name = "APLICA_IMPUESTO", length = 1)
     private String aplicaImpuesto;
 
-    @Column(name = "IDENTIFICADOR")
+    @Column(name = "IDENTIFICADOR", length = 3)
     private String identificador;
 
-    @Column(name = "IND_ARTICULO")
+    @Column(name = "IND_ARTICULO", length = 1)
     private String indArticulo;
 
-    @Column(name = "ACTIVO")
+    @Column(name = "ACTIVO", length = 1)
     private String activo;
 
-    @Column(name = "VER_PORTAL")
+    @Column(name = "VER_PORTAL", length = 1)
     private String verPortal;
 
-    @Column(name = "IND_SERVICIO")
+    @Column(name = "IND_SERVICIO", length = 1)
     private String indServicio;
 
     @Column(name = "SECUENCIA")
     private Integer secuencia;
 
-    @Column(name = "centro_costo")
+    @Column(name = "centro_costo", length = 9)
     private String centroCosto;
 
     @OneToMany(fetch = FetchType.LAZY)

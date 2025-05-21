@@ -19,13 +19,13 @@ public class InvwebSubfamilia implements Serializable {
     @Column(name = "no_subfamilia")
     private Integer noSubfamilia;
 
-    @Column(name = "nombre")
+    @Column(name = "nombre", length = 50)
     private String nombre;
 
-    @Column(name = "activo")
+    @Column(name = "activo", length = 1)
     private String activo;
 
-    @Column(name = "identificador")
+    @Column(name = "identificador", length = 3)
     private String identificador;
 
     @Column(name = "secuencia")

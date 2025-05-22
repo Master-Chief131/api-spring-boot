@@ -109,8 +109,8 @@
     <label for="noCorregimiento">Corregimiento:</label>
     <input id="noCorregimiento" type="number" placeholder="Corregimiento">
   </div>
-  <input type="hidden" id="NO_ORIGEN" value="9">
-  <input type="hidden" id="NO_PLAZO" value="1">
+  <input type="hidden" id="noOrigen" value="9">
+  <input type="hidden" id="noPlazo" value="1">
   <div class="actions">
     <button onclick="crearCliente()">Registrar Cliente</button>
     <button onclick="cargarClientes()">Consultar Todos los Clientes</button>
@@ -152,8 +152,8 @@
       const noProvincia = parseInt(document.getElementById('noProvincia').value) || null;
       const noDistrito = parseInt(document.getElementById('noDistrito').value) || null;
       const noCorregimiento = parseInt(document.getElementById('noCorregimiento').value) || null;
-      const NO_ORIGEN = parseInt(document.getElementById('NO_ORIGEN').value);
-      const NO_PLAZO = parseInt(document.getElementById('NO_PLAZO').value);
+      const noOrigen = parseInt(document.getElementById('noOrigen').value);
+      const noPlazo = parseInt(document.getElementById('noPlazo').value);
       const mensaje = document.getElementById('mensaje');
       mensaje.innerText = '';
       try {
@@ -180,8 +180,8 @@
             noProvincia,
             noDistrito,
             noCorregimiento,
-            NO_ORIGEN,
-            NO_PLAZO
+            noOrigen,
+            noPlazo
           })
         });
         mensaje.innerText = '¡Cliente registrado exitosamente!';

@@ -18,14 +18,13 @@ public class InvwebBodegaController {
 
     @GetMapping
     public List<InvwebBodega> getBodegas() {
-        return bodegaRepository.findByVerPortal("S");
+        return bodegaRepository.findByVerPortal("N");
     }
 
-    @GetMapping("/{no_bodega}")
-    public InvwebBodega getBodegaById(@PathVariable Integer no_bodega) {
-        // Suponiendo que solo hay una compañía y sucursal, o puedes agregar también no_cia y no_sucursal si es necesario
+    @GetMapping("/{no_sucursal}/{no_bodega}")
+    public InvwebBodega getBodegaBySucursalAndBodega(@PathVariable Integer no_sucursal, @PathVariable Integer no_bodega) {
         return bodegaRepository.findAll().stream()
-            .filter(b -> b.getNoBodega().equals(no_bodega))
+            .filter(b -> b.getNoSucursal().equals(no_sucursal) && b.getNoBodega().equals(no_bodega))
             .findFirst()
             .orElse(null);
     }

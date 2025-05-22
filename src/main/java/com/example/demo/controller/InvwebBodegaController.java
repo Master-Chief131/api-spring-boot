@@ -18,7 +18,7 @@ public class InvwebBodegaController {
 
     @GetMapping
     public List<InvwebBodega> getBodegas() {
-        return bodegaRepository.findByVerPortal("N");
+        return bodegaRepository.findByVerPortal("S");
     }
 
     @GetMapping("/{no_sucursal}/{no_bodega}")

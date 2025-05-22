@@ -2,54 +2,26 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Clientes</title>
+  <title>API Demo - Inicio</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    h1 { color: #2c3e50; }
+    .btn-group { display: flex; flex-direction: column; gap: 12px; max-width: 350px; }
+    button { padding: 12px 20px; font-size: 16px; border-radius: 6px; border: 1px solid #2980b9; background: #3498db; color: #fff; cursor: pointer; transition: background 0.2s; }
+    button:hover { background: #2980b9; }
+  </style>
 </head>
 <body>
-  <h1>Lista de Clientes</h1>
-  <div>
-    <input id="nombre" placeholder="Nombre">
-    <input id="telefono" placeholder="Teléfono">
-    <button onclick="crearCliente()">Agregar</button>
-    <br><br><br>
-    <button onclick="window.location.href='/api/clientes'">Ver Clientes (JSON)</button>
-    <br>
-    <button onclick="window.location.href='/api/familias-producto'">Ver Familias (SubFamilia Sub-SubFamilia) de Producto (JSON)</button>
-    <br>
+  <h1>Bienvenido a la API Demo</h1>
+  <div class="btn-group">
+    <button onclick="window.location.href='clientes.html'">Gestión de Clientes</button>
+    <button onclick="window.location.href='/api/familias-producto'">Ver Familias de Producto (JSON)</button>
     <button onclick="window.location.href='/api/sucursales'">Ver Sucursales (JSON)</button>
-    <br>
     <button onclick="window.location.href='/api/bodegas'">Ver Bodegas (JSON)</button>
-    <br>
     <button onclick="window.location.href='/api/servicios'">Ver Servicios (JSON)</button>
-    <br>
     <button onclick="window.location.href='/api/lista-precios'">Ver Lista de Precios (JSON)</button>
+    <button onclick="window.location.href='/swagger-ui.html'">Ver Documentación Swagger</button>
+    <button onclick="window.location.href='/v3/api-docs'">Ver Documentacion OpenApi (JSON)</button>
   </div>
-  <ul id="lista-clientes"></ul>
-
-  <script>
-    async function cargarClientes() {
-      const res = await fetch('/api/clientes');
-      const clientes = await res.json();
-      const lista = document.getElementById('lista-clientes');
-      lista.innerHTML = '';
-      clientes.forEach(c => {
-        const li = document.createElement('li');
-        li.innerText = `${c.nombre} (${c.telefono})`;
-        lista.appendChild(li);
-      });
-    }
-
-    async function crearCliente() {
-      const nombre = document.getElementById('nombre').value;
-      const telefono = document.getElementById('telefono').value;
-      await fetch('/api/clientes', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({nombre, telefono})
-      });
-      cargarClientes();
-    }
-
-    cargarClientes();
-  </script>
 </body>
 </html>

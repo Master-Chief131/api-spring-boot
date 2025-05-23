@@ -1,5 +1,7 @@
 package com.example.demo.controller;
 
+import com.example.demo.entity.InvwebArticulo;
+import com.example.demo.repository.InvwebArticuloRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;

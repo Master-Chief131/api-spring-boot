@@ -113,12 +113,21 @@
   <input type="hidden" id="noPlazo" value="1">
   <div class="actions">
     <button onclick="crearCliente()">Registrar Cliente</button>
-    <button onclick="cargarClientes()">Consultar Todos los Clientes</button>
-    <button onclick="window.location.href='/api/clientes'">Consultar Todos los Clientes (JSON)</button>
+    <button onclick="consultarCliente()">Consultar Cliente</button>
   </div>
   <div id="mensaje" style="margin-top:20px;color:green;font-weight:bold;"></div>
   <ul id="clientes-list"></ul>
   <script>
+    function consultarCliente() {
+      const noCia = parseInt(document.getElementById('noCia').value);
+      const noCliente = parseInt(document.getElementById('noCliente').value);
+      const grupo = document.getElementById('grupo').value;
+      if (!noCia || !noCliente || !grupo) {
+        document.getElementById('mensaje').innerText = 'Debes ingresar No. Compañía, No. Cliente y Grupo';
+        return;
+      }
+      window.location.href = `/api/clientes/buscar?noCia=${noCia}&noCliente=${noCliente}&grupo=${grupo}`;
+    }
     async function cargarClientes() {
       const res = await fetch('/api/clientes');
       const clientes = await res.json();

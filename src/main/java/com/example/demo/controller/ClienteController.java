@@ -14,6 +14,7 @@ import java.sql.Types;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/clientes")
@@ -150,5 +151,22 @@ public class ClienteController {
     // Ejecuta el procedimiento
     Map<String, Object> result = jdbcCall.execute(params);
     return result;
+  }
+
+  @GetMapping("/buscar")
+  public Object buscarCliente(
+          @RequestParam int noCia,
+          @RequestParam int noCliente,
+          @RequestParam String grupo) {
+      ClienteId id = new ClienteId();
+      id.setNoCia(noCia);
+      id.setNoCliente(noCliente);
+      id.setGrupo(grupo);
+      Optional<Cliente> cliente = repository.findById(id);
+      if (cliente.isPresent()) {
+          return cliente.get();
+      } else {
+          return java.util.Collections.singletonMap("mensaje", "Cliente no existe");
+      }
   }
 }

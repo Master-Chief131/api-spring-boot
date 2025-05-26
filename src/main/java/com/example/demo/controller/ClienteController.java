@@ -5,12 +5,9 @@ import com.example.demo.entity.ClienteId;
 import com.example.demo.repository.ClienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.SqlParameter;
-import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.web.bind.annotation.*;
 
 import javax.sql.DataSource;
-import java.sql.Types;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,104 +75,154 @@ public class ClienteController {
 
   @PostMapping("/registro-portal")
   public Map<String, Object> registrarDesdePortal(@RequestBody Cliente cliente) {
-    SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate)
-            // .withCatalogName("cptsoft-prochem")
-            .withProcedureName("CLIENTE");
-
-    Map<String, Object> params = new HashMap<>();
-    params.put("CIA", cliente.getId().getNoCia());
-    params.put("PARAMETRO1", null); // Puedes ajustar según lógica
-    params.put("PARAMETRO2", null);
-    params.put("PARAMETRO3", null);
-    params.put("PARAMETRO4", cliente.getId().getGrupo());
-    params.put("PARAMETRO5", cliente.getPersonaNj() != null ? cliente.getPersonaNj() : "N");
-    params.put("PARAMETRO6", null); // ETI
-    params.put("PARAMETRO7", cliente.getNombre());
-    params.put("PARAMETRO8", cliente.getNombreCont());
-    params.put("PARAMETRO9", cliente.getApellidoCont());
-    params.put("PARAMETRO10", cliente.getNoActividad());
-    params.put("PARAMETRO11", cliente.getNoTipoEmpresa());
-    params.put("PARAMETRO12", cliente.getNoEmpleado());
-    params.put("PARAMETRO13", cliente.getRucCedula());
-    params.put("PARAMETRO14", cliente.getDireccion());
-    params.put("PARAMETRO15", cliente.getTelefono());
-    params.put("PARAMETRO16", cliente.getExtension());
-    params.put("PARAMETRO17", cliente.getFax());
-    params.put("PARAMETRO18", cliente.getTelefono2());
-    params.put("PARAMETRO19", cliente.getExtension2());
-    params.put("PARAMETRO20", cliente.getPaginaWeb());
-    params.put("PARAMETRO21", cliente.getPaginaWeb2());
-    params.put("PARAMETRO22", cliente.getEmail1());
-    params.put("PARAMETRO23", cliente.getFacebook());
-    params.put("PARAMETRO24", cliente.getInstagram());
-    params.put("PARAMETRO25", cliente.getTwitter());
-    params.put("PARAMETRO26", cliente.getApartado());
-    params.put("PARAMETRO27", cliente.getNoPais());
-    params.put("PARAMETRO28", cliente.getNoOrigen());
-    params.put("PARAMETRO29", cliente.getNoProvincia());
-    params.put("PARAMETRO30", cliente.getLimiteCredi());
-    params.put("PARAMETRO31", cliente.getNoDistrito());
-    params.put("PARAMETRO32", cliente.getSaldo());
-    params.put("PARAMETRO33", cliente.getNoCorregimiento());
-    params.put("PARAMETRO34", cliente.getDisponible());
-    params.put("PARAMETRO35", cliente.getReferido());
-    params.put("PARAMETRO36", cliente.getInstruccionEspecial());
-    params.put("PARAMETRO37", cliente.getExcentoImp());
-    params.put("PARAMETRO38", cliente.getDistribuidor());
-    params.put("PARAMETRO39", cliente.getDv());
-    params.put("PARAMETRO40", cliente.getMovil());
-    params.put("PARAMETRO41", cliente.getFechaNacimiento());
-    params.put("PARAMETRO42", cliente.getNoGrupoMercado());
-    params.put("PACTIVO", "S");
-    params.put("INDICADOR", "I");
-    params.put("PREPLICAR", "N");
-    params.put("PUSUARIO", "PORTAL");
-    params.put("V_SECUENCIAL", null); // OUT param, se ignora al enviar
-    params.put("PARAMETRO43", cliente.getAccesoWeb());
-    params.put("PARAMETRO44", cliente.getUsuarioWeb());
-    params.put("PARAMETRO45", cliente.getNoPlazo());
-    params.put("PARAMETRO46", cliente.getIndClienteContado());
-    params.put("PARAMETRO47", cliente.getUsuarioCreacion());
-    params.put("PMODULO_ORIGEN", cliente.getModuloOrigen() != null ? cliente.getModuloOrigen() : "WEB");
-    params.put("PLATITUD", cliente.getLatitud());
-    params.put("PLONGITUD", cliente.getLongitud());
-    params.put("PTOLERANCIA", cliente.getTolerancia());
-    params.put("PRUTA", cliente.getRuta());
-    params.put("PCOD_RUTA", cliente.getCodRuta());
-    params.put("PIND_SOPORTE", cliente.getIndSoporte());
-    params.put("PCLIENTE_HELP_DESK", cliente.getClienteHelpDesk());
-    params.put("PESTADO_PROMO", cliente.getEstadoPromo());
-    params.put("PCOD_RUTA", cliente.getCodRuta());
-    params.put("PIND_SUCURSAL", cliente.getIndSucursal());
-    params.put("PTIPO_P", cliente.getTipoP());
-    params.put("pind_sexo", cliente.getIndSexo());
-    params.put("pvalidar_morosidad_contado", cliente.getValidarMorosidadContado());
-    params.put("pcompania_inter_cia", cliente.getCompaniaInterCia());
-
-    // Mostrar en consola los valores enviados
-    System.out.println("Valores enviados al procedimiento CLIENTE:");
-    params.forEach((k, v) -> System.out.println(k + ": " + v));
-
-    Map<String, Object> result = jdbcCall.execute(params);
-
-    // Mostrar en consola los valores generados/autogenerados por el SP
-    System.out.println("Respuesta del procedimiento CLIENTE:");
-    result.forEach((k, v) -> System.out.println(k + ": " + v));
-
-    // Mensaje claro según resultado
     Map<String, Object> response = new HashMap<>();
-    if (result.containsKey("V_SECUENCIAL") && result.get("V_SECUENCIAL") != null) {
+    String sql = "{call CLIENTE(\n"
+            + "?, ?, ?, ?, ?,\n"   // 1-5
+            + "?, ?, ?, ?, ?,\n"   // 6-10
+            + "?, ?, ?, ?, ?,\n"   // 11-15
+            + "?, ?, ?, ?, ?,\n"   // 16-20
+            + "?, ?, ?, ?, ?,\n"   // 21-25
+            + "?, ?, ?, ?, ?,\n"   // 26-30
+            + "?, ?, ?, ?, ?,\n"   // 31-35
+            + "?, ?, ?, ?, ?,\n"   // 36-40
+            + "?, ?, ?, ?, ?,\n"   // 41-45
+            + "?, ?, ?, ?, ?,\n"   // 46-50
+            + "?, ?, ?, ?, ?,\n"   // 51-55
+            + "?, ?, ?, ?, ?,\n"   // 56-60
+            + "?, ?, ?, ?, ?,\n"   // 61-65
+            + "?, ?)}"; // 66-67
+    Map<Integer, Object> valoresEnviados = new HashMap<>();
+    try (java.sql.Connection conn = dataSource.getConnection();
+         java.sql.CallableStatement stmt = conn.prepareCall(sql)) {
+      int idx = 1;
+      stmt.setInt(idx, cliente.getId().getNoCia()); valoresEnviados.put(idx++, cliente.getId().getNoCia());
+      stmt.setObject(idx, null); valoresEnviados.put(idx++, null);
+      stmt.setObject(idx, null); valoresEnviados.put(idx++, null);
+      stmt.setObject(idx, null); valoresEnviados.put(idx++, null);
+      
+      stmt.setObject(idx, null); valoresEnviados.put(idx++, null);
+      stmt.setString(idx, cliente.getId().getGrupo()); valoresEnviados.put(idx++, cliente.getId().getGrupo());
+      stmt.setString(idx, cliente.getPersonaNj() != null ? cliente.getPersonaNj() : "N"); valoresEnviados.put(idx++, cliente.getPersonaNj() != null ? cliente.getPersonaNj() : "N");
+
+      stmt.setObject(idx, cliente.getNoEmpleado()); valoresEnviados.put(idx++, cliente.getNoEmpleado());
+      stmt.setString(idx, cliente.getNombre()); valoresEnviados.put(idx++, cliente.getNombre());
+      stmt.setString(idx, cliente.getNombreCont()); valoresEnviados.put(idx++, cliente.getNombreCont());
+      stmt.setString(idx, cliente.getApellidoCont()); valoresEnviados.put(idx++, cliente.getApellidoCont());
+      stmt.setObject(idx, cliente.getNoActividad()); valoresEnviados.put(idx++, cliente.getNoActividad());
+      stmt.setObject(idx, cliente.getNoTipoEmpresa()); valoresEnviados.put(idx++, cliente.getNoTipoEmpresa());
+
+      stmt.setString(idx, cliente.getExtension()); valoresEnviados.put(idx++, cliente.getExtension());
+      stmt.setString(idx, cliente.getRucCedula()); valoresEnviados.put(idx++, cliente.getRucCedula());
+      stmt.setString(idx, cliente.getDireccion()); valoresEnviados.put(idx++, cliente.getDireccion());
+      stmt.setString(idx, cliente.getTelefono()); valoresEnviados.put(idx++, cliente.getTelefono());
+
+      stmt.setString(idx, cliente.getFax()); valoresEnviados.put(idx++, cliente.getFax());
+      
+      stmt.setString(idx, cliente.getExtension2()); valoresEnviados.put(idx++, cliente.getExtension2());
+      stmt.setString(idx, cliente.getTelefono2()); valoresEnviados.put(idx++, cliente.getTelefono2());
+
+      stmt.setString(idx, cliente.getPaginaWeb()); valoresEnviados.put(idx++, cliente.getPaginaWeb());
+      stmt.setString(idx, cliente.getPaginaWeb2()); valoresEnviados.put(idx++, cliente.getPaginaWeb2());
+      
+      stmt.setString(idx, cliente.getFacebook()); valoresEnviados.put(idx++, cliente.getFacebook());
+      stmt.setString(idx, cliente.getEmail1()); valoresEnviados.put(idx++, cliente.getEmail1());
+
+      stmt.setString(idx, cliente.getInstagram()); valoresEnviados.put(idx++, cliente.getInstagram());
+      stmt.setString(idx, cliente.getTwitter()); valoresEnviados.put(idx++, cliente.getTwitter());
+      stmt.setString(idx, cliente.getApartado()); valoresEnviados.put(idx++, cliente.getApartado());
+      
+      stmt.setObject(idx, cliente.getLimiteCredi()); valoresEnviados.put(idx++, cliente.getLimiteCredi());
+      stmt.setObject(idx, cliente.getNoPais()); valoresEnviados.put(idx++, cliente.getNoPais());
+      stmt.setObject(idx, cliente.getNoOrigen()); valoresEnviados.put(idx++, cliente.getNoOrigen());
+      stmt.setObject(idx, cliente.getNoProvincia()); valoresEnviados.put(idx++, cliente.getNoProvincia());
+
+      
+      stmt.setObject(idx, cliente.getSaldo()); valoresEnviados.put(idx++, cliente.getSaldo());
+      stmt.setObject(idx, cliente.getNoDistrito()); valoresEnviados.put(idx++, cliente.getNoDistrito());
+
+      
+      stmt.setObject(idx, cliente.getDisponible()); valoresEnviados.put(idx++, cliente.getDisponible());
+      stmt.setObject(idx, cliente.getNoCorregimiento()); valoresEnviados.put(idx++, cliente.getNoCorregimiento());
+
+      stmt.setString(idx, cliente.getReferido()); valoresEnviados.put(idx++, cliente.getReferido());
+      stmt.setString(idx, cliente.getInstruccionEspecial()); valoresEnviados.put(idx++, cliente.getInstruccionEspecial());
+      stmt.setString(idx, cliente.getExcentoImp()); valoresEnviados.put(idx++, cliente.getExcentoImp());
+      stmt.setString(idx, cliente.getDistribuidor()); valoresEnviados.put(idx++, cliente.getDistribuidor());
+      stmt.setString(idx, cliente.getDv()); valoresEnviados.put(idx++, cliente.getDv());
+      
+      stmt.setObject(idx, cliente.getFechaNacimiento()); valoresEnviados.put(idx++, cliente.getFechaNacimiento());
+      stmt.setString(idx, cliente.getMovil()); valoresEnviados.put(idx++, cliente.getMovil());
+      
+      stmt.setObject(idx, cliente.getNoGrupoMercado()); valoresEnviados.put(idx++, cliente.getNoGrupoMercado());
+      stmt.setString(idx, "S"); valoresEnviados.put(idx++, "S");
+      stmt.setString(idx, "I"); valoresEnviados.put(idx++, "I");
+      stmt.setString(idx, "N"); valoresEnviados.put(idx++, "N");
+      stmt.setString(idx, "PORTAL"); valoresEnviados.put(idx++, "PORTAL"); // 47
+      // 48: OUT V_SECUENCIAL (debe ir aquí)
+      stmt.registerOutParameter(idx, java.sql.Types.INTEGER); valoresEnviados.put(idx, "OUT V_SECUENCIAL"); idx++;
+      // 52: PUSUARIO (usuario de creación)
+      stmt.setString(idx, cliente.getUsuarioCreacion()); valoresEnviados.put(idx++, cliente.getUsuarioCreacion());
+      // 53: PARAMETRO43 (acceso web)
+      stmt.setString(idx, cliente.getAccesoWeb()); valoresEnviados.put(idx++, cliente.getAccesoWeb());
+      // 54: PARAMETRO44 (usuario web)
+      stmt.setString(idx, cliente.getUsuarioWeb()); valoresEnviados.put(idx++, cliente.getUsuarioWeb());
+      // 55: PARAMETRO45 (plazo)
+      stmt.setObject(idx, cliente.getNoPlazo()); valoresEnviados.put(idx++, cliente.getNoPlazo());
+      // 56: PARAMETRO46 (cliente contado)
+      stmt.setString(idx, cliente.getIndClienteContado()); valoresEnviados.put(idx++, cliente.getIndClienteContado());
+      // 57: PMODULO_ORIGEN
+      stmt.setString(idx, cliente.getModuloOrigen() != null ? cliente.getModuloOrigen() : "WEB"); valoresEnviados.put(idx++, cliente.getModuloOrigen() != null ? cliente.getModuloOrigen() : "WEB");
+      // 58: PLATITUD
+      stmt.setString(idx, cliente.getLatitud()); valoresEnviados.put(idx++, cliente.getLatitud());
+      // 59: PLONGITUD
+      stmt.setString(idx, cliente.getLongitud()); valoresEnviados.put(idx++, cliente.getLongitud());
+      // 60: PTOLERANCIA
+      stmt.setObject(idx, cliente.getTolerancia()); valoresEnviados.put(idx++, cliente.getTolerancia());
+      // 61: PRUTA
+      stmt.setString(idx, cliente.getRuta()); valoresEnviados.put(idx++, cliente.getRuta());
+      // 62: PIND_SOPORTE
+      stmt.setString(idx, cliente.getIndSoporte()); valoresEnviados.put(idx++, cliente.getIndSoporte());
+      // 63: PCLIENTE_HELP_DESK
+      stmt.setString(idx, cliente.getClienteHelpDesk()); valoresEnviados.put(idx++, cliente.getClienteHelpDesk());
+      // 64: PESTADO_PROMO
+      stmt.setString(idx, cliente.getEstadoPromo()); valoresEnviados.put(idx++, cliente.getEstadoPromo());
+      // 65: PCOD_RUTA
+      stmt.setString(idx, cliente.getCodRuta()); valoresEnviados.put(idx++, cliente.getCodRuta());
+      // 66: PIND_SUCURSAL
+      stmt.setString(idx, cliente.getIndSucursal()); valoresEnviados.put(idx++, cliente.getIndSucursal());
+      // 67: PTIPO_P
+      stmt.setString(idx, cliente.getTipoP()); valoresEnviados.put(idx++, cliente.getTipoP());
+      // 68: pind_sexo
+      stmt.setString(idx, cliente.getIndSexo()); valoresEnviados.put(idx++, cliente.getIndSexo());
+      // 69: pvalidar_morosidad_contado
+      stmt.setString(idx, cliente.getValidarMorosidadContado()); valoresEnviados.put(idx++, cliente.getValidarMorosidadContado());
+      // 67: pcompania_inter_cia
+      stmt.setObject(idx, cliente.getCompaniaInterCia()); valoresEnviados.put(idx++, cliente.getCompaniaInterCia());
+
+      // DEBUG: Mostrar el JSON recibido
+      System.out.println("DEBUG: JSON recibido en registrarDesdePortal: " + new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(cliente));
+      // Validación y log de parámetros críticos
+      System.out.println("DEBUG: noProvincia recibido en request: " + cliente.getNoProvincia());
+      if (cliente.getNoProvincia() == 0) {
+        System.out.println("ADVERTENCIA: noProvincia es 0, probablemente no se envió o llegó vacío");
+      }
+
+      // Mostrar en consola los valores enviados
+      System.out.println("Valores enviados al procedimiento CLIENTE:");
+      valoresEnviados.forEach((k, v) -> System.out.println("Parametro " + k + ": " + v));
+
+      // Ejecutar
+      stmt.execute();
+      int vSecuencial = stmt.getInt(48); // OUT param en la posición 48
       response.put("success", true);
-      response.put("mensaje", "Cliente registrado exitosamente. Código generado: " + result.get("V_SECUENCIAL"));
-    } else if (result.containsKey("mensaje")) {
+      response.put("mensaje", "Cliente registrado exitosamente. Código generado: " + vSecuencial);
+      response.put("V_SECUENCIAL", vSecuencial);
+      response.put("valores_enviados", valoresEnviados);
+    } catch (Exception e) {
       response.put("success", false);
-      response.put("mensaje", result.get("mensaje"));
-    } else {
-      response.put("success", false);
-      response.put("mensaje", "No se pudo registrar el cliente. Consulte con soporte.");
+      response.put("mensaje", e.getMessage());
+      response.put("valores_enviados", valoresEnviados);
     }
-    response.put("valores_enviados", params);
-    response.put("valores_generados", result);
     return response;
   }
 

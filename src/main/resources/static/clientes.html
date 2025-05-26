@@ -31,6 +31,11 @@
     <label for="grupo">Grupo:</label>
     <input id="grupo" maxlength="2" placeholder="Grupo (2 caracteres)">
   </div>
+  <div class="actions">
+    <button onclick="consultarCliente()">Consultar Cliente</button>
+  </div>
+  <br>
+  <h2>Registrar Nuevo Cliente</h2>
   <div class="form-group">
     <label for="personaNj">Persona:</label>
     <select id="personaNj">
@@ -109,11 +114,17 @@
     <label for="noCorregimiento">Corregimiento:</label>
     <input id="noCorregimiento" type="number" placeholder="Corregimiento">
   </div>
-  <input type="hidden" id="noOrigen" value="9">
-  <input type="hidden" id="noPlazo" value="1">
+  <div class="form-group">
+    <label for="noOrigen">Origen:</label>
+    <input id="noOrigen" type="number" placeholder="Portal">
+  </div>
+  <div class="form-group">
+    <label for="noPlazo">Plazo:</label>
+    <input id="noPlazo" type="number" placeholder="Corriente">
+  </div>
   <div class="actions">
     <button onclick="crearCliente()">Registrar Cliente</button>
-    <button onclick="consultarCliente()">Consultar Cliente</button>
+    <!-- <button onclick="consultarCliente()">Consultar Cliente</button> -->
   </div>
   <div id="mensaje" style="margin-top:20px;color:green;font-weight:bold;"></div>
   <ul id="clientes-list"></ul>

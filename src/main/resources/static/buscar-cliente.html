@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Buscar Cliente</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0; }
+        .container { max-width: 500px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 2em; }
+        h2 { text-align: center; color: #333; }
+        label { display: block; margin-top: 1em; color: #555; }
+        input[type="text"], input[type="number"] { width: 100%; padding: 0.5em; margin-top: 0.2em; border: 1px solid #ccc; border-radius: 4px; }
+        button { margin-top: 1.5em; width: 100%; padding: 0.7em; background: #1976d2; color: #fff; border: none; border-radius: 4px; font-size: 1em; cursor: pointer; }
+        button:hover { background: #125ea2; }
+        .result { margin-top: 2em; padding: 1em; background: #e3f2fd; border-radius: 6px; }
+        .error { color: #c62828; background: #ffebee; padding: 1em; border-radius: 6px; margin-top: 2em; }
+        .field { margin-bottom: 0.7em; }
+        .field span { font-weight: bold; color: #1976d2; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Buscar Cliente</h2>
+    <form id="buscarForm">
+        <label for="noCia">Número de Compañía:</label>
+        <input type="number" id="noCia" name="noCia" required>
+        <label for="noCliente">Número de Cliente:</label>
+        <input type="number" id="noCliente" name="noCliente" required>
+        <label for="grupo">Grupo:</label>
+        <input type="text" id="grupo" name="grupo" required>
+        <button type="submit">Buscar</button>
+    </form>
+    <div id="resultado"></div>
+</div>
+<script>
+    document.getElementById('buscarForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const noCia = document.getElementById('noCia').value;
+        const noCliente = document.getElementById('noCliente').value;
+        const grupo = document.getElementById('grupo').value;
+        const resultado = document.getElementById('resultado');
+        resultado.innerHTML = '';
+        try {
+            const res = await fetch(`/api/clientes/buscar?noCia=${noCia}&noCliente=${noCliente}&grupo=${encodeURIComponent(grupo)}`);
+            const data = await res.json();
+            if (data.mensaje) {
+                resultado.innerHTML = `<div class="error">${data.mensaje}</div>`;
+            } else {
+                resultado.innerHTML = `
+                  <div class="result">
+                    <div class="field"><span>Nombre:</span> ${data.nombre || ''}</div>
+                    <div class="field"><span>Dirección:</span> ${data.direccion || ''}</div>
+                    <div class="field"><span>Teléfono:</span> ${data.telefono || ''}</div>
+                    <div class="field"><span>Email:</span> ${data.email1 || ''}</div>
+                    <div class="field"><span>RUC/Cédula:</span> ${data.rucCedula || ''}</div>
+                    <div class="field"><span>Grupo:</span> ${data.id && data.id.grupo ? data.id.grupo : ''}</div>
+                    <div class="field"><span>No. Cliente:</span> ${data.id && data.id.noCliente ? data.id.noCliente : ''}</div>
+                    <div class="field"><span>No. Compañía:</span> ${data.id && data.id.noCia ? data.id.noCia : ''}</div>
+                  </div>
+                `;
+            }
+        } catch (err) {
+            resultado.innerHTML = `<div class="error">Error al buscar el cliente.</div>`;
+        }
+    });
+</script>
+</body>
+</html>

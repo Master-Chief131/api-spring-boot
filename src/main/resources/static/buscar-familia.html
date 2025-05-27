@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Buscar Familias</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0; }
+    .container { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 2em; }
+    h2 { text-align: center; color: #333; }
+    label { display: block; margin-top: 1em; color: #555; }
+    input[type="text"], input[type="number"] { width: 100%; padding: 0.5em; margin-top: 0.2em; border: 1px solid #ccc; border-radius: 4px; }
+    button { margin-top: 1.5em; width: 100%; padding: 0.7em; background: #1976d2; color: #fff; border: none; border-radius: 4px; font-size: 1em; cursor: pointer; }
+    button:hover { background: #125ea2; }
+    table { width: 100%; border-collapse: collapse; margin-top: 2em; }
+    th, td { padding: 0.7em; border-bottom: 1px solid #e0e0e0; text-align: left; }
+    th { background: #e3f2fd; color: #1976d2; }
+    tr:last-child td { border-bottom: none; }
+    .error { color: #c62828; background: #ffebee; padding: 1em; border-radius: 6px; margin-top: 2em; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>Buscar Familias</h2>
+  <form id="buscarFamiliaForm">
+    <label for="criterio">Buscar por nombre o código (opcional):</label>
+    <input type="text" id="criterio" name="criterio" placeholder="Ej: nombre, código...">
+    <button type="submit">Buscar</button>
+  </form>
+  <div id="resultado"></div>
+</div>
+<script>
+  document.getElementById('buscarFamiliaForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const criterio = document.getElementById('criterio').value.trim();
+    const resultado = document.getElementById('resultado');
+    resultado.innerHTML = '';
+    let url = '/api/familias-producto'; // Ajusta el endpoint si es necesario
+    if (criterio) {
+      url += `?q=${encodeURIComponent(criterio)}`;
+    }
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      if (!Array.isArray(data) || data.length === 0) {
+        resultado.innerHTML = '<div class="error">No se encontraron familias.</div>';
+        return;
+      }
+      let html = `<table><thead><tr><th>Código Familia</th><th>Nombre Familia</th><th>Código Subfamilia</th><th>Nombre Subfamilia</th></tr></thead><tbody>`;
+      data.forEach(fam => {
+        // Mostrar familia y subfamilia, ignorar sub subfamilia
+        if (fam.subfamilias && Array.isArray(fam.subfamilias) && fam.subfamilias.length > 0) {
+          fam.subfamilias.forEach(sub => {
+            html += `<tr><td>${fam.noFamilia || ''}</td><td>${fam.nombre || fam.nombreFamilia || ''}</td><td>${sub.noSubfamilia || ''}</td><td>${sub.nombre || sub.nombreSubfamilia || ''}</td></tr>`;
+          });
+        } else {
+          html += `<tr><td>${fam.noFamilia || ''}</td><td>${fam.nombre || fam.nombreFamilia || ''}</td><td>-</td><td>-</td></tr>`;
+        }
+      });
+      html += '</tbody></table>';
+      resultado.innerHTML = html;
+    } catch (err) {
+      resultado.innerHTML = '<div class="error">Error al buscar familias.</div>';
+    }
+  });
+</script>
+</body>
+</html>

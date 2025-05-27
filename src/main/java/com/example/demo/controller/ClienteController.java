@@ -90,7 +90,7 @@ public class ClienteController {
             + "?, ?, ?, ?, ?,\n"   // 51-55
             + "?, ?, ?, ?, ?,\n"   // 56-60
             + "?, ?, ?, ?, ?,\n"   // 61-65
-            + "?, ?)}"; // 66-67
+            + "?, ?, ?, ?)}"; // 66-69 (agregados dos más)
     Map<Integer, Object> valoresEnviados = new HashMap<>();
     try (java.sql.Connection conn = dataSource.getConnection();
          java.sql.CallableStatement stmt = conn.prepareCall(sql)) {
@@ -196,8 +196,9 @@ public class ClienteController {
       stmt.setString(idx, cliente.getIndSexo()); valoresEnviados.put(idx++, cliente.getIndSexo());
       // 69: pvalidar_morosidad_contado
       stmt.setString(idx, cliente.getValidarMorosidadContado()); valoresEnviados.put(idx++, cliente.getValidarMorosidadContado());
-      // 67: pcompania_inter_cia
       stmt.setObject(idx, cliente.getCompaniaInterCia()); valoresEnviados.put(idx++, cliente.getCompaniaInterCia());
+      stmt.setObject(idx, null); valoresEnviados.put(idx++, null);
+      stmt.setObject(idx, null); valoresEnviados.put(idx++, null);
 
       // DEBUG: Mostrar el JSON recibido
       System.out.println("DEBUG: JSON recibido en registrarDesdePortal: " + new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(cliente));

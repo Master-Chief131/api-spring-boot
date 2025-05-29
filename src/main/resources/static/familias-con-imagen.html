@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Familias con Imagen</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0; }
+    .container { max-width: 900px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 2em; }
+    h2 { text-align: center; color: #333; }
+    .familias-grid { display: flex; flex-wrap: wrap; gap: 2em; justify-content: center; margin-top: 2em; }
+    .familia-card { background: #e3f2fd; border-radius: 8px; box-shadow: 0 1px 4px #0001; padding: 1.5em; width: 220px; display: flex; flex-direction: column; align-items: center; transition: box-shadow 0.2s; }
+    .familia-card:hover { box-shadow: 0 4px 16px #0002; }
+    .familia-img { width: 120px; height: 120px; object-fit: contain; border-radius: 6px; background: #fff; border: 1px solid #b3c6e0; margin-bottom: 1em; }
+    .familia-nombre { font-size: 1.1em; font-weight: bold; color: #1976d2; margin-bottom: 0.5em; text-align: center; }
+    .familia-codigo { color: #555; font-size: 0.95em; margin-bottom: 0.5em; }
+    .sin-imagen { color: #b0b0b0; font-size: 0.9em; margin-bottom: 1em; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>Familias de Productos</h2>
+  <div id="familias" class="familias-grid"></div>
+</div>
+<script>
+async function cargarFamilias() {
+  const contenedor = document.getElementById('familias');
+  contenedor.innerHTML = '<div>Cargando...</div>';
+  try {
+    const res = await fetch('/api/familias-producto');
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) {
+      contenedor.innerHTML = '<div>No hay familias para mostrar.</div>';
+      return;
+    }
+    contenedor.innerHTML = '';
+    data.forEach(fam => {
+      const card = document.createElement('div');
+      card.className = 'familia-card';
+      if (fam.imagenUrl) {
+        card.innerHTML += `<img class="familia-img" src="${fam.imagenUrl}" alt="Imagen Familia">`;
+      } else {
+        card.innerHTML += `<div class="familia-img sin-imagen">Sin imagen</div>`;
+      }
+      card.innerHTML += `<div class="familia-nombre">${fam.nombre || ''}</div>`;
+      card.innerHTML += `<div class="familia-codigo">Código: ${fam.noFamilia || ''}</div>`;
+      contenedor.appendChild(card);
+    });
+  } catch (err) {
+    contenedor.innerHTML = '<div>Error al cargar familias.</div>';
+  }
+}
+cargarFamilias();
+</script>
+</body>
+</html>

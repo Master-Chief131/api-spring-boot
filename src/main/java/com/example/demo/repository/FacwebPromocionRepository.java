@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface FacwebPromocionRepository extends JpaRepository<FacwebPromocion, FacwebPromocionId> {
     List<FacwebPromocion> findByIndActiva(String indActiva);
+    List<FacwebPromocion> findByIndActivaAndNoCia(String indActiva, Integer noCia);
 }

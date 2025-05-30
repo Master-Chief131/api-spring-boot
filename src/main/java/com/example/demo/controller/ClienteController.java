@@ -4,6 +4,9 @@ import com.example.demo.entity.Cliente;
 import com.example.demo.entity.ClienteId;
 import com.example.demo.repository.ClienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,8 +32,13 @@ public class ClienteController {
   }
 
   @GetMapping
-  public List<Cliente> getAll() {
-    return repository.findAll();
+  public Page<Cliente> getAll(@RequestParam(required = false) Integer noCia, Pageable pageable) {
+    if (noCia != null) {
+      Specification<Cliente> spec = (root, query, cb) -> cb.equal(root.get("id").get("noCia"), noCia);
+      return repository.findAll(spec, pageable);
+    } else {
+      return repository.findAll(pageable);
+    }
   }
 
   @GetMapping("/{noCia}/{noCliente}/{grupo}")

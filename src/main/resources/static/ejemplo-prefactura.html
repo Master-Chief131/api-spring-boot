@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Ejemplo Prefactura Pedido</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0; }
+    .container { max-width: 900px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 2em; }
+    h2 { text-align: center; color: #333; }
+    form { display: flex; flex-wrap: wrap; gap: 1.5em; }
+    .form-group { flex: 1 1 300px; min-width: 250px; display: flex; flex-direction: column; }
+    label { margin-bottom: 6px; color: #555; }
+    input, select, textarea { padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 10px; }
+    .row { display: flex; gap: 1em; }
+    .row > * { flex: 1; }
+    .actions { width: 100%; text-align: center; margin-top: 2em; }
+    button { padding: 12px 28px; font-size: 16px; border-radius: 8px; background: #1976d2; color: #fff; border: none; cursor: pointer; }
+    button:hover { background: #125ea2; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>Registro de Prefactura de Pedido (Ejemplo)</h2>
+  <form id="prefacturaForm">
+    <div class="form-group">
+      <label for="tipo_registro">Tipo Registro:</label>
+      <input type="text" id="tipo_registro" name="tipo_registro">
+    </div>
+    <div class="form-group">
+      <label for="fecha">Fecha de registro:</label>
+      <input type="text" id="fecha" name="fecha" readonly>
+    </div>
+    <div class="form-group">
+      <label for="no_cia">Compañía:</label>
+      <input type="text" id="no_cia" name="no_cia">
+    </div>
+    <div class="form-group">
+      <label for="no_sucursal_v">Sucursal de Venta:</label>
+      <input type="text" id="no_sucursal_v" name="no_sucursal_v">
+    </div>
+    <div class="form-group">
+      <label for="no_sucursal">Sucursal Inv:</label>
+      <input type="text" id="no_sucursal" name="no_sucursal">
+    </div>
+    <div class="form-group">
+      <label for="no_bodega">Bodega Inv:</label>
+      <input type="text" id="no_bodega" name="no_bodega">
+    </div>
+    <div class="form-group">
+      <label for="no_prefactura">No Pre-Factura:</label>
+      <input type="text" id="no_prefactura" name="no_prefactura" readonly>
+    </div>
+    <div class="form-group">
+      <label for="inter_compania">Inter Compañía:</label>
+      <input type="text" id="inter_compania" name="inter_compania">
+    </div>
+    <div class="form-group">
+      <label for="cia_destino">Compañía destino:</label>
+      <input type="text" id="cia_destino" name="cia_destino">
+    </div>
+    <div class="form-group">
+      <label for="sucursal_destino">Sucursal destino:</label>
+      <input type="text" id="sucursal_destino" name="sucursal_destino">
+    </div>
+    <div class="form-group">
+      <label for="cliente">Cliente:</label>
+      <input type="text" id="cliente" name="cliente">
+    </div>
+    <div class="form-group">
+      <label for="nom_cliente">Nombre Cliente:</label>
+      <input type="text" id="nom_cliente" name="nom_cliente" readonly>
+    </div>
+    <div class="form-group">
+      <label for="ruc_cedula">RUC/Cédula:</label>
+      <input type="text" id="ruc_cedula" name="ruc_cedula" readonly>
+    </div>
+    <div class="form-group">
+      <label for="email">Correo del Cliente:</label>
+      <input type="email" id="email" name="email">
+    </div>
+    <div class="form-group">
+      <label for="tipo_factura">Tipo Factura:</label>
+      <input type="text" id="tipo_factura" name="tipo_factura">
+    </div>
+    <div class="form-group">
+      <label for="no_plazo">Plazo:</label>
+      <input type="text" id="no_plazo" name="no_plazo">
+    </div>
+    <div class="form-group">
+      <label for="xreferido">Referido:</label>
+      <input type="text" id="xreferido" name="xreferido">
+    </div>
+    <div class="form-group">
+      <label for="xno_vendedor">Vendedor:</label>
+      <input type="text" id="xno_vendedor" name="xno_vendedor">
+    </div>
+    <div class="form-group">
+      <label for="fetipo_venta">Tipo de Venta:</label>
+      <input type="text" id="fetipo_venta" name="fetipo_venta">
+    </div>
+    <div class="form-group">
+      <label for="no_orden_compra"># Orden de Compra:</label>
+      <input type="text" id="no_orden_compra" name="no_orden_compra">
+    </div>
+    <div class="form-group">
+      <label for="ind_localidad">Pedido Exterior:</label>
+      <input type="text" id="ind_localidad" name="ind_localidad">
+    </div>
+    <div class="form-group">
+      <label for="fecha_entrega">Fecha de Entrega:</label>
+      <input type="text" id="fecha_entrega" name="fecha_entrega">
+    </div>
+    <div class="form-group" style="flex-basis: 100%;">
+      <label for="observacion">Observación:</label>
+      <textarea id="observacion" name="observacion" rows="2"></textarea>
+    </div>
+    <div class="form-group" style="flex-basis: 100%; border-top:1px solid #eee; margin-top:2em; padding-top:1em;">
+      <label style="font-weight:bold;">Detalle de la Prefactura</label>
+      <div class="row">
+        <div class="form-group">
+          <label for="modo_lectura">Modo de lectura:</label>
+          <select id="modo_lectura" name="modo_lectura">
+            <option value="articulo">Artículo</option>
+            <option value="servicio">Servicio</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="codigo_detalle">Código:</label>
+          <input type="text" id="codigo_detalle" name="codigo_detalle">
+        </div>
+        <div class="form-group">
+          <label for="cantidad_detalle">Cantidad:</label>
+          <input type="number" id="cantidad_detalle" name="cantidad_detalle" min="1" value="1">
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <button type="submit">Registrar Prefactura</button>
+    </div>
+  </form>
+</div>
+</body>
+</html>

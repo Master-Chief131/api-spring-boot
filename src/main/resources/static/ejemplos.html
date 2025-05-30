@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Ejemplos de Pantallas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 2em; }
+    h2 { text-align: center; color: #333; }
+    .botones { display: flex; flex-direction: column; gap: 1.5em; margin-top: 2em; }
+    .ejemplo-btn { padding: 1em 2em; font-size: 1.1em; border-radius: 6px; border: none; background: #1976d2; color: #fff; cursor: pointer; transition: background 0.2s; }
+    .ejemplo-btn:hover { background: #125ea2; }
+    .volver { margin-top: 2em; text-align: center; }
+    .volver button { background: #888; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>Ejemplos de Pantallas</h2>
+  <div class="botones">
+    <button class="ejemplo-btn" onclick="window.location.href='buscar-cliente.html'">Buscar Cliente</button>
+    <button class="ejemplo-btn" onclick="window.location.href='buscar-familia.html'">Buscar Familia</button>
+    <button class="ejemplo-btn" onclick="window.location.href='familias-con-imagen.html'">Familias con Imagen</button>
+    <button class="ejemplo-btn" onclick="window.location.href='clientes.html'">Gestión de Clientes</button>
+    <button class="ejemplo-btn" onclick="window.location.href='ejemplo-prefactura.html'">Ejemplo Prefactura Pedido</button>
+  </div>
+  <div class="volver">
+    <button class="ejemplo-btn" onclick="window.location.href='index.html'">Volver al inicio</button>
+  </div>
+</div>
+</body>
+</html>

@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface InvwebBodegaRepository extends JpaRepository<InvwebBodega, BodegaId> {
     List<InvwebBodega> findByVerPortal(String verPortal);
+    List<InvwebBodega> findByVerPortalAndNoCia(String verPortal, Integer noCia);
 }

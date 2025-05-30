@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface InvwebSucursalRepository extends JpaRepository<InvwebSucursal, SucursalId> {
     List<InvwebSucursal> findByVerPortal(String verPortal);
+    List<InvwebSucursal> findByVerPortalAndNoCia(String verPortal, Integer noCia);
 }

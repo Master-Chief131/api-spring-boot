@@ -45,6 +45,9 @@ public class InvwebFamilia implements Serializable {
     @Column(name = "centro_costo", length = 9)
     private String centroCosto;
 
+    @Transient
+    private String imagenUrl;
+
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumns({
         @JoinColumn(name = "NO_CIA", referencedColumnName = "NO_CIA", insertable = false, updatable = false),
@@ -87,6 +90,9 @@ public class InvwebFamilia implements Serializable {
 
     public String getCentroCosto() { return centroCosto; }
     public void setCentroCosto(String centroCosto) { this.centroCosto = centroCosto; }
+
+    public String getImagenUrl() { return imagenUrl; }
+    public void setImagenUrl(String imagenUrl) { this.imagenUrl = imagenUrl; }
 
     public java.util.List<InvwebSubfamilia> getSubfamilias() { return subfamilias; }
     public void setSubfamilias(java.util.List<InvwebSubfamilia> subfamilias) { this.subfamilias = subfamilias; }

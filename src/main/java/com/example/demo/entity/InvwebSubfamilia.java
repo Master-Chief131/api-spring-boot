@@ -31,6 +31,9 @@ public class InvwebSubfamilia implements Serializable {
     @Column(name = "secuencia")
     private Integer secuencia;
 
+    @Transient
+    private String imagenUrl;
+
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumns({
         @JoinColumn(name = "no_cia", referencedColumnName = "no_cia", insertable = false, updatable = false),
@@ -59,6 +62,9 @@ public class InvwebSubfamilia implements Serializable {
 
     public Integer getSecuencia() { return secuencia; }
     public void setSecuencia(Integer secuencia) { this.secuencia = secuencia; }
+
+    public String getImagenUrl() { return imagenUrl; }
+    public void setImagenUrl(String imagenUrl) { this.imagenUrl = imagenUrl; }
 
     public java.util.List<InvwebSubSubfamilia> getSubSubfamilias() { return subSubfamilias; }
     public void setSubSubfamilias(java.util.List<InvwebSubSubfamilia> subSubfamilias) { this.subSubfamilias = subSubfamilias; }

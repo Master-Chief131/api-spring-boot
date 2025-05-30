@@ -65,7 +65,7 @@ public class PrefacturaController {
                     stmt.setString(idx++, null); // pestatus
                     stmt.setString(idx++, request.getObservacion());
                     // DETALLE (por cada línea)
-                    stmt.registerOutParameter(idx, java.sql.Types.VARCHAR); // plinea_l (INOUT)
+                    stmt.setString(idx++, null); // plinea_l (IN, no OUT)
                     stmt.setString(idx++, detalle.getCodigo()); // pno_articulo_l
                     stmt.setBigDecimal(idx++, java.math.BigDecimal.valueOf(detalle.getCantidad())); // pcantidad_l
                     stmt.setString(idx++, null); // pcod_barra_l

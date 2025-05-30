@@ -29,7 +29,7 @@
     </div>
     <div class="form-group">
       <label for="fecha">Fecha de registro:</label>
-      <input type="text" id="fecha" name="fecha" readonly>
+      <input type="text" id="fecha" name="fecha">
     </div>
     <div class="form-group">
       <label for="no_cia">Compañía:</label>
@@ -61,7 +61,7 @@
     </div>
     <div class="form-group">
       <label for="sucursal_destino">Sucursal destino:</label>
-      <input type="text" id="sucursal_destino" name="sucursal_destino">
+      <input type="text" id="sucursal_destino">
     </div>
     <div class="form-group">
       <label for="cliente">Cliente:</label>
@@ -69,11 +69,11 @@
     </div>
     <div class="form-group">
       <label for="nom_cliente">Nombre Cliente:</label>
-      <input type="text" id="nom_cliente" name="nom_cliente" readonly>
+      <input type="text" id="nom_cliente" name="nom_cliente">
     </div>
     <div class="form-group">
       <label for="ruc_cedula">RUC/Cédula:</label>
-      <input type="text" id="ruc_cedula" name="ruc_cedula" readonly>
+      <input type="text" id="ruc_cedula" name="ruc_cedula">
     </div>
     <div class="form-group">
       <label for="email">Correo del Cliente:</label>
@@ -133,6 +133,22 @@
           <label for="cantidad_detalle">Cantidad:</label>
           <input type="number" id="cantidad_detalle" name="cantidad_detalle" min="1" value="1">
         </div>
+        <div class="form-group" style="align-self: flex-end;">
+          <button type="button" id="addDetalle" style="background:#43a047;">Agregar Detalle</button>
+        </div>
+      </div>
+      <div style="margin-top:1em;">
+        <table id="detalleTable" style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr style="background:#f0f0f0;">
+              <th>Modo</th>
+              <th>Código</th>
+              <th>Cantidad</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       </div>
     </div>
     <div class="actions">
@@ -140,5 +156,90 @@
     </div>
   </form>
 </div>
+<script>
+const detalles = [];
+const detalleTableBody = document.querySelector('#detalleTable tbody');
+
+function renderDetalles() {
+  detalleTableBody.innerHTML = '';
+  detalles.forEach((d, i) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${d.modoLectura}</td>
+      <td>${d.codigo}</td>
+      <td>${d.cantidad}</td>
+      <td><button type="button" onclick="removeDetalle(${i})" style="background:#e53935;color:#fff;border:none;padding:4px 10px;border-radius:4px;">Eliminar</button></td>
+    `;
+    detalleTableBody.appendChild(row);
+  });
+}
+window.removeDetalle = function(idx) {
+  detalles.splice(idx, 1);
+  renderDetalles();
+};
+document.getElementById('addDetalle').onclick = function() {
+  const modo = document.getElementById('modo_lectura').value;
+  const codigo = document.getElementById('codigo_detalle').value.trim();
+  const cantidad = parseInt(document.getElementById('cantidad_detalle').value, 10);
+  if (!codigo || isNaN(cantidad) || cantidad < 1) {
+    alert('Ingrese código y cantidad válida');
+    return;
+  }
+  detalles.push({ modoLectura: modo, codigo, cantidad });
+  renderDetalles();
+  document.getElementById('codigo_detalle').value = '';
+  document.getElementById('cantidad_detalle').value = 1;
+};
+document.getElementById('prefacturaForm').onsubmit = async function(e) {
+  e.preventDefault();
+  if (detalles.length === 0) {
+    alert('Agregue al menos un detalle');
+    return;
+  }
+  const form = e.target;
+  const data = {
+    tipoRegistro: form.tipo_registro.value,
+    fecha: form.fecha.value,
+    noCia: form.no_cia.value,
+    noSucursalV: form.no_sucursal_v.value,
+    noSucursal: form.no_sucursal.value,
+    noBodega: form.no_bodega.value,
+    noPrefactura: form.no_prefactura.value,
+    interCompania: form.inter_compania.value,
+    ciaDestino: form.cia_destino.value,
+    sucursalDestino: form.sucursal_destino.value,
+    cliente: form.cliente.value,
+    nomCliente: form.nom_cliente.value,
+    rucCedula: form.ruc_cedula.value,
+    email: form.email.value,
+    tipoFactura: form.tipo_factura.value,
+    noPlazo: form.no_plazo.value,
+    xreferido: form.xreferido.value,
+    xnoVendedor: form.xno_vendedor.value,
+    fetipoVenta: form.fetipo_venta.value,
+    noOrdenCompra: form.no_orden_compra.value,
+    indLocalidad: form.ind_localidad.value,
+    fechaEntrega: form.fecha_entrega.value,
+    observacion: form.observacion.value,
+    detalle: detalles
+  };
+  try {
+    const resp = await fetch('/api/prefactura-db', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const text = await resp.text();
+    alert(text);
+    if (resp.ok) {
+      detalles.length = 0;
+      renderDetalles();
+      form.reset();
+    }
+  } catch (err) {
+    alert('Error al enviar la prefactura');
+  }
+};
+</script>
 </body>
 </html>

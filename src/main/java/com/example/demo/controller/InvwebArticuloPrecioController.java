@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.sql.ResultSet;
@@ -20,14 +21,20 @@ public class InvwebArticuloPrecioController {
     private JdbcTemplate jdbcTemplate;
 
     @GetMapping
-    public List<ListaPrecioDTO> getListaPrecios() {
+    public ListaPrecioPage getListaPrecios(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
         String sql = "SELECT a.no_articulo, a.nombre_largo, ma.nombre AS marca, fa.nombre AS familia, " +
                 "d.precio_base, d.precio_venta, d.porcentaje, d.no_grupo " +
                 "FROM invweb_articulo a " +
                 "LEFT JOIN facweb_descuento d ON a.no_cia = d.no_cia AND a.no_articulo = d.no_articulo AND d.tipo = 'A' " +
                 "LEFT JOIN invweb_marca ma ON ma.no_cia = a.no_cia AND ma.no_marca = a.no_marca " +
                 "LEFT JOIN invweb_familia fa ON fa.no_cia = a.no_cia AND fa.no_familia = a.no_familia ";
-        return jdbcTemplate.query(sql, new ListaPrecioRowMapper());
+        String countSql = "SELECT COUNT(*) FROM invweb_articulo a ";
+        Integer totalObj = jdbcTemplate.queryForObject(countSql, Integer.class);
+        int total = totalObj != null ? totalObj : 0;
+        int offset = page * size;
+        sql += " LIMIT " + size + " OFFSET " + offset;
+        List<ListaPrecioDTO> content = jdbcTemplate.query(sql, new ListaPrecioRowMapper());
+        return new ListaPrecioPage(content, page, size, total);
     }
 
     public static class ListaPrecioDTO {
@@ -54,6 +61,21 @@ public class InvwebArticuloPrecioController {
             dto.porcentaje = rs.getBigDecimal("porcentaje");
             dto.noGrupo = rs.getObject("no_grupo") != null ? rs.getInt("no_grupo") : null;
             return dto;
+        }
+    }
+
+    public static class ListaPrecioPage {
+        public List<ListaPrecioDTO> content;
+        public int page;
+        public int size;
+        public int totalElements;
+        public int totalPages;
+        public ListaPrecioPage(List<ListaPrecioDTO> content, int page, int size, int totalElements) {
+            this.content = content;
+            this.page = page;
+            this.size = size;
+            this.totalElements = totalElements;
+            this.totalPages = (int) Math.ceil((double) totalElements / size);
         }
     }
 }

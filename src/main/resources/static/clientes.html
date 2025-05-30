@@ -139,17 +139,17 @@
       }
       window.location.href = `/api/clientes/buscar?noCia=${noCia}&noCliente=${noCliente}&grupo=${grupo}`;
     }
-    async function cargarClientes() {
-      const res = await fetch('/api/clientes');
-      const clientes = await res.json();
-      const lista = document.getElementById('clientes-list');
-      lista.innerHTML = '';
-      clientes.forEach(c => {
-        const li = document.createElement('li');
-        li.innerText = `${c.nombre} (${c.telefono})`;
-        lista.appendChild(li);
-      });
-    }
+    // async function cargarClientes() {
+    //   const res = await fetch('/api/clientes');
+    //   const clientes = await res.json();
+    //   const lista = document.getElementById('clientes-list');
+    //   lista.innerHTML = '';
+    //   clientes.forEach(c => {
+    //     const li = document.createElement('li');
+    //     li.innerText = `${c.nombre} (${c.telefono})`;
+    //     lista.appendChild(li);
+    //   });
+    // }
     async function crearCliente() {
       const noCia = parseInt(document.getElementById('noCia').value);
       const noCliente = parseInt(document.getElementById('noCliente').value);

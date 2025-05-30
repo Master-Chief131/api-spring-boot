@@ -6,6 +6,7 @@ import com.example.demo.repository.InvwebFamiliaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -32,13 +33,13 @@ public class InvwebArticuloController {
     }
 
     @GetMapping
-    public List<ArticuloDTO> getArticulos() {
+    public ArticuloPage getArticulos(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
         // Obtener todas las familias con ver_portal = 'S' de una sola vez
         var familiasPortal = familiaRepository.findByVerPortal("S");
         var familiasValidas = familiasPortal.stream()
             .map(f -> new com.example.demo.entity.FamiliaId(f.getNoCia(), f.getNoFamilia()))
             .collect(java.util.stream.Collectors.toSet());
-        return articuloRepository.findAll().stream()
+        var articulosFiltrados = articuloRepository.findAll().stream()
             .filter(a -> a.getNoFamilia() != null && familiasValidas.contains(new com.example.demo.entity.FamiliaId(a.getNoCia(), a.getNoFamilia())))
             .map(a -> {
                 ArticuloDTO dto = new ArticuloDTO();
@@ -52,5 +53,25 @@ public class InvwebArticuloController {
                 dto.subsubfamilia = a.getNoSubSubfamilia();
                 return dto;
             }).collect(java.util.stream.Collectors.toList());
+        int total = articulosFiltrados.size();
+        int fromIndex = Math.min(page * size, total);
+        int toIndex = Math.min(fromIndex + size, total);
+        List<ArticuloDTO> content = articulosFiltrados.subList(fromIndex, toIndex);
+        return new ArticuloPage(content, page, size, total);
+    }
+
+    public static class ArticuloPage {
+        public List<ArticuloDTO> content;
+        public int page;
+        public int size;
+        public int totalElements;
+        public int totalPages;
+        public ArticuloPage(List<ArticuloDTO> content, int page, int size, int totalElements) {
+            this.content = content;
+            this.page = page;
+            this.size = size;
+            this.totalElements = totalElements;
+            this.totalPages = (int) Math.ceil((double) totalElements / size);
+        }
     }
 }

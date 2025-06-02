@@ -35,7 +35,7 @@
     const criterio = document.getElementById('criterio').value.trim();
     const resultado = document.getElementById('resultado');
     resultado.innerHTML = '';
-    let url = '/api/familias-producto'; // Ajusta el endpoint si es necesario
+    let url = 'api/familias-producto'; // Ajusta el endpoint si es necesario
     if (criterio) {
       url += `?q=${encodeURIComponent(criterio)}`;
     }

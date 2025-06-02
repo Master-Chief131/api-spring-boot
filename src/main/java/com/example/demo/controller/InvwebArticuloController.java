@@ -35,11 +35,12 @@ public class InvwebArticuloController {
     @GetMapping
     public ArticuloPage getArticulos(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
         // Obtener todas las familias con ver_portal = 'S' de una sola vez
-        var familiasPortal = familiaRepository.findByVerPortal("S");
-        var familiasValidas = familiasPortal.stream()
+        List<com.example.demo.entity.InvwebFamilia> familiasPortal = familiaRepository.findByVerPortal("S");
+        java.util.Set<com.example.demo.entity.FamiliaId> familiasValidas = familiasPortal.stream()
             .map(f -> new com.example.demo.entity.FamiliaId(f.getNoCia(), f.getNoFamilia()))
             .collect(java.util.stream.Collectors.toSet());
-        var articulosFiltrados = articuloRepository.findAll().stream()
+        List<InvwebArticulo> articulos = articuloRepository.findAll();
+        List<ArticuloDTO> articulosFiltrados = articulos.stream()
             .filter(a -> a.getNoFamilia() != null && familiasValidas.contains(new com.example.demo.entity.FamiliaId(a.getNoCia(), a.getNoFamilia())))
             .map(a -> {
                 ArticuloDTO dto = new ArticuloDTO();

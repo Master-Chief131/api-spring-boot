@@ -115,12 +115,12 @@
     <input id="noCorregimiento" type="number" placeholder="Corregimiento">
   </div>
   <div class="form-group">
-    <label for="noOrigen">Origen:</label>
-    <input id="noOrigen" type="number" placeholder="Portal">
+    <label for="noOrigen">Origen (Portal):</label>
+    <input id="noOrigen" type="number" value="9" placeholder="Portal" readonly>
   </div>
   <div class="form-group">
     <label for="noPlazo">Plazo:</label>
-    <input id="noPlazo" type="number" placeholder="Corriente">
+    <input id="noPlazo" type="number" value="6" placeholder="Corriente">
   </div>
   <div class="actions">
     <button onclick="crearCliente()">Registrar Cliente</button>
@@ -137,10 +137,10 @@
         document.getElementById('mensaje').innerText = 'Debes ingresar No. Compañía, No. Cliente y Grupo';
         return;
       }
-      window.location.href = `/api/clientes/buscar?noCia=${noCia}&noCliente=${noCliente}&grupo=${grupo}`;
+      window.location.href = 'api/clientes/buscar?noCia=' + noCia + '&noCliente=' + noCliente + '&grupo=' + grupo;
     }
     async function cargarClientes() {
-      const res = await fetch('/api/clientes');
+      const res = await fetch('api/clientes');
       const clientes = await res.json();
       const lista = document.getElementById('clientes-list');
       lista.innerHTML = '';
@@ -177,7 +177,7 @@
       const mensaje = document.getElementById('mensaje');
       mensaje.innerText = '';
       try {
-        await fetch('/api/clientes/registro-portal', {
+        await fetch('api/clientes/registro-portal', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({

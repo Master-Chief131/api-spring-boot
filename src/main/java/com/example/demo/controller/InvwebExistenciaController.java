@@ -36,7 +36,7 @@ public class InvwebExistenciaController {
                 .collect(Collectors.toSet());
         }
         Page<InvwebExistencia> existencias = existenciaRepository.findAll(pageable);
-        var filtradas = existencias.getContent().stream()
+        java.util.List<InvwebExistencia> filtradas = existencias.getContent().stream()
             .filter(e -> bodegasClave.contains(e.getNoCia() + ":" + e.getNoSucursal() + ":" + e.getNoBodega()))
             .collect(Collectors.toList());
         return new ExistenciaPage(filtradas, pageable.getPageNumber(), pageable.getPageSize(), existencias.getTotalElements());

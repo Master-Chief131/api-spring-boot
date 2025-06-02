@@ -41,7 +41,7 @@
         const resultado = document.getElementById('resultado');
         resultado.innerHTML = '';
         try {
-            const res = await fetch(`/api/clientes/buscar?noCia=${noCia}&noCliente=${noCliente}&grupo=${encodeURIComponent(grupo)}`);
+            const res = await fetch(`api/clientes/buscar?noCia=${noCia}&noCliente=${noCliente}&grupo=${encodeURIComponent(grupo)}`);
             const data = await res.json();
             if (data.mensaje) {
                 resultado.innerHTML = `<div class="error">${data.mensaje}</div>`;

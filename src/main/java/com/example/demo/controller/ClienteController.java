@@ -78,7 +78,7 @@ public class ClienteController {
   public List<Cliente> getByNoCliente(@PathVariable int noCliente) {
     return repository.findAll().stream()
       .filter(c -> c.getId() != null && c.getId().getNoCliente() == noCliente)
-      .toList();
+      .collect(java.util.stream.Collectors.toList());
   }
 
   @PostMapping("/registro-portal")

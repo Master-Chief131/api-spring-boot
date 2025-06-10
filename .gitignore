@@ -34,3 +34,8 @@ Thumbs.db
 # Others
 *.swp
 *.swo
+
+# tests
+test-persona-juridica-completo.json
+test-persona-juridica-simple.json
+test-persona-natural.json

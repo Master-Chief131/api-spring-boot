@@ -212,15 +212,18 @@ public class ClienteController {
       // Mostrar en consola los valores enviados
       System.out.println("Valores enviados al procedimiento CLIENTE:");
       valoresEnviados.forEach((k, v) -> System.out.println("Parametro " + k + ": " + v));      // Ejecutar
-      stmt.execute();
-      int vSecuencial = stmt.getInt(48); // OUT param en la posición 48
+      stmt.execute();      int vSecuencial = stmt.getInt(48); // OUT param en la posición 48
         // Registrar contacto automáticamente después del cliente exitoso
       Map<String, Object> contactoInfo = registrarContacto(cliente, vSecuencial);
+      
+      // Registrar usuario automáticamente después del contacto exitoso
+      Map<String, Object> usuarioInfo = registrarUsuario(cliente, vSecuencial);
       
       response.put("success", true);
       response.put("mensaje", "Cliente registrado exitosamente. Código generado: " + vSecuencial);
       response.put("V_SECUENCIAL", vSecuencial);
       response.put("contacto_registrado", contactoInfo);
+      response.put("usuario_registrado", usuarioInfo);
       response.put("valores_enviados", valoresEnviados);
     } catch (Exception e) {
       response.put("success", false);
@@ -344,8 +347,201 @@ public class ClienteController {
       contactoInfo.put("success", false);
       contactoInfo.put("mensaje", "Error al registrar contacto: " + e.getMessage());
     }
+      return contactoInfo;
+  }
+
+  private Map<String, Object> registrarUsuario(Cliente cliente, int vSecuencial) {
+    Map<String, Object> usuarioInfo = new HashMap<>();
     
-    return contactoInfo;
+    try {
+      com.example.demo.dto.UsuarioDTO usuarioDTO;
+      
+      // Crear usuario según los datos del cliente o del objeto usuario enviado en el JSON
+      if (cliente.getUsuario() != null) {
+        // Si se envió un objeto usuario en el JSON, usarlo
+        usuarioDTO = cliente.getUsuario();
+      } else {
+        // Si no se envió, crear uno básico con los datos del cliente
+        usuarioDTO = new com.example.demo.dto.UsuarioDTO();
+        usuarioDTO.setUsuario(cliente.getUsuarioWeb() != null ? cliente.getUsuarioWeb() : cliente.getRucCedula());
+        usuarioDTO.setNomUsuario(cliente.getNombre());
+        usuarioDTO.setApeUsuario(cliente.getApellidoCont() != null ? cliente.getApellidoCont() : "");
+        usuarioDTO.setEmail(cliente.getEmail1());
+        usuarioDTO.setClave("123456"); // Clave por defecto
+        usuarioDTO.setIndActivo("S");
+        usuarioDTO.setIndCliente("S");
+      }
+      
+      // Verificar si el usuario ya existe
+      String checkUserSql = "SELECT usuario FROM segweb_usuario WHERE usuario = ?";
+      try (java.sql.Connection conn = dataSource.getConnection();
+           java.sql.PreparedStatement checkStmt = conn.prepareStatement(checkUserSql)) {
+        
+        checkStmt.setString(1, usuarioDTO.getUsuario());
+        java.sql.ResultSet rs = checkStmt.executeQuery();
+        
+        if (rs.next()) {
+          usuarioInfo.put("success", false);
+          usuarioInfo.put("mensaje", "USUARIO: [" + usuarioDTO.getUsuario() + "] YA EXISTE!");
+          return usuarioInfo;
+        }
+      }
+      
+      // Función simple para encriptar clave (similar al servlet original)
+      String claveEncriptada = encriptarClave(usuarioDTO.getClave());
+      
+      // Insertar el usuario
+      String insertSql = "INSERT INTO segweb_usuario " +
+        "(usuario, nom_usuario, ape_usuario, email, " +
+        "ind_activo, ind_cliente, ind_cajero, ind_cobrador, " +
+        "ind_vendedor, frecuencia_cambio_clave, clave, " +
+        "ind_verificar, admon, creado, ind_supervisor, " +
+        "autoriza_descuento, crea_cliente, emite_factura_movil, " +
+        "supervisor_gc, lider_depto, tipo_usuario_helpdesk, toma_fisica, " +
+        "desreferenciar_doc, autoriza_compra, monto_autoriza_hasta, " +
+        "toma_fisica_inv, autoriza_lote_pagos, co_registra_mes_cerrados, " +
+        "cxp_registra_mes_cerrados, cxc_registra_mes_cerrados, " +
+        "autoriza_precio, autoriza_grp_mercado, " +
+        "cxp_procesa_documento, cxc_procesa_documento, formulacion_inv, " +
+        "autoriza_packing_inv, autoriza_entra_packing_inv, modifica_orden_mf, " +
+        "coordina_entrevista, nd_procesa_pago_cliente, " +
+        "fc_cambia_precio, fc_cambia_lprecio, fc_minimo_margen, " +
+        "ind_ver_precios_inventario, fc_registra_nc_sin_fac, " +
+        "fc_fecha_exp_nc_sin_fac, ver_imagenes_portal, ver_graficas_portal, " +
+        "cxc_anular_recibo, fc_registra_costo_devolu, cm_modifica_solicitud, " +
+        "fc_fac_distinta_sucursal, fc_cambia_precio_serv, " +
+        "ba_cierra_conci, ba_reversa_conci, fc_procesar_devolucion, " +
+        "fc_porcentaje_descuento_limite, co_ind_autoriza_cuenta_contable, " +
+        "fc_registra_con_vendedor, ind_cajero_fi, ind_cobrador_fi, " +
+        "ind_procesa_documento_fi, ind_traslado_cuentas, " +
+        "ind_access_all_fi, ind_supervisor_fi, ind_aj_mes_contable) " +
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+      
+      try (java.sql.Connection conn = dataSource.getConnection();
+           java.sql.PreparedStatement stmt = conn.prepareStatement(insertSql)) {
+        
+        int idx = 1;
+        stmt.setString(idx++, usuarioDTO.getUsuario());
+        stmt.setString(idx++, usuarioDTO.getNomUsuario());
+        stmt.setString(idx++, usuarioDTO.getApeUsuario());
+        stmt.setString(idx++, usuarioDTO.getEmail());
+        stmt.setString(idx++, usuarioDTO.getIndActivo() != null ? usuarioDTO.getIndActivo() : "S");
+        stmt.setString(idx++, usuarioDTO.getIndCliente() != null ? usuarioDTO.getIndCliente() : "S");
+        stmt.setString(idx++, usuarioDTO.getIndCajero() != null ? usuarioDTO.getIndCajero() : "N");
+        stmt.setString(idx++, usuarioDTO.getIndCobrador() != null ? usuarioDTO.getIndCobrador() : "N");
+        stmt.setString(idx++, usuarioDTO.getIndVendedor() != null ? usuarioDTO.getIndVendedor() : "N");
+        stmt.setString(idx++, "N"); // frecuencia_cambio_clave
+        stmt.setString(idx++, claveEncriptada);
+        stmt.setString(idx++, "S"); // ind_verificar
+        stmt.setString(idx++, "PORTAL"); // admon
+        stmt.setTimestamp(idx++, new java.sql.Timestamp(new java.util.Date().getTime())); // creado
+        stmt.setString(idx++, usuarioDTO.getIndSupervisor() != null ? usuarioDTO.getIndSupervisor() : "N");
+        stmt.setString(idx++, usuarioDTO.getAutorizaDescuento() != null ? usuarioDTO.getAutorizaDescuento() : "N");
+        stmt.setString(idx++, usuarioDTO.getCreaCliente() != null ? usuarioDTO.getCreaCliente() : "N");
+        stmt.setString(idx++, usuarioDTO.getEmiteFacturaMovil() != null ? usuarioDTO.getEmiteFacturaMovil() : "N");
+        stmt.setString(idx++, usuarioDTO.getSupervisorGc() != null ? usuarioDTO.getSupervisorGc() : "N");
+        stmt.setString(idx++, usuarioDTO.getLiderDepto() != null ? usuarioDTO.getLiderDepto() : "N");
+        stmt.setString(idx++, usuarioDTO.getTipoUsuarioHelpdesk() != null ? usuarioDTO.getTipoUsuarioHelpdesk() : "N");
+        stmt.setString(idx++, usuarioDTO.getTomaFisica() != null ? usuarioDTO.getTomaFisica() : "N");
+        stmt.setString(idx++, usuarioDTO.getDesreferenciarDoc() != null ? usuarioDTO.getDesreferenciarDoc() : "N");
+        stmt.setString(idx++, usuarioDTO.getAutorizaCompra() != null ? usuarioDTO.getAutorizaCompra() : "N");
+        stmt.setString(idx++, usuarioDTO.getMontoAutoriza() != null ? usuarioDTO.getMontoAutoriza() : "0.00");
+        stmt.setString(idx++, usuarioDTO.getTomaFisicaInv() != null ? usuarioDTO.getTomaFisicaInv() : "N");
+        stmt.setString(idx++, usuarioDTO.getAutorizaLotePagos() != null ? usuarioDTO.getAutorizaLotePagos() : "N");
+        stmt.setString(idx++, usuarioDTO.getCoRegistraMesCerrados() != null ? usuarioDTO.getCoRegistraMesCerrados() : "N");
+        stmt.setString(idx++, usuarioDTO.getCxpRegistraMesCerrados() != null ? usuarioDTO.getCxpRegistraMesCerrados() : "N");
+        stmt.setString(idx++, usuarioDTO.getCxcRegistraMesCerrados() != null ? usuarioDTO.getCxcRegistraMesCerrados() : "N");
+        stmt.setString(idx++, usuarioDTO.getAutorizaPrecio() != null ? usuarioDTO.getAutorizaPrecio() : "N");
+        stmt.setString(idx++, usuarioDTO.getAutorizaGrpMercado() != null ? usuarioDTO.getAutorizaGrpMercado() : "N");
+        stmt.setString(idx++, usuarioDTO.getCxpProcesaDocumento() != null ? usuarioDTO.getCxpProcesaDocumento() : "N");
+        stmt.setString(idx++, usuarioDTO.getCxcProcesaDocumento() != null ? usuarioDTO.getCxcProcesaDocumento() : "N");
+        stmt.setString(idx++, usuarioDTO.getFormulacionInv() != null ? usuarioDTO.getFormulacionInv() : "N");
+        stmt.setString(idx++, usuarioDTO.getAutorizaPackingInv() != null ? usuarioDTO.getAutorizaPackingInv() : "N");
+        stmt.setString(idx++, usuarioDTO.getAutorizaEntraPackingInv() != null ? usuarioDTO.getAutorizaEntraPackingInv() : "N");
+        stmt.setString(idx++, usuarioDTO.getOrdenesMs() != null ? usuarioDTO.getOrdenesMs() : "N");
+        stmt.setString(idx++, usuarioDTO.getCoordinaEntrevista() != null ? usuarioDTO.getCoordinaEntrevista() : "N");
+        stmt.setString(idx++, usuarioDTO.getNdProcesaPagoCliente() != null ? usuarioDTO.getNdProcesaPagoCliente() : "N");
+        stmt.setString(idx++, usuarioDTO.getFcCambiaPrecio() != null ? usuarioDTO.getFcCambiaPrecio() : "N");
+        stmt.setString(idx++, usuarioDTO.getFcCambiaLprecio() != null ? usuarioDTO.getFcCambiaLprecio() : "N");
+        stmt.setString(idx++, usuarioDTO.getFcMargenMinimo() != null ? usuarioDTO.getFcMargenMinimo() : "0");
+        stmt.setString(idx++, usuarioDTO.getIndVerPreciosInventario() != null ? usuarioDTO.getIndVerPreciosInventario() : "N");
+        stmt.setString(idx++, usuarioDTO.getFcRegistraNcSinFac() != null ? usuarioDTO.getFcRegistraNcSinFac() : "N");
+        stmt.setDate(idx++, null); // fc_fecha_exp_nc_sin_fac
+        stmt.setString(idx++, usuarioDTO.getVerImagenesPortal() != null ? usuarioDTO.getVerImagenesPortal() : "S");
+        stmt.setString(idx++, usuarioDTO.getVerGraficasPortal() != null ? usuarioDTO.getVerGraficasPortal() : "S");
+        stmt.setString(idx++, usuarioDTO.getCxcAnularRecibo() != null ? usuarioDTO.getCxcAnularRecibo() : "N");
+        stmt.setString(idx++, usuarioDTO.getFcRegistraCostoDevolu() != null ? usuarioDTO.getFcRegistraCostoDevolu() : "N");
+        stmt.setString(idx++, usuarioDTO.getCmModificaSolicitud() != null ? usuarioDTO.getCmModificaSolicitud() : "N");
+        stmt.setString(idx++, usuarioDTO.getFcFacDistintaSucursal() != null ? usuarioDTO.getFcFacDistintaSucursal() : "N");
+        stmt.setString(idx++, usuarioDTO.getFcCambiaPrecioServ() != null ? usuarioDTO.getFcCambiaPrecioServ() : "N");
+        stmt.setString(idx++, usuarioDTO.getBaCierraConci() != null ? usuarioDTO.getBaCierraConci() : "N");
+        stmt.setString(idx++, usuarioDTO.getBaReversaConci() != null ? usuarioDTO.getBaReversaConci() : "N");
+        stmt.setString(idx++, usuarioDTO.getFcProcesarDevolucion() != null ? usuarioDTO.getFcProcesarDevolucion() : "N");
+        stmt.setString(idx++, usuarioDTO.getAutorizaDescuentoLimite() != null ? usuarioDTO.getAutorizaDescuentoLimite() : "0");
+        stmt.setString(idx++, usuarioDTO.getCoIndAutorizaCuentaContable() != null ? usuarioDTO.getCoIndAutorizaCuentaContable() : "N");
+        stmt.setString(idx++, usuarioDTO.getFcRegistraConVendedor() != null ? usuarioDTO.getFcRegistraConVendedor() : "N");
+        stmt.setString(idx++, usuarioDTO.getIndCajeroFi() != null ? usuarioDTO.getIndCajeroFi() : "N");
+        stmt.setString(idx++, usuarioDTO.getIndCobradorFi() != null ? usuarioDTO.getIndCobradorFi() : "N");
+        stmt.setString(idx++, usuarioDTO.getIndProcesaDocumentoFi() != null ? usuarioDTO.getIndProcesaDocumentoFi() : "N");
+        stmt.setString(idx++, usuarioDTO.getIndTrasladoCuentas() != null ? usuarioDTO.getIndTrasladoCuentas() : "N");
+        stmt.setString(idx++, usuarioDTO.getIndAccessAllFi() != null ? usuarioDTO.getIndAccessAllFi() : "N");
+        stmt.setString(idx++, usuarioDTO.getIndSupervisorFi() != null ? usuarioDTO.getIndSupervisorFi() : "N");
+        stmt.setString(idx++, usuarioDTO.getIndAjMesContable() != null ? usuarioDTO.getIndAjMesContable() : "N");
+        
+        int filasAfectadas = stmt.executeUpdate();
+          if (filasAfectadas > 0) {
+          System.out.println("Usuario registrado exitosamente: " + usuarioDTO.getUsuario());
+          
+          usuarioInfo.put("success", true);
+          usuarioInfo.put("mensaje", "Usuario registrado exitosamente");
+          usuarioInfo.put("usuario", usuarioDTO.getUsuario());
+          usuarioInfo.put("nombre_completo", usuarioDTO.getNomUsuario() + " " + (usuarioDTO.getApeUsuario() != null ? usuarioDTO.getApeUsuario() : ""));
+          usuarioInfo.put("nombre", usuarioDTO.getNomUsuario());
+          usuarioInfo.put("apellido", usuarioDTO.getApeUsuario());
+          usuarioInfo.put("email", usuarioDTO.getEmail());
+          usuarioInfo.put("activo", usuarioDTO.getIndActivo());
+          usuarioInfo.put("es_cliente", usuarioDTO.getIndCliente());
+          usuarioInfo.put("es_cajero", usuarioDTO.getIndCajero() != null ? usuarioDTO.getIndCajero() : "N");
+          usuarioInfo.put("es_cobrador", usuarioDTO.getIndCobrador() != null ? usuarioDTO.getIndCobrador() : "N");
+          usuarioInfo.put("es_vendedor", usuarioDTO.getIndVendedor() != null ? usuarioDTO.getIndVendedor() : "N");
+          usuarioInfo.put("es_supervisor", usuarioDTO.getIndSupervisor() != null ? usuarioDTO.getIndSupervisor() : "N");
+          usuarioInfo.put("puede_crear_clientes", usuarioDTO.getCreaCliente() != null ? usuarioDTO.getCreaCliente() : "N");
+          usuarioInfo.put("autoriza_descuentos", usuarioDTO.getAutorizaDescuento() != null ? usuarioDTO.getAutorizaDescuento() : "N");
+          usuarioInfo.put("acceso_portal_imagenes", usuarioDTO.getVerImagenesPortal() != null ? usuarioDTO.getVerImagenesPortal() : "S");
+          usuarioInfo.put("acceso_portal_graficas", usuarioDTO.getVerGraficasPortal() != null ? usuarioDTO.getVerGraficasPortal() : "S");
+          usuarioInfo.put("fecha_creacion", new java.util.Date().toString());
+          usuarioInfo.put("origen_registro", "PORTAL_WEB");
+          
+          // Información de permisos especiales
+          Map<String, Object> permisos = new HashMap<>();
+          permisos.put("modifica_precios", usuarioDTO.getFcCambiaPrecio() != null ? usuarioDTO.getFcCambiaPrecio() : "N");
+          permisos.put("autoriza_compras", usuarioDTO.getAutorizaCompra() != null ? usuarioDTO.getAutorizaCompra() : "N");
+          permisos.put("monto_autorizado", usuarioDTO.getMontoAutoriza() != null ? usuarioDTO.getMontoAutoriza() : "0.00");
+          permisos.put("procesa_documentos_cxc", usuarioDTO.getCxcProcesaDocumento() != null ? usuarioDTO.getCxcProcesaDocumento() : "N");
+          permisos.put("procesa_documentos_cxp", usuarioDTO.getCxpProcesaDocumento() != null ? usuarioDTO.getCxpProcesaDocumento() : "N");
+          permisos.put("ve_precios_inventario", usuarioDTO.getIndVerPreciosInventario() != null ? usuarioDTO.getIndVerPreciosInventario() : "N");
+          usuarioInfo.put("permisos_especiales", permisos);
+          
+        } else {
+          usuarioInfo.put("success", false);
+          usuarioInfo.put("mensaje", "No se pudo registrar el usuario");
+        }
+      }
+      
+    } catch (Exception e) {
+      System.err.println("Error al registrar usuario: " + e.getMessage());
+      e.printStackTrace();
+      usuarioInfo.put("success", false);
+      usuarioInfo.put("mensaje", "Error al registrar usuario: " + e.getMessage());
+    }
+    
+    return usuarioInfo;
+  }
+
+  private String encriptarClave(String clave) {
+    // Implementación simple de encriptación (puedes mejorarla según tus necesidades)
+    // Por ahora retorna la clave en uppercase como en el servlet original
+    return clave != null ? clave.toUpperCase() : "123456";
   }
 
   @GetMapping("/buscar")

@@ -49,7 +49,55 @@
   "telefono": "555-9999",
   "email1": "juan@email.com"
 }</pre>
-    <b>Respuesta:</b> JSON con mensaje con codigo de cliente registrado o error.
+    <b>Ejemplo de respuesta exitosa:</b>
+    <pre>{
+  "success": true,
+  "mensaje": "Cliente registrado exitosamente. Código generado: 12345",
+  "V_SECUENCIAL": 12345,
+  "contacto_registrado": {
+    "success": true,
+    "secuencial_contacto": 67890,
+    "mensaje": "Contacto registrado exitosamente",
+    "tipo_persona": "Persona Natural",
+    "nombre": "Juan",
+    "apellido": "Pérez",
+    "telefono": "555-9999",
+    "email": "juan@email.com",
+    "cedula": "8-123-456",
+    "es_principal": "S",
+    "estado": "A"
+  },
+  "usuario_registrado": {
+    "success": true,
+    "mensaje": "Usuario registrado exitosamente",
+    "usuario": "8-123-456",
+    "nombre_completo": "Juan Pérez",
+    "nombre": "Juan",
+    "apellido": "Pérez",
+    "email": "juan@email.com",
+    "activo": "S",
+    "es_cliente": "S",
+    "es_cajero": "N",
+    "es_cobrador": "N",
+    "es_vendedor": "N",
+    "es_supervisor": "N",
+    "puede_crear_clientes": "N",
+    "autoriza_descuentos": "N",
+    "acceso_portal_imagenes": "S",
+    "acceso_portal_graficas": "S",
+    "fecha_creacion": "Mon Jun 10 14:30:15 EST 2025",
+    "origen_registro": "PORTAL_WEB",
+    "permisos_especiales": {
+      "modifica_precios": "N",
+      "autoriza_compras": "N",
+      "monto_autorizado": "0.00",
+      "procesa_documentos_cxc": "N",
+      "procesa_documentos_cxp": "N",
+      "ve_precios_inventario": "N"
+    }
+  }
+}</pre>
+    <b>Respuesta:</b> JSON completo con información del cliente, contacto y usuario registrados.
   </div>
 
   <div class="endpoint">

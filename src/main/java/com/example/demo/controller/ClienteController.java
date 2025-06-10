@@ -1,13 +1,12 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.ContactoDTO;
 import com.example.demo.entity.Cliente;
 import com.example.demo.entity.ClienteId;
 import com.example.demo.repository.ClienteRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.sql.DataSource;
@@ -19,15 +18,11 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/clientes")
 public class ClienteController {
-
   private final ClienteRepository repository;
-  private final JdbcTemplate jdbcTemplate;
   private final DataSource dataSource;
 
-  @Autowired
-  public ClienteController(ClienteRepository repository, JdbcTemplate jdbcTemplate, DataSource dataSource) {
+  public ClienteController(ClienteRepository repository, DataSource dataSource) {
     this.repository = repository;
-    this.jdbcTemplate = jdbcTemplate;
     this.dataSource = dataSource;
   }
 
@@ -98,7 +93,7 @@ public class ClienteController {
             + "?, ?, ?, ?, ?,\n"   // 51-55
             + "?, ?, ?, ?, ?,\n"   // 56-60
             + "?, ?, ?, ?, ?,\n"   // 61-65
-            + "?, ?, ?, ?)}"; // 66-69 (agregados dos más)
+            + "?, ?)}"; // 66-67(agregados dos más)
     Map<Integer, Object> valoresEnviados = new HashMap<>();
     try (java.sql.Connection conn = dataSource.getConnection();
          java.sql.CallableStatement stmt = conn.prepareCall(sql)) {
@@ -205,8 +200,6 @@ public class ClienteController {
       // 69: pvalidar_morosidad_contado
       stmt.setString(idx, cliente.getValidarMorosidadContado()); valoresEnviados.put(idx++, cliente.getValidarMorosidadContado());
       stmt.setObject(idx, cliente.getCompaniaInterCia()); valoresEnviados.put(idx++, cliente.getCompaniaInterCia());
-      stmt.setObject(idx, null); valoresEnviados.put(idx++, null);
-      stmt.setObject(idx, null); valoresEnviados.put(idx++, null);
 
       // DEBUG: Mostrar el JSON recibido
       System.out.println("DEBUG: JSON recibido en registrarDesdePortal: " + new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(cliente));
@@ -218,21 +211,141 @@ public class ClienteController {
 
       // Mostrar en consola los valores enviados
       System.out.println("Valores enviados al procedimiento CLIENTE:");
-      valoresEnviados.forEach((k, v) -> System.out.println("Parametro " + k + ": " + v));
-
-      // Ejecutar
+      valoresEnviados.forEach((k, v) -> System.out.println("Parametro " + k + ": " + v));      // Ejecutar
       stmt.execute();
       int vSecuencial = stmt.getInt(48); // OUT param en la posición 48
+        // Registrar contacto automáticamente después del cliente exitoso
+      Map<String, Object> contactoInfo = registrarContacto(cliente, vSecuencial);
+      
       response.put("success", true);
       response.put("mensaje", "Cliente registrado exitosamente. Código generado: " + vSecuencial);
       response.put("V_SECUENCIAL", vSecuencial);
+      response.put("contacto_registrado", contactoInfo);
       response.put("valores_enviados", valoresEnviados);
     } catch (Exception e) {
       response.put("success", false);
       response.put("mensaje", e.getMessage());
       response.put("valores_enviados", valoresEnviados);
     }
-    return response;
+    return response;  }
+  private Map<String, Object> registrarContacto(Cliente cliente, int vSecuencial) {
+    Map<String, Object> contactoInfo = new HashMap<>();
+    
+    try {
+      ContactoDTO contactoDTO;
+      
+      // Crear contacto según el tipo de persona
+      if ("N".equals(cliente.getPersonaNj())) { // Persona Natural
+        // Para persona natural, el cliente es su propio contacto
+        contactoDTO = new ContactoDTO();
+        contactoDTO.setNoCia(cliente.getId().getNoCia());
+        contactoDTO.setNoCliente(vSecuencial);
+        contactoDTO.setGrupo(cliente.getId().getGrupo());
+        contactoDTO.setNombre(cliente.getNombre());
+        contactoDTO.setApellido(cliente.getApellidoCont() != null ? cliente.getApellidoCont() : "");
+        contactoDTO.setTelefono(cliente.getTelefono());
+        contactoDTO.setMovil(cliente.getMovil());
+        contactoDTO.setEmail(cliente.getEmail1());
+        contactoDTO.setDireccion(cliente.getDireccion());
+        contactoDTO.setCedula(cliente.getRucCedula());
+        contactoDTO.setIndPrincipal("S");
+        contactoDTO.setIndEstado("A");
+      } else { // Persona Jurídica
+        // Para persona jurídica, usar el objeto contacto enviado en el JSON
+        contactoDTO = cliente.getContacto();
+        if (contactoDTO != null) {
+          contactoDTO.setNoCia(cliente.getId().getNoCia());
+          contactoDTO.setNoCliente(vSecuencial);
+          contactoDTO.setGrupo(cliente.getId().getGrupo());
+          contactoDTO.setIndPrincipal("S");
+          contactoDTO.setIndEstado("A");
+        }
+      }
+        if (contactoDTO != null) {
+        // Llamar al procedimiento almacenado CONTACTO
+        String sql = "{call CONTACTO(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        
+        try (java.sql.Connection conn = dataSource.getConnection();
+             java.sql.CallableStatement stmt = conn.prepareCall(sql)) {
+          
+          int idx = 1;
+          // Parámetros del procedimiento CONTACTO según definición del SP
+          
+          // CIA INT(5)
+          stmt.setInt(idx++, contactoDTO.getNoCia() != null ? contactoDTO.getNoCia() : 0);
+          
+          // PARAMETRO1-17 (VARCHAR)
+          stmt.setString(idx++, contactoDTO.getNoCliente() != null ? contactoDTO.getNoCliente().toString() : "");
+          stmt.setString(idx++, contactoDTO.getGrupo());
+          stmt.setString(idx++, contactoDTO.getNombre());
+          stmt.setString(idx++, contactoDTO.getApellido());
+          stmt.setString(idx++, contactoDTO.getTelefono());
+          stmt.setString(idx++, contactoDTO.getEmail());
+          stmt.setString(idx++, contactoDTO.getDireccion());
+          stmt.setString(idx++, contactoDTO.getCedula());
+          stmt.setString(idx++, contactoDTO.getMovil());
+          stmt.setString(idx++, contactoDTO.getCargo());
+          stmt.setString(idx++, contactoDTO.getDepartamento());
+          stmt.setString(idx++, contactoDTO.getTelefonoOficina());
+          stmt.setString(idx++, contactoDTO.getExtension());
+          stmt.setString(idx++, contactoDTO.getFax());
+          stmt.setString(idx++, contactoDTO.getObservaciones());
+          stmt.setString(idx++, contactoDTO.getHorarioTrabajo());
+          stmt.setString(idx++, contactoDTO.getRedes());
+          
+          // INDICADOR VARCHAR(1)
+          stmt.setString(idx++, "I");
+          
+          // PACTIVO VARCHAR(1)
+          stmt.setString(idx++, contactoDTO.getIndEstado());
+          
+          // PREPLICAR VARCHAR(1)
+          stmt.setString(idx++, "N");
+          
+          // PACCESO_WEB VARCHAR(1)
+          stmt.setString(idx++, "S");
+          
+          // PUSUARIO_WEB VARCHAR(50)
+          stmt.setString(idx++, contactoDTO.getUsuarioCreacion());
+          
+          // PUSUARIO_HELPDESK VARCHAR(50)
+          stmt.setString(idx++, contactoDTO.getUsuarioCreacion());
+          
+          // PACCESO_HELPDESK VARCHAR(1)
+          stmt.setString(idx++, "N");
+          
+          // V_SECUENCIAL OUT
+          stmt.registerOutParameter(idx, java.sql.Types.INTEGER);
+          
+          stmt.execute();
+          int contactoSecuencial = stmt.getInt(idx);
+          System.out.println("Contacto registrado exitosamente con código: " + contactoSecuencial);
+            // Agregar información del contacto registrado a la respuesta
+          contactoInfo.put("success", true);
+          contactoInfo.put("secuencial_contacto", contactoSecuencial);
+          contactoInfo.put("mensaje", "Contacto registrado exitosamente");
+          contactoInfo.put("tipo_persona", "N".equals(cliente.getPersonaNj()) ? "Persona Natural" : "Persona Jurídica");
+          contactoInfo.put("nombre", contactoDTO.getNombre());
+          contactoInfo.put("apellido", contactoDTO.getApellido());
+          contactoInfo.put("telefono", contactoDTO.getTelefono());
+          contactoInfo.put("email", contactoDTO.getEmail());
+          contactoInfo.put("cedula", contactoDTO.getCedula());
+          contactoInfo.put("es_principal", contactoDTO.getIndPrincipal());
+          contactoInfo.put("estado", contactoDTO.getIndEstado());
+          
+        }
+      } else {
+        contactoInfo.put("success", false);
+        contactoInfo.put("mensaje", "No se pudo crear el objeto contacto");
+      }
+    } catch (Exception e) {
+      System.err.println("Error al registrar contacto: " + e.getMessage());
+      e.printStackTrace();
+      contactoInfo.put("success", false);
+      contactoInfo.put("mensaje", "Error al registrar contacto: " + e.getMessage());
+    }
+    
+    return contactoInfo;
   }
 
   @GetMapping("/buscar")

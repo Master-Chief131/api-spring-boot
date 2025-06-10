@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.ContactoDTO;
 import com.example.demo.entity.Cliente;
 import com.example.demo.entity.ClienteId;
 import com.example.demo.repository.ClienteRepository;
@@ -98,7 +99,7 @@ public class ClienteController {
             + "?, ?, ?, ?, ?,\n"   // 51-55
             + "?, ?, ?, ?, ?,\n"   // 56-60
             + "?, ?, ?, ?, ?,\n"   // 61-65
-            + "?, ?, ?, ?)}"; // 66-69 (agregados dos más)
+            + "?, ?, ?, ?)}"; // 66-69
     Map<Integer, Object> valoresEnviados = new HashMap<>();
     try (java.sql.Connection conn = dataSource.getConnection();
          java.sql.CallableStatement stmt = conn.prepareCall(sql)) {
@@ -220,9 +221,15 @@ public class ClienteController {
       System.out.println("Valores enviados al procedimiento CLIENTE:");
       valoresEnviados.forEach((k, v) -> System.out.println("Parametro " + k + ": " + v));
 
-      // Ejecutar
+      // Ejecutar registro de cliente
       stmt.execute();
       int vSecuencial = stmt.getInt(48); // OUT param en la posición 48
+      
+      // Si el cliente fue registrado exitosamente, registrar el contacto
+      if (vSecuencial > 0 && cliente.getContacto() != null) {
+        registrarContacto(cliente, vSecuencial);
+      }
+      
       response.put("success", true);
       response.put("mensaje", "Cliente registrado exitosamente. Código generado: " + vSecuencial);
       response.put("V_SECUENCIAL", vSecuencial);
@@ -235,6 +242,93 @@ public class ClienteController {
     return response;
   }
 
+  private void registrarContacto(Cliente cliente, int vSecuencial) throws Exception {
+    String sqlContacto = "{call CONTACTO(\n"
+                        + "?, ?, ?, ?, ?,\n" // 1-5
+                        + "?, ?, ?, ?, ?,\n" // 6-10
+                        + "?, ?, ?, ?, ?,\n" // 11-15
+                        + "?, ?, ?, ?, ?,\n" // 16-20
+                        + "?, ?, ?, ?, ?)}"; // 21-25
+    
+    try (java.sql.Connection conn = dataSource.getConnection();
+         java.sql.CallableStatement stmtContacto = conn.prepareCall(sqlContacto)) {
+      
+      ContactoDTO contacto = cliente.getContacto();
+      
+      // Si es persona natural, usar los datos del cliente como contacto
+      if ("N".equals(cliente.getPersonaNj())) {
+        contacto = new ContactoDTO();
+        contacto.setNombre(cliente.getNombre());
+        contacto.setApellido(""); // Para persona natural, apellido puede estar en el nombre
+        contacto.setTelefono(cliente.getTelefono());
+        contacto.setEmail(cliente.getEmail1());
+        contacto.setMovil(cliente.getMovil());
+        contacto.setFax(cliente.getFax());
+        contacto.setExtension(cliente.getExtension());
+        contacto.setDireccion(cliente.getDireccion());
+        contacto.setSexo(cliente.getIndSexo());
+        contacto.setFechaNacimiento(cliente.getFechaNacimiento() != null ? cliente.getFechaNacimiento().toString() : null);
+      }
+      
+      int idx = 1;
+      // CIA
+      stmtContacto.setInt(idx++, cliente.getId().getNoCia());
+      // PARAMETRO1 - NO_CLIENTE
+      stmtContacto.setString(idx++, String.valueOf(vSecuencial));
+      // PARAMETRO2 - NO_CONTACTO (null para nuevo)
+      stmtContacto.setString(idx++, null);
+      // PARAMETRO3 - NOMBRE
+      stmtContacto.setString(idx++, contacto.getNombre());
+      // PARAMETRO4 - APELLIDO
+      stmtContacto.setString(idx++, contacto.getApellido());
+      // PARAMETRO5 - COD_CARGO
+      stmtContacto.setString(idx++, contacto.getCodCargo());
+      // PARAMETRO6 - DIRECCION
+      stmtContacto.setString(idx++, contacto.getDireccion());
+      // PARAMETRO7 - DIRECCION1
+      stmtContacto.setString(idx++, contacto.getDireccion1());
+      // PARAMETRO8 - TELEFONO
+      stmtContacto.setString(idx++, contacto.getTelefono());
+      // PARAMETRO9 - EXTENSION
+      stmtContacto.setString(idx++, contacto.getExtension());
+      // PARAMETRO10 - FAX
+      stmtContacto.setString(idx++, contacto.getFax());
+      // PARAMETRO11 - EMAIL
+      stmtContacto.setString(idx++, contacto.getEmail());
+      // PARAMETRO12 - MOVIL
+      stmtContacto.setString(idx++, contacto.getMovil());
+      // PARAMETRO13 - PAGINA_WEB
+      stmtContacto.setString(idx++, contacto.getPaginaWeb());
+      // PARAMETRO14 - null (no usado)
+      stmtContacto.setString(idx++, null);
+      // PARAMETRO15 - SEXO
+      stmtContacto.setString(idx++, contacto.getSexo());
+      // PARAMETRO16 - FECHA_NACIMIENTO
+      stmtContacto.setString(idx++, contacto.getFechaNacimiento());
+      // PARAMETRO17 - USUARIO_APLICACION
+      stmtContacto.setString(idx++, cliente.getUsuarioCreacion());
+      // INDICADOR
+      stmtContacto.setString(idx++, "I"); // Insert
+      // PACTIVO
+      stmtContacto.setString(idx++, "S"); // Activo
+      // PREPLICAR
+      stmtContacto.setString(idx++, "N"); // No replicar
+      // PACCESO_WEB
+      stmtContacto.setString(idx++, contacto.getAccesoWeb() != null ? contacto.getAccesoWeb() : "N");
+      // PUSUARIO_WEB
+      stmtContacto.setString(idx++, contacto.getUsuarioWeb());
+      // PUSUARIO_HELPDESK
+      stmtContacto.setString(idx++, contacto.getUsuarioHelpdesk());
+      // PACCESO_HELPDESK
+      stmtContacto.setString(idx++, contacto.getAccesoHelpdesk() != null ? contacto.getAccesoHelpdesk() : "N");
+      // OUT V_SECUENCIAL
+      stmtContacto.registerOutParameter(idx++, java.sql.Types.INTEGER);
+      
+      stmtContacto.execute();
+      int contactoId = stmtContacto.getInt(25); // OUT param
+      System.out.println("Contacto registrado con ID: " + contactoId);
+    }
+  }
   @GetMapping("/buscar")
   public Object buscarCliente(
           @RequestParam int noCia,

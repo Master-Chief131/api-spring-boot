@@ -1,5 +1,6 @@
 package com.example.demo.entity;
 
+import com.example.demo.dto.ContactoDTO;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -268,6 +269,9 @@ public class Cliente {
     @Column(name = "compania_inter_cia")
     private Integer companiaInterCia;
 
+    @Transient
+    private ContactoDTO contacto;
+
     // Getters y setters generados para todos los campos
     public ClienteId getId() { return id; }
     public void setId(ClienteId id) { this.id = id; }
@@ -443,4 +447,7 @@ public class Cliente {
     public void setNumeroCliente(Integer numeroCliente) { this.numeroCliente = numeroCliente; }
     public Integer getCompaniaInterCia() { return companiaInterCia; }
     public void setCompaniaInterCia(Integer companiaInterCia) { this.companiaInterCia = companiaInterCia; }
+    
+    public ContactoDTO getContacto() { return contacto; }
+    public void setContacto(ContactoDTO contacto) { this.contacto = contacto; }
 }

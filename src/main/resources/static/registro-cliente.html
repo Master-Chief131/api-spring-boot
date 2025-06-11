@@ -769,7 +769,7 @@
             // Configurar valores por defecto
             document.getElementById('noCia').value = '1';
             document.getElementById('grupo').value = '1';
-            document.getElementById('noPais').value = '507';
+            document.getElementById('noPais').value = '1';
             document.getElementById('noProvincia').value = '1';
             document.getElementById('noDistrito').value = '1';
             document.getElementById('noCorregimiento').value = '1';
@@ -1062,7 +1062,7 @@
                 telefono: formData.get('telefono'),
                 email1: formData.get('email1'),
                 direccion: formData.get('direccion'),
-                noPais: parseInt(formData.get('noPais')) || 507,
+                noPais: parseInt(formData.get('noPais')) || 1,
                 noProvincia: parseInt(formData.get('noProvincia')) || 1,
                 noDistrito: parseInt(formData.get('noDistrito')) || 1,
                 noCorregimiento: parseInt(formData.get('noCorregimiento')) || 1,

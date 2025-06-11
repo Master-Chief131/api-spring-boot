@@ -1,7 +1,7 @@
 package com.example.demo.entity;
 
 import com.example.demo.dto.ContactoDTO;
-import com.example.demo.dto.UsuarioDTO;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import javax.persistence.*;
 import java.math.BigDecimal;
 
@@ -51,9 +51,8 @@ public class Cliente {
     private Integer noOrigen;
 
     @Column(name = "NOMBRE_ORIGEN", length = 50)
-    private String nombreOrigen;
-
-    @Column(name = "FECHA_CREACION")
+    private String nombreOrigen;    @Column(name = "FECHA_CREACION")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private java.time.LocalDate fechaCreacion;
 
     @Column(name = "USUARIO_APLICACION", length = 50)
@@ -84,9 +83,8 @@ public class Cliente {
     private String usuarioReasignado;
 
     @Column(name = "CENTRO_CONTABLE", length = 2)
-    private String centroContable;
-
-    @Column(name = "FECHA_CAMBIO_CLIENTE")
+    private String centroContable;    @Column(name = "FECHA_CAMBIO_CLIENTE")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private java.time.LocalDate fechaCambioCliente;
 
     @Column(name = "USUARIO_CAMBIO_CLIENTE", length = 10)
@@ -99,9 +97,8 @@ public class Cliente {
     private BigDecimal noEmpresa;
 
     @Column(name = "RUC_CEDULA", length = 25)
-    private String rucCedula;
-
-    @Column(name = "FECHA_CAMBIOS")
+    private String rucCedula;    @Column(name = "FECHA_CAMBIOS")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private java.time.LocalDate fechaCambios;
 
     @Column(name = "PERSONA_NJ", length = 1)
@@ -117,9 +114,8 @@ public class Cliente {
     private String nombreCont;
 
     @Column(name = "APELLIDO_CONT", length = 50)
-    private String apellidoCont;
-
-    @Column(name = "F_CIERRE")
+    private String apellidoCont;    @Column(name = "F_CIERRE")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private java.time.LocalDate fCierre;
 
     @Column(name = "ACTIVO", length = 1)
@@ -186,12 +182,9 @@ public class Cliente {
     private BigDecimal disponible;
 
     @Column(name = "MOVIL", length = 50)
-    private String movil;
-
-    @Column(name = "DV", length = 25)
-    private String dv;
-
-    @Column(name = "FECHA_NACIMIENTO")
+    private String movil;    @Column(name = "DV", length = 25)
+    private String dv;    @Column(name = "FECHA_NACIMIENTO")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private java.time.LocalDate fechaNacimiento;
 
     @Column(name = "NO_GRUPO_MERCADO")
@@ -396,8 +389,7 @@ public class Cliente {
     public void setDisponible(BigDecimal disponible) { this.disponible = disponible; }
     public String getMovil() { return movil; }
     public void setMovil(String movil) { this.movil = movil; }
-    public String getDv() { return dv; }
-    public void setDv(String dv) { this.dv = dv; }
+    public String getDv() { return dv; }    public void setDv(String dv) { this.dv = dv; }
     public java.time.LocalDate getFechaNacimiento() { return fechaNacimiento; }
     public void setFechaNacimiento(java.time.LocalDate fechaNacimiento) { this.fechaNacimiento = fechaNacimiento; }
     public Integer getNoGrupoMercado() { return noGrupoMercado; }

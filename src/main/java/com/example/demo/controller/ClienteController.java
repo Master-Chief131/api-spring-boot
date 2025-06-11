@@ -278,8 +278,9 @@ public class ClienteController {
       stmt.setString(idx, cliente.getAccesoWeb()); valoresEnviados.put(idx++, cliente.getAccesoWeb());
       // 54: PARAMETRO44 (usuario web)
       stmt.setString(idx, cliente.getUsuarioWeb()); valoresEnviados.put(idx++, cliente.getUsuarioWeb());
-      // 55: PARAMETRO45 (plazo)
-      stmt.setObject(idx, cliente.getNoPlazo()); valoresEnviados.put(idx++, cliente.getNoPlazo());
+      // 55: PARAMETRO45 (plazo) - Valor por defecto 6 si no se proporciona
+      Integer noPlazo = cliente.getNoPlazo() != null ? cliente.getNoPlazo() : 6;
+      stmt.setObject(idx, noPlazo); valoresEnviados.put(idx++, noPlazo);
       // 56: PARAMETRO46 (cliente contado)
       stmt.setString(idx, cliente.getIndClienteContado()); valoresEnviados.put(idx++, cliente.getIndClienteContado());
       // 57: PMODULO_ORIGEN
@@ -453,7 +454,10 @@ public class ClienteController {
         cliente.setApellidoCont((String) clienteData.get("apellidoCont"));        cliente.setMovil((String) clienteData.get("movil"));
         cliente.setIndSexo((String) clienteData.get("indSexo"));
         if (clienteData.get("fechaNacimiento") != null) {
-          cliente.setFechaNacimiento(java.time.LocalDate.parse((String) clienteData.get("fechaNacimiento")));
+          String fechaNacimientoStr = (String) clienteData.get("fechaNacimiento");
+          if (fechaNacimientoStr != null && !fechaNacimientoStr.isEmpty()) {
+            cliente.setFechaNacimiento(java.time.LocalDate.parse(fechaNacimientoStr));
+          }
         }
       } else {
         // Para persona jurídica, configurar contacto

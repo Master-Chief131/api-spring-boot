@@ -75,7 +75,6 @@ public class ClienteController {
       .filter(c -> c.getId() != null && c.getId().getNoCliente() == noCliente)
       .collect(java.util.stream.Collectors.toList());
   }
-
   @PostMapping("/registro-portal")
   public Map<String, Object> registrarDesdePortal(@RequestBody Cliente cliente) {
     Map<String, Object> response = new HashMap<>();
@@ -93,10 +92,17 @@ public class ClienteController {
             + "?, ?, ?, ?, ?,\n"   // 51-55
             + "?, ?, ?, ?, ?,\n"   // 56-60
             + "?, ?, ?, ?, ?,\n"   // 61-65
-            + "?, ?)}"; // 66-67(agregados dos más)
+            + "?, ?)}"; // 66-67
     Map<Integer, Object> valoresEnviados = new HashMap<>();
-    try (java.sql.Connection conn = dataSource.getConnection();
-         java.sql.CallableStatement stmt = conn.prepareCall(sql)) {
+    
+    // INICIAR TRANSACCIÓN - Desactivar autocommit
+    java.sql.Connection conn = null;
+    try {
+      conn = dataSource.getConnection();
+      conn.setAutoCommit(false); // DESACTIVAR AUTOCOMMIT
+      System.out.println("=== INICIANDO TRANSACCIÓN COMPLETA ===");
+      
+      java.sql.CallableStatement stmt = conn.prepareCall(sql);
       int idx = 1;
       stmt.setInt(idx, cliente.getId().getNoCia()); valoresEnviados.put(idx++, cliente.getId().getNoCia());
       stmt.setObject(idx, null); valoresEnviados.put(idx++, null);
@@ -211,33 +217,92 @@ public class ClienteController {
 
       // Mostrar en consola los valores enviados
       System.out.println("Valores enviados al procedimiento CLIENTE:");
-      valoresEnviados.forEach((k, v) -> System.out.println("Parametro " + k + ": " + v));      // Ejecutar
-      stmt.execute();      int vSecuencial = stmt.getInt(48); // OUT param en la posición 48
-        // Registrar contacto automáticamente después del cliente exitoso
-      Map<String, Object> contactoInfo = registrarContacto(cliente, vSecuencial);
+      valoresEnviados.forEach((k, v) -> System.out.println("Parametro " + k + ": " + v));      // Ejecutar procedimiento CLIENTE
+      System.out.println("=== PASO 1: Registrando Cliente ===");
+      stmt.execute();
+      int vSecuencial = stmt.getInt(48); // OUT param en la posición 48
+      System.out.println("Cliente registrado con código: " + vSecuencial);
+      
+      // Registrar contacto automáticamente después del cliente exitoso
+      System.out.println("=== PASO 2: Registrando Contacto ===");
+      Map<String, Object> contactoInfo = registrarContacto(cliente, vSecuencial, conn);
+      
+      // Verificar si el contacto se registró correctamente
+      if (!(Boolean) contactoInfo.get("success")) {
+        throw new RuntimeException("Error al registrar contacto: " + contactoInfo.get("mensaje"));
+      }
       
       // Registrar usuario automáticamente después del contacto exitoso
-      Map<String, Object> usuarioInfo = registrarUsuario(cliente, vSecuencial);
+      System.out.println("=== PASO 3: Registrando Usuario ===");
+      Map<String, Object> usuarioInfo = registrarUsuario(cliente, vSecuencial, conn);
+        // Verificar si el usuario se registró correctamente
+      if (!(Boolean) usuarioInfo.get("success")) {
+        throw new RuntimeException("Error al registrar usuario: " + usuarioInfo.get("mensaje"));
+      }
       
-      response.put("success", true);
-      response.put("mensaje", "Cliente registrado exitosamente. Código generado: " + vSecuencial);
+      // PASO 4: Actualizar el contacto con el usuario registrado
+      System.out.println("=== PASO 4: Actualizando contacto con usuario registrado ===");
+      String usuarioRegistrado = (String) usuarioInfo.get("usuario_registrado");
+      Integer contactoSecuencial = (Integer) contactoInfo.get("secuencial_contacto");
+      
+      Map<String, Object> actualizacionContacto = actualizarUsuarioWebContacto(
+          vSecuencial, contactoSecuencial, usuarioRegistrado, conn);
+      
+      // Verificar si la actualización del contacto fue exitosa
+      if (!(Boolean) actualizacionContacto.get("success")) {
+        throw new RuntimeException("Error al actualizar contacto con usuario: " + actualizacionContacto.get("mensaje"));
+      }
+      
+      // Si llegamos aquí, todo salió bien - HACER COMMIT
+      conn.commit();
+      System.out.println("=== TRANSACCIÓN COMPLETADA EXITOSAMENTE - COMMIT REALIZADO ===");
+        response.put("success", true);
+      response.put("mensaje", "Cliente, contacto y usuario registrados exitosamente. Código generado: " + vSecuencial);
       response.put("V_SECUENCIAL", vSecuencial);
       response.put("contacto_registrado", contactoInfo);
       response.put("usuario_registrado", usuarioInfo);
+      response.put("contacto_actualizado", actualizacionContacto);
       response.put("valores_enviados", valoresEnviados);
+      response.put("transaccion_estado", "COMPLETADA");
+      
     } catch (Exception e) {
+      System.err.println("=== ERROR EN TRANSACCIÓN - HACIENDO ROLLBACK ===");
+      System.err.println("Error: " + e.getMessage());
+      e.printStackTrace();
+      
+      // ROLLBACK en caso de error
+      if (conn != null) {
+        try {
+          
+          conn.rollback();
+          System.out.println("=== ROLLBACK COMPLETADO - NINGÚN DATO FUE GUARDADO ===");
+        } catch (Exception rollbackEx) {
+          System.err.println("Error en rollback: " + rollbackEx.getMessage());
+        }
+      }
+      
       response.put("success", false);
-      response.put("mensaje", e.getMessage());
+      response.put("mensaje", "Error en el registro: " + e.getMessage());
       response.put("valores_enviados", valoresEnviados);
+      response.put("transaccion_estado", "ROLLBACK_EJECUTADO");
+    } finally {
+      // Cerrar la conexión
+      if (conn != null) {
+        try {
+          conn.close();
+        } catch (Exception closeEx) {
+          System.err.println("Error cerrando conexión: " + closeEx.getMessage());
+        }      }
     }
-    return response;  }
-  private Map<String, Object> registrarContacto(Cliente cliente, int vSecuencial) {
+    return response;
+  }
+
+  private Map<String, Object> registrarContacto(Cliente cliente, int vSecuencial, java.sql.Connection conn) {
     Map<String, Object> contactoInfo = new HashMap<>();
     
     try {
       ContactoDTO contactoDTO;
-      
-      // Crear contacto según el tipo de persona
+        // Crear contacto según el tipo de persona
       if ("N".equals(cliente.getPersonaNj())) { // Persona Natural
         // Para persona natural, el cliente es su propio contacto
         contactoDTO = new ContactoDTO();
@@ -249,10 +314,14 @@ public class ClienteController {
         contactoDTO.setTelefono(cliente.getTelefono());
         contactoDTO.setMovil(cliente.getMovil());
         contactoDTO.setEmail(cliente.getEmail1());
-        contactoDTO.setDireccion(cliente.getDireccion());
-        contactoDTO.setCedula(cliente.getRucCedula());
+        contactoDTO.setDireccion(cliente.getDireccion());        contactoDTO.setCedula(cliente.getRucCedula());
         contactoDTO.setIndPrincipal("S");
-        contactoDTO.setIndEstado("A");
+        contactoDTO.setIndEstado("S");
+        contactoDTO.setUsuarioCreacion(cliente.getUsuarioCreacion() != null ? cliente.getUsuarioCreacion() : "PORTAL_ADMIN");
+        contactoDTO.setAccesoWeb("S");
+        contactoDTO.setUsuarioWeb(cliente.getUsuarioWeb());
+        contactoDTO.setSexo(cliente.getIndSexo());
+        contactoDTO.setFechaNacimiento(cliente.getFechaNacimiento() != null ? cliente.getFechaNacimiento().toString() : "");
       } else { // Persona Jurídica
         // Para persona jurídica, usar el objeto contacto enviado en el JSON
         contactoDTO = cliente.getContacto();
@@ -261,68 +330,135 @@ public class ClienteController {
           contactoDTO.setNoCliente(vSecuencial);
           contactoDTO.setGrupo(cliente.getId().getGrupo());
           contactoDTO.setIndPrincipal("S");
-          contactoDTO.setIndEstado("A");
+          contactoDTO.setIndEstado("S");
+          if (contactoDTO.getUsuarioCreacion() == null) {
+            contactoDTO.setUsuarioCreacion(cliente.getUsuarioCreacion() != null ? cliente.getUsuarioCreacion() : "PORTAL_ADMIN");
+          }
+          if (contactoDTO.getAccesoWeb() == null) {
+            contactoDTO.setAccesoWeb("S");
+          }
+          if (contactoDTO.getUsuarioWeb() == null) {
+            contactoDTO.setUsuarioWeb(cliente.getUsuarioWeb());
+          }
+        } else {
+          // Si no se proporciona contacto para persona jurídica, crear uno básico
+          contactoDTO = new ContactoDTO();
+          contactoDTO.setNoCia(cliente.getId().getNoCia());
+          contactoDTO.setNoCliente(vSecuencial);
+          contactoDTO.setGrupo(cliente.getId().getGrupo());
+          contactoDTO.setNombre(cliente.getNombreCont() != null ? cliente.getNombreCont() : "Contacto Principal");
+          contactoDTO.setApellido(cliente.getApellidoCont() != null ? cliente.getApellidoCont() : "");
+          contactoDTO.setTelefono(cliente.getTelefono());
+          contactoDTO.setMovil(cliente.getMovil());
+          contactoDTO.setEmail(cliente.getEmail1());
+          contactoDTO.setDireccion(cliente.getDireccion());
+          contactoDTO.setIndPrincipal("S");
+          contactoDTO.setIndEstado("S");
+          contactoDTO.setUsuarioCreacion(cliente.getUsuarioCreacion() != null ? cliente.getUsuarioCreacion() : "PORTAL_ADMIN");
+          contactoDTO.setAccesoWeb("S");
+          contactoDTO.setUsuarioWeb(cliente.getUsuarioWeb());
         }
       }
-        if (contactoDTO != null) {
-        // Llamar al procedimiento almacenado CONTACTO
-        String sql = "{call CONTACTO(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        if (contactoDTO != null) {        // Llamar al procedimiento almacenado CONTACTO - 25 IN + 1 OUT = 26 parámetros
+        String sql = "{call CONTACTO(\n"
+        + "?, ?, ?, ?, ?,\n"        // 1-5
+        + "?, ?, ?, ?, ?,\n"        // 6-10
+        + "?, ?, ?, ?, ?,\n"        // 11-15
+        + "?, ?, ?, ?, ?,\n"        // 16-20
+        + "?, ?, ?, ?, ?,\n"        // 21-25
+        + "?)}";                    // 26
         
-        try (java.sql.Connection conn = dataSource.getConnection();
-             java.sql.CallableStatement stmt = conn.prepareCall(sql)) {
+        try (java.sql.CallableStatement stmt = conn.prepareCall(sql)) {
+            int idx = 1;
+            
+          System.out.println("DEBUG: Iniciando registro de contacto con parámetros:");
+          System.out.println("  - NO_CIA: " + (contactoDTO.getNoCia() != null ? contactoDTO.getNoCia() : 0));
+          System.out.println("  - NO_CLIENTE: " + (contactoDTO.getNoCliente() != null ? contactoDTO.getNoCliente().toString() : ""));
+          System.out.println("  - NOMBRE: " + contactoDTO.getNombre());
+          System.out.println("  - APELLIDO: " + contactoDTO.getApellido());
+          System.out.println("  - TELEFONO: " + contactoDTO.getTelefono());
+          System.out.println("  - EMAIL: " + contactoDTO.getEmail());
           
-          int idx = 1;
-          // Parámetros del procedimiento CONTACTO según definición del SP
-          
-          // CIA INT(5)
+          // CIA INT(5) - Compañía
           stmt.setInt(idx++, contactoDTO.getNoCia() != null ? contactoDTO.getNoCia() : 0);
           
-          // PARAMETRO1-17 (VARCHAR)
+          // PARAMETRO1 VARCHAR(50) - NO_CLIENTE  
           stmt.setString(idx++, contactoDTO.getNoCliente() != null ? contactoDTO.getNoCliente().toString() : "");
-          stmt.setString(idx++, contactoDTO.getGrupo());
-          stmt.setString(idx++, contactoDTO.getNombre());
-          stmt.setString(idx++, contactoDTO.getApellido());
-          stmt.setString(idx++, contactoDTO.getTelefono());
-          stmt.setString(idx++, contactoDTO.getEmail());
-          stmt.setString(idx++, contactoDTO.getDireccion());
-          stmt.setString(idx++, contactoDTO.getCedula());
-          stmt.setString(idx++, contactoDTO.getMovil());
-          stmt.setString(idx++, contactoDTO.getCargo());
-          stmt.setString(idx++, contactoDTO.getDepartamento());
-          stmt.setString(idx++, contactoDTO.getTelefonoOficina());
-          stmt.setString(idx++, contactoDTO.getExtension());
-          stmt.setString(idx++, contactoDTO.getFax());
-          stmt.setString(idx++, contactoDTO.getObservaciones());
-          stmt.setString(idx++, contactoDTO.getHorarioTrabajo());
-          stmt.setString(idx++, contactoDTO.getRedes());
           
-          // INDICADOR VARCHAR(1)
+          // PARAMETRO2 VARCHAR(50) - NO_CONTACTO (null para INSERT)
+          stmt.setString(idx++, null);
+          
+          // PARAMETRO3 VARCHAR(50) - NOMBRE
+          stmt.setString(idx++, contactoDTO.getNombre() != null ? contactoDTO.getNombre() : "");
+          
+          // PARAMETRO4 VARCHAR(50) - APELLIDO
+          stmt.setString(idx++, contactoDTO.getApellido() != null ? contactoDTO.getApellido() : "");
+          
+          // PARAMETRO5 VARCHAR(50) - COD_CARGO
+          stmt.setString(idx++, contactoDTO.getCargo() != null ? contactoDTO.getCargo() : "");
+          
+          // PARAMETRO6 VARCHAR(200) - DIRECCION
+          stmt.setString(idx++, contactoDTO.getDireccion() != null ? contactoDTO.getDireccion() : "");
+          
+          // PARAMETRO7 VARCHAR(200) - DIRECCION1 (dirección secundaria)
+          stmt.setString(idx++, contactoDTO.getDireccion1() != null ? contactoDTO.getDireccion1() : "");
+          
+          // PARAMETRO8 VARCHAR(50) - TELEFONO
+          stmt.setString(idx++, contactoDTO.getTelefono() != null ? contactoDTO.getTelefono() : "");
+          
+          // PARAMETRO9 VARCHAR(50) - EXTENSION
+          stmt.setString(idx++, contactoDTO.getExtension() != null ? contactoDTO.getExtension() : "");
+          
+          // PARAMETRO10 VARCHAR(50) - FAX
+          stmt.setString(idx++, contactoDTO.getFax() != null ? contactoDTO.getFax() : "");
+          
+          // PARAMETRO11 VARCHAR(50) - EMAIL
+          stmt.setString(idx++, contactoDTO.getEmail() != null ? contactoDTO.getEmail() : "");
+          
+          // PARAMETRO12 VARCHAR(50) - MOVIL
+          stmt.setString(idx++, contactoDTO.getMovil() != null ? contactoDTO.getMovil() : "");
+          
+          // PARAMETRO13 VARCHAR(50) - PAGINA_WEB
+          stmt.setString(idx++, contactoDTO.getPaginaWeb() != null ? contactoDTO.getPaginaWeb() : "");
+          
+          // PARAMETRO14 VARCHAR(50) - (No se usa en INSERT según el SP)
+          stmt.setString(idx++, "");
+          
+          // PARAMETRO15 VARCHAR(50) - SEXO
+          stmt.setString(idx++, contactoDTO.getSexo() != null ? contactoDTO.getSexo() : "");
+          
+          // PARAMETRO16 VARCHAR(50) - FECHA_NACIMIENTO
+          stmt.setString(idx++, contactoDTO.getFechaNacimiento() != null ? contactoDTO.getFechaNacimiento() : "");
+          
+          // PARAMETRO17 VARCHAR(50) - USUARIO_APLICACION
+          stmt.setString(idx++, contactoDTO.getUsuarioCreacion() != null ? contactoDTO.getUsuarioCreacion() : "PORTAL_ADMIN");
+          
+          // INDICADOR VARCHAR(1) - "I" para INSERT
           stmt.setString(idx++, "I");
+            // PACTIVO VARCHAR(1) - Estado activo
+          stmt.setString(idx++, contactoDTO.getIndEstado() != null ? contactoDTO.getIndEstado() : "S");
           
-          // PACTIVO VARCHAR(1)
-          stmt.setString(idx++, contactoDTO.getIndEstado());
-          
-          // PREPLICAR VARCHAR(1)
+          // PREPLICAR VARCHAR(1) - "N" para no replicar
           stmt.setString(idx++, "N");
           
-          // PACCESO_WEB VARCHAR(1)
-          stmt.setString(idx++, "S");
+          // PACCESO_WEB VARCHAR(1) - Acceso web
+          stmt.setString(idx++, contactoDTO.getAccesoWeb() != null ? contactoDTO.getAccesoWeb() : "S");
           
-          // PUSUARIO_WEB VARCHAR(50)
-          stmt.setString(idx++, contactoDTO.getUsuarioCreacion());
+          // PUSUARIO_WEB VARCHAR(50) - Usuario web
+          stmt.setString(idx++, contactoDTO.getUsuarioWeb() != null ? contactoDTO.getUsuarioWeb() : contactoDTO.getUsuarioCreacion());
           
-          // PUSUARIO_HELPDESK VARCHAR(50)
-          stmt.setString(idx++, contactoDTO.getUsuarioCreacion());
+          // PUSUARIO_HELPDESK VARCHAR(50) - Usuario helpdesk
+          stmt.setString(idx++, contactoDTO.getUsuarioHelpdesk() != null ? contactoDTO.getUsuarioHelpdesk() : contactoDTO.getUsuarioCreacion());
           
-          // PACCESO_HELPDESK VARCHAR(1)
-          stmt.setString(idx++, "N");
-          
-          // V_SECUENCIAL OUT
+          // PACCESO_HELPDESK VARCHAR(1) - Acceso helpdesk
+          stmt.setString(idx++, contactoDTO.getAccesoHelpdesk() != null ? contactoDTO.getAccesoHelpdesk() : "N");          // V_SECUENCIAL OUT - Parámetro de salida
           stmt.registerOutParameter(idx, java.sql.Types.INTEGER);
           
+          System.out.println("DEBUG: Total de parámetros configurados: " + idx + " (debería ser 26 - 25 IN + 1 OUT)");
+          System.out.println("DEBUG: Ejecutando procedimiento almacenado CONTACTO...");
           stmt.execute();
           int contactoSecuencial = stmt.getInt(idx);
-          System.out.println("Contacto registrado exitosamente con código: " + contactoSecuencial);
+          System.out.println("DEBUG: Contacto registrado exitosamente con código: " + contactoSecuencial);
             // Agregar información del contacto registrado a la respuesta
           contactoInfo.put("success", true);
           contactoInfo.put("secuencial_contacto", contactoSecuencial);
@@ -331,16 +467,12 @@ public class ClienteController {
           contactoInfo.put("nombre", contactoDTO.getNombre());
           contactoInfo.put("apellido", contactoDTO.getApellido());
           contactoInfo.put("telefono", contactoDTO.getTelefono());
-          contactoInfo.put("email", contactoDTO.getEmail());
-          contactoInfo.put("cedula", contactoDTO.getCedula());
+          contactoInfo.put("email", contactoDTO.getEmail());          contactoInfo.put("cedula", contactoDTO.getCedula());
           contactoInfo.put("es_principal", contactoDTO.getIndPrincipal());
           contactoInfo.put("estado", contactoDTO.getIndEstado());
           
-        }
-      } else {
-        contactoInfo.put("success", false);
-        contactoInfo.put("mensaje", "No se pudo crear el objeto contacto");
-      }
+        } // Cierra el try-with-resources
+      } // Cierra el if (contactoDTO != null)
     } catch (Exception e) {
       System.err.println("Error al registrar contacto: " + e.getMessage());
       e.printStackTrace();
@@ -349,8 +481,7 @@ public class ClienteController {
     }
       return contactoInfo;
   }
-
-  private Map<String, Object> registrarUsuario(Cliente cliente, int vSecuencial) {
+  private Map<String, Object> registrarUsuario(Cliente cliente, int vSecuencial, java.sql.Connection conn) {
     Map<String, Object> usuarioInfo = new HashMap<>();
     
     try {
@@ -371,11 +502,9 @@ public class ClienteController {
         usuarioDTO.setIndActivo("S");
         usuarioDTO.setIndCliente("S");
       }
-      
-      // Verificar si el usuario ya existe
+        // Verificar si el usuario ya existe
       String checkUserSql = "SELECT usuario FROM segweb_usuario WHERE usuario = ?";
-      try (java.sql.Connection conn = dataSource.getConnection();
-           java.sql.PreparedStatement checkStmt = conn.prepareStatement(checkUserSql)) {
+      try (java.sql.PreparedStatement checkStmt = conn.prepareStatement(checkUserSql)) {
         
         checkStmt.setString(1, usuarioDTO.getUsuario());
         java.sql.ResultSet rs = checkStmt.executeQuery();
@@ -414,11 +543,9 @@ public class ClienteController {
         "fc_porcentaje_descuento_limite, co_ind_autoriza_cuenta_contable, " +
         "fc_registra_con_vendedor, ind_cajero_fi, ind_cobrador_fi, " +
         "ind_procesa_documento_fi, ind_traslado_cuentas, " +
-        "ind_access_all_fi, ind_supervisor_fi, ind_aj_mes_contable) " +
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        "ind_access_all_fi, ind_supervisor_fi, ind_aj_mes_contable) " +        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
       
-      try (java.sql.Connection conn = dataSource.getConnection();
-           java.sql.PreparedStatement stmt = conn.prepareStatement(insertSql)) {
+      try (java.sql.PreparedStatement stmt = conn.prepareStatement(insertSql)) {
         
         int idx = 1;
         stmt.setString(idx++, usuarioDTO.getUsuario());
@@ -491,10 +618,10 @@ public class ClienteController {
         int filasAfectadas = stmt.executeUpdate();
           if (filasAfectadas > 0) {
           System.out.println("Usuario registrado exitosamente: " + usuarioDTO.getUsuario());
-          
-          usuarioInfo.put("success", true);
+            usuarioInfo.put("success", true);
           usuarioInfo.put("mensaje", "Usuario registrado exitosamente");
           usuarioInfo.put("usuario", usuarioDTO.getUsuario());
+          usuarioInfo.put("usuario_registrado", usuarioDTO.getUsuario()); // Campo específico para la actualización del contacto
           usuarioInfo.put("nombre_completo", usuarioDTO.getNomUsuario() + " " + (usuarioDTO.getApeUsuario() != null ? usuarioDTO.getApeUsuario() : ""));
           usuarioInfo.put("nombre", usuarioDTO.getNomUsuario());
           usuarioInfo.put("apellido", usuarioDTO.getApeUsuario());
@@ -559,5 +686,149 @@ public class ClienteController {
       } else {
           return java.util.Collections.singletonMap("mensaje", "Cliente no existe");
       }
+  }  private Map<String, Object> actualizarUsuarioWebContacto(int noCliente, int noContacto, String usuarioWeb, java.sql.Connection conn) {
+    Map<String, Object> resultado = new HashMap<>();
+    
+    try {
+      // Primero obtener los datos actuales del contacto
+      String selectSql = "SELECT nombre, apellido, cod_cargo, direccion, direccion1, telefono, extension, fax, email, movil, pagina_web, sexo, fecha_nacimiento, usuario_aplicacion, activo FROM genweb_contacto_cliente WHERE no_cia = 1 AND no_cliente = ? AND no_contacto = ?";
+      
+      String nombre = "", apellido = "", codCargo = "", direccion = "", direccion1 = "";
+      String telefono = "", extension = "", fax = "", email = "", movil = "";
+      String paginaWeb = "", sexo = "", fechaNacimiento = "", usuarioAplicacion = "", activo = "S";
+      
+      try (java.sql.PreparedStatement selectStmt = conn.prepareStatement(selectSql)) {
+        selectStmt.setInt(1, noCliente);
+        selectStmt.setInt(2, noContacto);
+        
+        java.sql.ResultSet rs = selectStmt.executeQuery();
+        if (rs.next()) {
+          nombre = rs.getString("nombre") != null ? rs.getString("nombre") : "";
+          apellido = rs.getString("apellido") != null ? rs.getString("apellido") : "";
+          codCargo = rs.getString("cod_cargo") != null ? rs.getString("cod_cargo") : "";
+          direccion = rs.getString("direccion") != null ? rs.getString("direccion") : "";
+          direccion1 = rs.getString("direccion1") != null ? rs.getString("direccion1") : "";
+          telefono = rs.getString("telefono") != null ? rs.getString("telefono") : "";
+          extension = rs.getString("extension") != null ? rs.getString("extension") : "";
+          fax = rs.getString("fax") != null ? rs.getString("fax") : "";
+          email = rs.getString("email") != null ? rs.getString("email") : "";
+          movil = rs.getString("movil") != null ? rs.getString("movil") : "";
+          paginaWeb = rs.getString("pagina_web") != null ? rs.getString("pagina_web") : "";
+          sexo = rs.getString("sexo") != null ? rs.getString("sexo") : "";
+          fechaNacimiento = rs.getString("fecha_nacimiento") != null ? rs.getString("fecha_nacimiento") : "";
+          usuarioAplicacion = rs.getString("usuario_aplicacion") != null ? rs.getString("usuario_aplicacion") : "PORTAL_ADMIN";
+          activo = rs.getString("activo") != null ? rs.getString("activo") : "S";
+        }
+      }
+      
+      // Ahora actualizar el contacto con el procedimiento almacenado CONTACTO usando operación UPDATE
+      String sql = "{call CONTACTO(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+      
+      try (java.sql.CallableStatement stmt = conn.prepareCall(sql)) {
+        int idx = 1;
+        
+        System.out.println("DEBUG: Actualizando contacto con usuario web: " + usuarioWeb);
+        System.out.println("  - NO_CLIENTE: " + noCliente);
+        System.out.println("  - NO_CONTACTO: " + noContacto);
+        
+        // CIA INT(5) - Compañía
+        stmt.setInt(idx++, 1);
+        
+        // PARAMETRO1 VARCHAR(50) - NO_CLIENTE  
+        stmt.setString(idx++, String.valueOf(noCliente));
+        
+        // PARAMETRO2 VARCHAR(50) - NO_CONTACTO (para UPDATE)
+        stmt.setString(idx++, String.valueOf(noContacto));
+        
+        // PARAMETRO3 VARCHAR(50) - NOMBRE
+        stmt.setString(idx++, nombre);
+        
+        // PARAMETRO4 VARCHAR(50) - APELLIDO
+        stmt.setString(idx++, apellido);
+        
+        // PARAMETRO5 VARCHAR(50) - COD_CARGO
+        stmt.setString(idx++, codCargo);
+        
+        // PARAMETRO6 VARCHAR(200) - DIRECCION
+        stmt.setString(idx++, direccion);
+        
+        // PARAMETRO7 VARCHAR(200) - DIRECCION1
+        stmt.setString(idx++, direccion1);
+        
+        // PARAMETRO8 VARCHAR(50) - TELEFONO
+        stmt.setString(idx++, telefono);
+        
+        // PARAMETRO9 VARCHAR(50) - EXTENSION
+        stmt.setString(idx++, extension);
+        
+        // PARAMETRO10 VARCHAR(50) - FAX
+        stmt.setString(idx++, fax);
+        
+        // PARAMETRO11 VARCHAR(50) - EMAIL
+        stmt.setString(idx++, email);
+        
+        // PARAMETRO12 VARCHAR(50) - MOVIL
+        stmt.setString(idx++, movil);
+        
+        // PARAMETRO13 VARCHAR(50) - PAGINA_WEB
+        stmt.setString(idx++, paginaWeb);
+        
+        // PARAMETRO14 VARCHAR(50) - (No se usa en UPDATE)
+        stmt.setString(idx++, "");
+        
+        // PARAMETRO15 VARCHAR(50) - SEXO
+        stmt.setString(idx++, sexo);
+        
+        // PARAMETRO16 VARCHAR(50) - FECHA_NACIMIENTO
+        stmt.setString(idx++, fechaNacimiento);
+        
+        // PARAMETRO17 VARCHAR(50) - USUARIO_APLICACION
+        stmt.setString(idx++, usuarioAplicacion);
+        
+        // INDICADOR VARCHAR(1) - "U" para UPDATE
+        stmt.setString(idx++, "U");
+        
+        // PACTIVO VARCHAR(1) - Estado activo
+        stmt.setString(idx++, activo);
+        
+        // PREPLICAR VARCHAR(1) - "N" para no replicar
+        stmt.setString(idx++, "N");
+        
+        // PACCESO_WEB VARCHAR(1) - Acceso web
+        stmt.setString(idx++, "S");
+        
+        // PUSUARIO_WEB VARCHAR(50) - Usuario web (ESTE ES EL CAMPO QUE QUEREMOS ACTUALIZAR)
+        stmt.setString(idx++, usuarioWeb);
+        
+        // PUSUARIO_HELPDESK VARCHAR(50) - Usuario helpdesk
+        stmt.setString(idx++, "PORTAL_ADMIN");
+        
+        // PACCESO_HELPDESK VARCHAR(1) - Acceso helpdesk
+        stmt.setString(idx++, "N");
+        
+        // V_SECUENCIAL OUT - Parámetro de salida
+        stmt.registerOutParameter(idx, java.sql.Types.INTEGER);
+        
+        System.out.println("DEBUG: Ejecutando UPDATE del contacto...");
+        stmt.execute();
+        int contactoActualizado = stmt.getInt(idx);
+        
+        System.out.println("DEBUG: Contacto actualizado exitosamente. Secuencial: " + contactoActualizado);
+        
+        resultado.put("success", true);
+        resultado.put("mensaje", "Usuario web actualizado en contacto exitosamente");
+        resultado.put("secuencial_contacto", contactoActualizado);
+        resultado.put("usuario_web_asignado", usuarioWeb);
+        resultado.put("no_cliente", noCliente);
+        resultado.put("no_contacto", noContacto);
+        
+      }
+    } catch (Exception e) {
+      System.err.println("Error al actualizar usuario web en contacto: " + e.getMessage());
+      e.printStackTrace();
+      resultado.put("success", false);
+      resultado.put("mensaje", "Error al actualizar usuario web en contacto: " + e.getMessage());
+    }    
+    return resultado;
   }
 }

@@ -7,6 +7,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
+// Imports para OpenAPI/Swagger
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import javax.sql.DataSource;
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -14,6 +23,7 @@ import java.sql.Types;
 
 @RestController
 @RequestMapping("/api/prefactura-db")
+@Tag(name = "Prefacturas", description = "API para gestión de prefacturas y documentos de salida")
 public class PrefacturaController {
 
     @Autowired
@@ -21,10 +31,21 @@ public class PrefacturaController {
     @Autowired
     private JdbcTemplate jdbcTemplate;
     @Autowired
-    private ObjectMapper objectMapper;
-
-    @PostMapping
-    public ResponseEntity<?> registrarPrefactura(@RequestBody PrefacturaRequest request) {
+    private ObjectMapper objectMapper;    @PostMapping
+    @Operation(
+        summary = "Registrar nueva prefactura",
+        description = "Registra una nueva prefactura o documento de salida en el sistema mediante procedimiento almacenado. " +
+                      "Procesa tanto la cabecera como el detalle de líneas de la prefactura."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Prefactura registrada exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Datos de la prefactura inválidos o incompletos"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor durante el proceso de registro")
+    })
+    public ResponseEntity<?> registrarPrefactura(
+        @Parameter(description = "Datos completos de la prefactura incluyendo cabecera y detalle de líneas", 
+                   required = true)
+        @RequestBody PrefacturaRequest request) {
         String sql = "{call SALIDA_PREFACTURA(\n"
                 + "?, ?, ?, ?, ?, ?, ?, ?, ?, ?,\n"   // 1-10
                 + "?, ?, ?, ?, ?, ?, ?, ?, ?, ?,\n"   // 11-20

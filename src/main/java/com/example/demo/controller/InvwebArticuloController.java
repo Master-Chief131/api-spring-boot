@@ -9,11 +9,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+// Imports para OpenAPI/Swagger
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/articulos")
+@Tag(name = "Artículos", description = "API para consulta de artículos del inventario")
 public class InvwebArticuloController {
     @Autowired
     private InvwebArticuloRepository articuloRepository;
@@ -30,10 +40,22 @@ public class InvwebArticuloController {
         public Integer familia;
         public Integer subfamilia;
         public Integer subsubfamilia;
-    }
-
-    @GetMapping
-    public ArticuloPage getArticulos(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
+    }    @GetMapping
+    @Operation(
+        summary = "Obtener artículos del inventario",
+        description = "Obtiene una lista paginada de artículos del inventario. Solo incluye artículos de familias " +
+                      "habilitadas para el portal (ver_portal = 'S')."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Lista de artículos obtenida exitosamente",
+                    content = @Content(schema = @Schema(implementation = ArticuloPage.class))),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    public ArticuloPage getArticulos(
+        @Parameter(description = "Número de página (base 0)", example = "0") 
+        @RequestParam(defaultValue = "0") int page, 
+        @Parameter(description = "Tamaño de página", example = "20") 
+        @RequestParam(defaultValue = "20") int size) {
         // Obtener todas las familias con ver_portal = 'S' de una sola vez
         List<com.example.demo.entity.InvwebFamilia> familiasPortal = familiaRepository.findByVerPortal("S");
         java.util.Set<com.example.demo.entity.FamiliaId> familiasValidas = familiasPortal.stream()

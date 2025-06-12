@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validar Usuario por Email - API CPTSOFT</title>
+    <link rel="icon" href="images/logos/logo_icono.svg" type="image/svg+xml">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .form-container {
+            padding: 40px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+        
+        .result-container {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .result-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .result-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .result-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        
+        .result-icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        
+        .result-message {
+            font-size: 1.1em;
+            font-weight: 500;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .api-info {
+            background: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        
+        .api-info h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .api-info p {
+            color: #7f8c8d;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+        
+        .api-url {
+            background: #34495e;
+            color: #ecf0f1;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin-top: 10px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Validar Usuario</h1>
+            <p>Verifica si un email ya está registrado en el sistema</p>
+        </div>
+        
+        <div class="form-container">
+            <form id="validarForm">
+                <div class="form-group">
+                    <label for="email">📧 Email del Usuario</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        placeholder="Ingrese el email a validar (ej: usuario@ejemplo.com)"
+                        required
+                    >
+                </div>
+                
+                <div class="btn-container">
+                    <button type="submit" class="btn btn-primary">
+                        🔍 Validar Email
+                    </button>
+                    <a href="ejemplos.html" class="btn btn-secondary">
+                        ← Volver
+                    </a>
+                </div>
+            </form>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Validando email...</p>
+            </div>
+            
+            <div class="result-container" id="resultContainer">
+                <span class="result-icon" id="resultIcon"></span>
+                <span class="result-message" id="resultMessage"></span>
+            </div>
+            
+            <div class="api-info">
+                <h3>📋 Información de la API</h3>
+                <p>
+                    Este formulario utiliza el endpoint de validación de usuarios para verificar 
+                    si un email ya está registrado en la tabla <code>segweb_usuario</code>.
+                </p>
+                <div class="api-url" id="apiUrl">
+                    GET /api/usuarios/validar-email?usuario={email}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('validarForm');
+        const loading = document.getElementById('loading');
+        const resultContainer = document.getElementById('resultContainer');
+        const resultIcon = document.getElementById('resultIcon');
+        const resultMessage = document.getElementById('resultMessage');
+        const apiUrl = document.getElementById('apiUrl');
+        
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value.trim();
+            
+            if (!email) {
+                mostrarResultado('error', '❌', 'Por favor ingrese un email válido');
+                return;
+            }
+            
+            // Mostrar loading
+            loading.style.display = 'block';
+            resultContainer.style.display = 'none';
+            
+            try {
+                // Construir URL de la API
+                const baseUrl = window.location.origin;
+                const endpoint = `/api/usuarios/validar-email?usuario=${encodeURIComponent(email)}`;
+                const fullUrl = baseUrl + endpoint;
+                
+                // Actualizar la URL mostrada
+                apiUrl.textContent = `GET ${endpoint}`;
+                
+                // Realizar petición
+                const response = await fetch(fullUrl);
+                const data = await response.json();
+                
+                loading.style.display = 'none';
+                
+                if (response.ok && data.success) {
+                    if (data.existe) {
+                        mostrarResultado('warning', '⚠️', data.mensaje);
+                    } else {
+                        mostrarResultado('success', '✅', data.mensaje);
+                    }
+                } else {
+                    mostrarResultado('error', '❌', data.mensaje || 'Error al validar el usuario');
+                }
+                
+            } catch (error) {
+                loading.style.display = 'none';
+                mostrarResultado('error', '❌', `Error de conexión: ${error.message}`);
+            }
+        });
+        
+        function mostrarResultado(tipo, icono, mensaje) {
+            resultContainer.className = 'result-container result-' + tipo;
+            resultIcon.textContent = icono;
+            resultMessage.textContent = mensaje;
+            resultContainer.style.display = 'block';
+            
+            // Scroll suave al resultado
+            resultContainer.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'nearest' 
+            });
+        }
+        
+        // Validación en tiempo real del email
+        const emailInput = document.getElementById('email');
+        emailInput.addEventListener('input', function() {
+            if (this.value && !this.value.includes('@')) {
+                this.setCustomValidity('Por favor ingrese un email válido');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+        
+        // Ejemplos de emails para probar (mostrar al hacer clic en el input)
+        emailInput.addEventListener('focus', function() {
+            if (!this.value) {
+                this.placeholder = 'Ejemplos: test@email.com, admin@empresa.com, usuario@ejemplo.com';
+            }
+        });
+        
+        emailInput.addEventListener('blur', function() {
+            this.placeholder = 'Ingrese el email a validar (ej: usuario@ejemplo.com)';
+        });
+    </script>
+</body>
+</html>

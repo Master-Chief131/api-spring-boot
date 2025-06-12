@@ -22,7 +22,7 @@ public class OpenApiConfig {
                                    "Permite realizar operaciones de registro, consulta y actualización de información.")
                         .version("1.0.0")
                         .contact(new Contact()
-                                .name("Equipo de Desarrollo")
+                                .name("CPTSoft")
                                 .email("desarrollo@empresa.com"))
                         .license(new License()
                                 .name("MIT License")

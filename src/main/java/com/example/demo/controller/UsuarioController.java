@@ -1,6 +1,8 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.CambioClaveDTO;
 import com.example.demo.repository.UsuarioRepository;
+import com.example.demo.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -22,6 +24,9 @@ public class UsuarioController {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+    
+    @Autowired
+    private UsuarioService usuarioService;
 
     @GetMapping("/validar-email")
     @Operation(
@@ -152,6 +157,119 @@ public class UsuarioController {
             response.put("existe", false);
             response.put("mensaje", "Error al validar el usuario: " + e.getMessage());
             return ResponseEntity.internalServerError().body(response);
+        }
+    }
+    
+    @PostMapping("/cambiar-clave")
+    @Operation(
+        summary = "Cambiar contraseña de usuario",
+        description = "Permite cambiar la contraseña de un usuario validando primero las credenciales actuales"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200", 
+            description = "Contraseña cambiada exitosamente",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = Map.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "400", 
+            description = "Datos inválidos o contraseña actual incorrecta"
+        ),
+        @ApiResponse(
+            responseCode = "404", 
+            description = "Usuario no encontrado"
+        ),
+        @ApiResponse(
+            responseCode = "500", 
+            description = "Error interno del servidor"
+        )
+    })
+    public ResponseEntity<Map<String, Object>> cambiarClave(
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Datos para el cambio de contraseña",
+            required = true,
+            content = @Content(
+                schema = @Schema(implementation = CambioClaveDTO.class)
+            )
+        )
+        @RequestBody CambioClaveDTO cambioClaveDTO
+    ) {
+        try {
+            Map<String, Object> response = usuarioService.cambiarClave(cambioClaveDTO);
+            
+            if ((Boolean) response.get("success")) {
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("mensaje", "Error interno del servidor: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(errorResponse);
+        }
+    }
+    
+    @GetMapping("/info")
+    @Operation(
+        summary = "Obtener información de usuario",
+        description = "Obtiene la información básica de un usuario (sin incluir la contraseña)"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200", 
+            description = "Información obtenida exitosamente",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = Map.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "400", 
+            description = "Usuario no proporcionado"
+        ),
+        @ApiResponse(
+            responseCode = "404", 
+            description = "Usuario no encontrado"
+        ),
+        @ApiResponse(
+            responseCode = "500", 
+            description = "Error interno del servidor"
+        )
+    })
+    public ResponseEntity<Map<String, Object>> obtenerInfoUsuario(
+        @Parameter(
+            description = "Nombre de usuario", 
+            required = true,
+            example = "juan.perez"
+        )
+        @RequestParam String usuario
+    ) {
+        try {
+            if (usuario == null || usuario.trim().isEmpty()) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("mensaje", "El nombre de usuario es requerido");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            Map<String, Object> response = usuarioService.obtenerInfoUsuario(usuario.trim());
+            
+            if ((Boolean) response.get("success")) {
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.status(404).body(response);
+            }
+            
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("mensaje", "Error interno del servidor: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(errorResponse);
         }
     }
 }

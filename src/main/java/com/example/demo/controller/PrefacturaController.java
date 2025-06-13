@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.entity.PrefacturaRequest;
+import com.example.demo.entity.CotizacionRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import javax.sql.DataSource;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.Types;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/prefactura-db")
@@ -155,6 +157,165 @@ public class PrefacturaController {
             return ResponseEntity.ok("Prefactura registrada correctamente");
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error al registrar prefactura: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/cotizacion")
+    @Operation(
+        summary = "Registrar nueva cotización",
+        description = "Registra una nueva cotización mediante el procedimiento almacenado SOLI_ORDEN_COTIZACION. " +
+                      "Procesa tanto la cabecera como el detalle de líneas de la cotización."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Cotización registrada exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Datos de la cotización inválidos o incompletos"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor durante el proceso de registro")
+    })
+    public ResponseEntity<?> registrarCotizacion(
+        @Parameter(description = "Datos completos de la cotización incluyendo cabecera y detalle de líneas", 
+                   required = true)
+        @RequestBody CotizacionRequest request) {
+        
+        try (Connection conn = dataSource.getConnection()) {
+            conn.setAutoCommit(false);
+            
+            String sql = "{call SOLI_ORDEN_COTIZACION(?,?,?,?,?,?,?,?,?,?," +
+                        "?,?,?,?,?,?,?,?,?,?," +
+                        "?,?,?,?,?,?,?,?,?,?," +
+                        "?,?,?,?,?,?,?,?,?,?," +
+                        "?,?,?,?,?,?,?,?,?,?," +
+                        "?,?,?,?,?,?,?,?,?,?," +
+                        "?,?,?,?,?,?,?,?,?,?," +
+                        "?,?,?,?,?,?)}";
+            
+            String mensajeRespuesta = "";
+            String noSolicitudGenerada = request.getNoSolicitud();
+            
+            for (CotizacionRequest.CotizacionDetalle detalle : request.getDetalle()) {
+                try (CallableStatement stmt = conn.prepareCall(sql)) {
+                    int idx = 1;
+                    
+                    // Parámetros de cabecera (1-24)
+                    stmt.setString(idx++, request.getNoCia());
+                    stmt.setString(idx++, request.getNoSucursal());
+                    stmt.setString(idx++, request.getNoBodega());
+                    stmt.setString(idx++, request.getNoSolicitud());
+                    stmt.setString(idx++, request.getFecha());
+                    stmt.setString(idx++, request.getNoVendedor());
+                    stmt.setString(idx++, request.getNoCliente());
+                    stmt.setString(idx++, request.getTipoFactura());
+                    stmt.setBigDecimal(idx++, request.getPorcentajeDescuento());
+                    stmt.setBigDecimal(idx++, request.getDescuentoNominal());
+                    stmt.setBigDecimal(idx++, request.getSubtotalNominal());
+                    stmt.setBigDecimal(idx++, request.getImpuestoNominal());
+                    stmt.setBigDecimal(idx++, request.getTotalNominal());
+                    stmt.setBigDecimal(idx++, request.getDescuentoDolar());
+                    stmt.setBigDecimal(idx++, request.getSubtotalDolar());
+                    stmt.setBigDecimal(idx++, request.getImpuestoDolar());
+                    stmt.setBigDecimal(idx++, request.getTotalDolar());
+                    stmt.setString(idx++, request.getTipoCambio());
+                    stmt.setString(idx++, request.getMoneda());
+                    stmt.setString(idx++, request.getFechaCambio());
+                    stmt.setString(idx++, request.getUsuario());
+                    stmt.setString(idx++, null); // fecha_creacion
+                    stmt.setString(idx++, request.getEstatus());
+                    stmt.setString(idx++, request.getObservacion());
+                    
+                    // Parámetros de detalle por línea (25-54)
+                    stmt.setString(idx++, detalle.getLinea());
+                    stmt.setString(idx++, detalle.getNoArticulo());
+                    stmt.setString(idx++, detalle.getCantidad());
+                    stmt.setString(idx++, detalle.getCodBarra());
+                    stmt.setString(idx++, detalle.getDescripcion());
+                    stmt.setBigDecimal(idx++, detalle.getPrecio());
+                    stmt.setBigDecimal(idx++, detalle.getPrecioDolar());
+                    stmt.setBigDecimal(idx++, detalle.getPorcentajeDescuento());
+                    stmt.setBigDecimal(idx++, detalle.getSubtotal());
+                    stmt.setBigDecimal(idx++, detalle.getSubtotalDolar());
+                    stmt.setBigDecimal(idx++, detalle.getDescuento());
+                    stmt.setBigDecimal(idx++, detalle.getDescuentoDolar());
+                    stmt.setBigDecimal(idx++, detalle.getImpuestoNominal());
+                    stmt.setBigDecimal(idx++, detalle.getImpuestoDolar());
+                    stmt.setBigDecimal(idx++, detalle.getTotal());
+                    stmt.setBigDecimal(idx++, detalle.getTotalDolar());
+                    stmt.setBigDecimal(idx++, detalle.getPorcentajeImpuesto());
+                    stmt.setString(idx++, detalle.getNoUnidad());
+                    stmt.setBigDecimal(idx++, detalle.getCostoPromedio());
+                    stmt.setBigDecimal(idx++, detalle.getMtsXCaja());
+                    stmt.setDate(idx++, request.getFechaEntrega());
+                    stmt.setString(idx++, request.getNomCliente());
+                    stmt.setInt(idx++, request.getTipoVenta() != null ? request.getTipoVenta() : 0);
+                    stmt.setString(idx++, request.getNoSucursalV());
+                    stmt.setString(idx++, detalle.getSerie());
+                    stmt.setString(idx++, detalle.getNoImpuesto());
+                    stmt.setString(idx++, detalle.getExcento());
+                    stmt.setBigDecimal(idx++, detalle.getPrecioNuevo());
+                    stmt.setBigDecimal(idx++, detalle.getPrecioNuevoDolar());
+                    stmt.setString(idx++, detalle.getNoBodega());
+                    
+                    // Parámetros adicionales (55-86)
+                    stmt.setString(idx++, request.getPiliminar());
+                    stmt.registerOutParameter(idx++, Types.INTEGER); // v_secuencial (OUT) - posición 56
+                    stmt.setString(idx++, request.getNoOrdenCompra());
+                    stmt.setString(idx++, detalle.getTipoArticulo());
+                    stmt.setString(idx++, request.getAlias());
+                    stmt.setString(idx++, detalle.getNoSucursal());
+                    stmt.setString(idx++, ""); // ind_carga
+                    stmt.setString(idx++, null); // cantidad_carga
+                    stmt.setString(idx++, request.getNoProveedor());
+                    stmt.setString(idx++, request.getNoClase());
+                    stmt.setString(idx++, request.getCiaOferta());
+                    stmt.setString(idx++, request.getProveOferta());
+                    stmt.setBigDecimal(idx++, request.getPorcDescCia());
+                    stmt.setBigDecimal(idx++, request.getPorcDescProve());
+                    stmt.setString(idx++, request.getTipoOferta());
+                    stmt.setString(idx++, request.getCantOfe());
+                    stmt.setString(idx++, request.getArtiOfe());
+                    stmt.setString(idx++, request.getCodigoPromo1());
+                    stmt.setString(idx++, request.getCodigoPromo2());
+                    stmt.setString(idx++, detalle.getCantidadEq());
+                    stmt.setString(idx++, detalle.getNoUnidadEq());
+                    stmt.setString(idx++, "N"); // parámetro fijo
+                    stmt.setString(idx++, request.getOrigenSolicitud());
+                    stmt.setBigDecimal(idx++, request.getSucursalCliente());
+                    stmt.setObject(idx++, detalle.getNoGrupoMercado(), Types.INTEGER);
+                    stmt.setString(idx++, request.getNoPlazo());
+                    stmt.setString(idx++, request.getIndLocalidad());
+                    stmt.setString(idx++, request.getGrupoCliente());
+                    stmt.setString(idx++, request.getEmail());
+                    stmt.setObject(idx++, request.getNoReferido(), Types.INTEGER);
+                    stmt.setString(idx++, request.getNomReferido());
+                    stmt.setString(idx++, request.getRucCedula());
+                    
+                    stmt.execute();
+                    
+                    // Obtener el número de solicitud generado si es nuevo
+                    if (request.getNoSolicitud() == null || request.getNoSolicitud().isEmpty()) {
+                        int secuencial = stmt.getInt(56);
+                        noSolicitudGenerada = String.valueOf(secuencial);
+                        request.setNoSolicitud(noSolicitudGenerada);
+                    }
+                }
+            }
+            
+            conn.commit();
+            mensajeRespuesta = "PROCESO REALIZADO CORRECTAMENTE";
+            
+            if (noSolicitudGenerada != null && !noSolicitudGenerada.isEmpty()) {
+                mensajeRespuesta += " SOLICITUD DE PEDIDO NO. " + noSolicitudGenerada;
+            }
+            
+            return ResponseEntity.ok().body(Map.of(
+                "mensaje", mensajeRespuesta,
+                "noSolicitud", noSolicitudGenerada,
+                "estado", "exitoso"
+            ));
+            
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                "mensaje", "Error al registrar cotización: " + e.getMessage(),
+                "estado", "error"
+            ));
         }
     }
 }

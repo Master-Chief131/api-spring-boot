@@ -10,18 +10,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@RestController
-@RequestMapping("/api/servicios")
-public class FacwebGrupoMercadoController {
-    @Autowired
-    private FacwebGrupoMercadoRepository grupoMercadoRepository;
+// @RestController
+// @RequestMapping("/api/servicios")
+// public class FacwebGrupoMercadoController {
+//     @Autowired
+//     private FacwebGrupoMercadoRepository grupoMercadoRepository;
 
-    @GetMapping
-    public List<FacwebGrupoMercado> getServicios(@RequestParam(required = false) Integer noCia) {
-        if (noCia != null) {
-            return grupoMercadoRepository.findByIndPortalAndNoCia("S", noCia);
-        } else {
-            return grupoMercadoRepository.findByIndPortal("S");
-        }
-    }
-}
+//     @GetMapping
+//     public List<FacwebGrupoMercado> getServicios(@RequestParam(required = false) Integer noCia) {
+//         if (noCia != null) {
+//             return grupoMercadoRepository.findByIndPortalAndNoCia("S", noCia);
+//         } else {
+//             return grupoMercadoRepository.findByIndPortal("S");
+//         }
+//     }
+// }

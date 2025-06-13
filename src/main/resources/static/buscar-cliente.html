@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Buscar Cliente</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="images/logos/logo_icono.svg" type="image/svg+xml">
     <style>
         body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0; }
         .container { max-width: 500px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 2em; }
@@ -31,6 +32,9 @@
         <button type="submit">Buscar</button>
     </form>
     <div id="resultado"></div>
+    <div style="margin-top: 30px; text-align: center;">
+        <button onclick="window.location.href='ejemplos.html'" style="padding: 12px 28px; font-size: 18px; border-radius: 8px; background: #888; color: #fff; border: none; cursor: pointer;">Volver</button>
+    </div>
 </div>
 <script>
     document.getElementById('buscarForm').addEventListener('submit', async function(e) {
@@ -41,7 +45,7 @@
         const resultado = document.getElementById('resultado');
         resultado.innerHTML = '';
         try {
-            const res = await fetch(`/api/clientes/buscar?noCia=${noCia}&noCliente=${noCliente}&grupo=${encodeURIComponent(grupo)}`);
+            const res = await fetch(`api/clientes/buscar?noCia=${noCia}&noCliente=${noCliente}&grupo=${encodeURIComponent(grupo)}`);
             const data = await res.json();
             if (data.mensaje) {
                 resultado.innerHTML = `<div class="error">${data.mensaje}</div>`;

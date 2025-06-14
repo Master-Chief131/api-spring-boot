@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>Pruebas de Integración ERP</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="js/api-url-helper.js"></script>
+    <style>
+        .resultado { 
+            background-color: #f8f9fa; 
+            border: 1px solid #dee2e6; 
+            border-radius: 0.375rem; 
+            padding: 1rem; 
+            margin: 1rem 0; 
+            white-space: pre-wrap; 
+            font-family: monospace; 
+        }
+        .config-badge { margin: 0.25rem; }
+        .metodo-card { margin-bottom: 2rem; }
+    </style>
+</head>
+<body>    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h1><i class="fas fa-plug"></i> Pruebas de Integración ERP</h1>
+                <p class="lead">Herramienta para probar diferentes métodos de comunicación con el ERP</p>
+                
+                <!-- URLs de Configuración -->
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle"></i> Configuración Actual:</h6>
+                    <strong>API:</strong> http://localhost:8088/Api-Demo/<br>
+                    <strong>ERP:</strong> http://localhost:8088/cptsoft-erp-prueba/<br>
+                    <strong>Escenario:</strong> Webapps en el mismo Tomcat (Puerto 8088)
+                </div>
+                
+                <!-- Información de WebXML -->
+                <div class="card metodo-card">
+                    <div class="card-header bg-dark text-white">
+                        <h5><i class="fas fa-file-code"></i> Mappings del web.xml</h5>
+                        <small>Lectura automática de servlets desde el web.xml del ERP</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <button class="btn btn-outline-dark" onclick="obtenerWebXmlInfo()">
+                                <i class="fas fa-search"></i> Ver Mappings web.xml
+                            </button>
+                            <button class="btn btn-warning" onclick="refrescarWebXml()">
+                                <i class="fas fa-sync"></i> Refrescar Mappings
+                            </button>
+                        </div>
+                        <div id="resultadoWebXml" class="resultado" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- Información del Contexto -->
+                <div class="card metodo-card">
+                    <div class="card-header bg-info text-white">
+                        <h5><i class="fas fa-info-circle"></i> Información del Contexto</h5>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-outline-info" onclick="obtenerInfoContexto()">
+                            <i class="fas fa-search"></i> Obtener Información
+                        </button>
+                        <div id="resultadoContexto" class="resultado" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- Configuración ERP -->
+                <div class="card metodo-card">
+                    <div class="card-header bg-secondary text-white">
+                        <h5><i class="fas fa-cog"></i> Configuración ERP</h5>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-outline-secondary" onclick="verConfiguracion()">
+                            <i class="fas fa-eye"></i> Ver Configuración
+                        </button>
+                        <div id="resultadoConfiguracion" class="resultado" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- Método 1: HTTP REST -->
+                <div class="card metodo-card">
+                    <div class="card-header bg-primary text-white">
+                        <h5><i class="fas fa-network-wired"></i> Método 1: Comunicación HTTP REST</h5>
+                        <small>Recomendado para aplicaciones en servidores diferentes</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">Email:</label>
+                                <input type="email" class="form-control" id="emailHttp" value="test@ejemplo.com">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Contraseña:</label>
+                                <input type="password" class="form-control" id="claveHttp" value="123456">
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button class="btn btn-primary" onclick="validarUsuarioHttp()">
+                                <i class="fas fa-user-check"></i> Validar Usuario (HTTP)
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="testConectividadHttp()">
+                                <i class="fas fa-wifi"></i> Test Conectividad
+                            </button>
+                        </div>
+                        <div id="resultadoHttp" class="resultado" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- Método 2: Comunicación Directa -->
+                <div class="card metodo-card">
+                    <div class="card-header bg-success text-white">
+                        <h5><i class="fas fa-bolt"></i> Método 2: Comunicación Directa</h5>
+                        <small>Recomendado para webapps en el mismo Tomcat (más eficiente)</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">Email:</label>
+                                <input type="email" class="form-control" id="emailDirecto" value="test@ejemplo.com">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Contraseña:</label>
+                                <input type="password" class="form-control" id="claveDirecto" value="123456">
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button class="btn btn-success" onclick="validarUsuarioDirecto()">
+                                <i class="fas fa-lightning-bolt"></i> Validar Usuario (Directo)
+                            </button>
+                        </div>
+                        <div id="resultadoDirecto" class="resultado" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- Búsqueda de Cliente -->
+                <div class="card metodo-card">
+                    <div class="card-header bg-warning text-dark">
+                        <h5><i class="fas fa-search"></i> Búsqueda de Cliente</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">Criterio:</label>
+                                <select class="form-control" id="criterioCliente">
+                                    <option value="email">Email</option>
+                                    <option value="ruc">RUC</option>
+                                    <option value="nombre">Nombre</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Valor:</label>
+                                <input type="text" class="form-control" id="valorCliente" value="cliente@ejemplo.com">
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button class="btn btn-warning text-dark" onclick="buscarCliente()">
+                                <i class="fas fa-search"></i> Buscar Cliente
+                            </button>
+                        </div>
+                        <div id="resultadoBusqueda" class="resultado" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- Comparación de Métodos -->
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h5><i class="fas fa-balance-scale"></i> Comparación de Métodos</h5>
+                    </div>
+                    <div class="card-body">                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Aspecto</th>
+                                        <th>HTTP REST</th>
+                                        <th>Comunicación Directa</th>
+                                        <th>WebXML Auto</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Rendimiento</strong></td>
+                                        <td><span class="badge bg-warning">Medio</span></td>
+                                        <td><span class="badge bg-success">Alto</span></td>
+                                        <td><span class="badge bg-success">Alto</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Configuración</strong></td>
+                                        <td><span class="badge bg-info">Manual</span></td>
+                                        <td><span class="badge bg-warning">Limitada</span></td>
+                                        <td><span class="badge bg-success">Automática</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Compatibilidad</strong></td>
+                                        <td><span class="badge bg-success">Universal</span></td>
+                                        <td><span class="badge bg-danger">Mismo Tomcat</span></td>
+                                        <td><span class="badge bg-warning">Mismo Tomcat</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Mantenimiento</strong></td>
+                                        <td><span class="badge bg-warning">Manual</span></td>
+                                        <td><span class="badge bg-warning">Manual</span></td>
+                                        <td><span class="badge bg-success">Automático</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function mostrarResultado(elementId, data, esError = false) {
+            const elemento = document.getElementById(elementId);
+            elemento.style.display = 'block';
+            elemento.className = `resultado ${esError ? 'border-danger' : 'border-success'}`;
+            
+            if (typeof data === 'object') {
+                elemento.textContent = JSON.stringify(data, null, 2);
+            } else {
+                elemento.textContent = data;
+            }
+        }        async function obtenerWebXmlInfo() {
+            try {
+                const response = await fetch(buildApiUrl('/api/erp/webxml-info'));
+                const data = await response.json();
+                mostrarResultado('resultadoWebXml', data);
+            } catch (error) {
+                mostrarResultado('resultadoWebXml', 'Error: ' + error.message, true);
+            }
+        }
+
+        async function refrescarWebXml() {
+            try {
+                const response = await fetch(buildApiUrl('/api/erp/refresh-webxml'), {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                mostrarResultado('resultadoWebXml', data);
+            } catch (error) {
+                mostrarResultado('resultadoWebXml', 'Error: ' + error.message, true);
+            }
+        }
+
+        async function obtenerInfoContexto() {
+            try {
+                const response = await fetch(buildApiUrl('/api/erp/info-contexto'));
+                const data = await response.json();
+                mostrarResultado('resultadoContexto', data);
+            } catch (error) {
+                mostrarResultado('resultadoContexto', 'Error: ' + error.message, true);
+            }
+        }
+
+        async function verConfiguracion() {
+            try {
+                const response = await fetch(buildApiUrl('/api/erp/configuracion'));
+                const data = await response.json();
+                mostrarResultado('resultadoConfiguracion', data);
+            } catch (error) {
+                mostrarResultado('resultadoConfiguracion', 'Error: ' + error.message, true);
+            }
+        }
+
+        async function validarUsuarioHttp() {
+            const email = document.getElementById('emailHttp').value;
+            const clave = document.getElementById('claveHttp').value;
+            
+            try {
+                const response = await fetch(buildApiUrl('/api/erp/validar-usuario'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `email=${encodeURIComponent(email)}&clave=${encodeURIComponent(clave)}`
+                });
+                
+                const data = await response.text();
+                mostrarResultado('resultadoHttp', `Status: ${response.status}\nRespuesta: ${data}`);
+            } catch (error) {
+                mostrarResultado('resultadoHttp', 'Error: ' + error.message, true);
+            }
+        }
+
+        async function testConectividadHttp() {
+            try {
+                const response = await fetch(buildApiUrl('/api/erp/test-conectividad'));
+                const data = await response.json();
+                mostrarResultado('resultadoHttp', data);
+            } catch (error) {
+                mostrarResultado('resultadoHttp', 'Error: ' + error.message, true);
+            }
+        }
+
+        async function validarUsuarioDirecto() {
+            const email = document.getElementById('emailDirecto').value;
+            const clave = document.getElementById('claveDirecto').value;
+            
+            try {
+                const response = await fetch(buildApiUrl('/api/erp/directo/validar-usuario'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `email=${encodeURIComponent(email)}&clave=${encodeURIComponent(clave)}`
+                });
+                
+                const data = await response.json();
+                mostrarResultado('resultadoDirecto', data);
+            } catch (error) {
+                mostrarResultado('resultadoDirecto', 'Error: ' + error.message, true);
+            }
+        }
+
+        async function buscarCliente() {
+            const criterio = document.getElementById('criterioCliente').value;
+            const valor = document.getElementById('valorCliente').value;
+            
+            try {
+                const params = { criterio: criterio, valor: valor };
+                const url = buildApiUrl('/api/erp/buscar-cliente', params);
+                
+                const response = await fetch(url);
+                const data = await response.text();
+                mostrarResultado('resultadoBusqueda', `Status: ${response.status}\nRespuesta: ${data}`);
+            } catch (error) {
+                mostrarResultado('resultadoBusqueda', 'Error: ' + error.message, true);
+            }
+        }// Cargar información inicial
+        document.addEventListener('DOMContentLoaded', function() {
+            obtenerInfoContexto();
+            obtenerWebXmlInfo();
+        });
+    </script>
+</body>
+</html>

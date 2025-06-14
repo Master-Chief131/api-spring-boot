@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Buscar Familias</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buscar Familias</title>  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="images/logos/logo_icono.svg" type="image/svg+xml">
+  <script src="js/api-url-helper.js"></script>
   <style>
     body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0; }
     .container { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 2em; }
@@ -38,13 +38,12 @@
     e.preventDefault();
     const criterio = document.getElementById('criterio').value.trim();
     const resultado = document.getElementById('resultado');
-    resultado.innerHTML = '';
-    let url = 'api/familias-producto'; // Ajusta el endpoint si es necesario
+    resultado.innerHTML = '';    let url = '/api/familias-producto'; // Ajusta el endpoint si es necesario
     if (criterio) {
       url += `?q=${encodeURIComponent(criterio)}`;
     }
     try {
-      const res = await fetch(url);
+      const res = await fetch(buildApiUrl(url));
       const data = await res.json();
       if (!Array.isArray(data) || data.length === 0) {
         resultado.innerHTML = '<div class="error">No se encontraron familias.</div>';

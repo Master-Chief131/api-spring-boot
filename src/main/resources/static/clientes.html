@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Gestión de Clientes</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Clientes</title>  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="images/logos/logo_icono.svg" type="image/svg+xml">
+  <script src="js/api-url-helper.js"></script>
   <style>
     body { font-family: Arial, sans-serif; margin: 40px; }
     h1 { color: #2c3e50; }
@@ -141,10 +141,9 @@
         document.getElementById('mensaje').innerText = 'Debes ingresar No. Compañía, No. Cliente y Grupo';
         return;
       }
-      window.location.href = 'api/clientes/buscar?noCia=' + noCia + '&noCliente=' + noCliente + '&grupo=' + grupo;
-    }
-    async function cargarClientes() {
-      const res = await fetch('api/clientes');
+      window.location.href = buildApiUrl('/api/clientes/buscar?noCia=' + noCia + '&noCliente=' + noCliente + '&grupo=' + grupo);
+    }    async function cargarClientes() {
+      const res = await fetch(buildApiUrl('/api/clientes'));
       const clientes = await res.json();
       const lista = document.getElementById('clientes-list');
       lista.innerHTML = '';
@@ -179,9 +178,8 @@
       const noOrigen = parseInt(document.getElementById('noOrigen').value);
       const noPlazo = parseInt(document.getElementById('noPlazo').value);
       const mensaje = document.getElementById('mensaje');
-      mensaje.innerText = '';
-      try {
-        await fetch('api/clientes/registro-portal', {
+      mensaje.innerText = '';      try {
+        await fetch(buildApiUrl('/api/clientes/registro-portal'), {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({

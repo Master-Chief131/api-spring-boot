@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Ejemplo Prefactura Pedido</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ejemplo Prefactura Pedido</title>  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="images/logos/logo_icono.svg" type="image/svg+xml">
+  <script src="js/api-url-helper.js"></script>
   <style>
     body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0; }
     .container { max-width: 900px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 2em; }
@@ -177,11 +177,10 @@
           codigo_detalle: document.getElementById('codigo_detalle').value,
           cantidad_detalle: document.getElementById('cantidad_detalle').value
         }
-      };
-      // Cambia la URL al contexto correcto
-      const url = 'api/prefactura-db';
+      };      // Cambia la URL al contexto correcto
+      const url = '/api/prefactura-db';
       try {
-        const res = await fetch(url, {
+        const res = await fetch(buildApiUrl(url), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)

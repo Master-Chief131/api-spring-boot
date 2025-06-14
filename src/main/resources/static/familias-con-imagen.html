@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Familias con Imagen</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Familias con Imagen</title>  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="images/logos/logo_icono.svg" type="image/svg+xml">
+  <script src="js/api-url-helper.js"></script>
   <style>
     body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0; }
     .container { max-width: 900px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 2em; }
@@ -26,9 +26,8 @@
 <script>
 async function cargarFamilias() {
   const contenedor = document.getElementById('familias');
-  contenedor.innerHTML = '<div>Cargando...</div>';
-  try {
-    const res = await fetch('/api/familias-producto');
+  contenedor.innerHTML = '<div>Cargando...</div>';  try {
+    const res = await fetch(buildApiUrl('/api/familias-producto'));
     const data = await res.json();
     if (!Array.isArray(data) || data.length === 0) {
       contenedor.innerHTML = '<div>No hay familias para mostrar.</div>';

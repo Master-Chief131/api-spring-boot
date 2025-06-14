@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+EJEMPLO DE WEB.XML DEL ERP
+Este es un ejemplo de cómo debería verse el web.xml del ERP
+para que el API pueda leer automáticamente los servlet mappings.
+
+Ubicación típica: 
+/webapps/cptsoft-erp-prueba/WEB-INF/web.xml
+-->
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+         http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+         version="3.1">
+
+    <display-name>CPTSoft ERP Sistema</display-name>
+    <description>Sistema ERP CPTSoft</description>
+
+    <!-- Servlet para validar usuarios -->
+    <servlet>
+        <servlet-name>ValidarUsuario</servlet-name>
+        <servlet-class>com.cptsoft.erp.servlets.ValidarUsuarioServlet</servlet-class>
+        <init-param>
+            <param-name>debug</param-name>
+            <param-value>false</param-value>
+        </init-param>
+    </servlet>
+    
+    <servlet-mapping>
+        <servlet-name>ValidarUsuario</servlet-name>
+        <url-pattern>/ValidarUsuario</url-pattern>
+    </servlet-mapping>
+
+    <!-- Servlet para cambiar contraseñas -->
+    <servlet>
+        <servlet-name>CambiarClave</servlet-name>
+        <servlet-class>com.cptsoft.erp.servlets.CambiarClaveServlet</servlet-class>
+    </servlet>
+    
+    <servlet-mapping>
+        <servlet-name>CambiarClave</servlet-name>
+        <url-pattern>/CambiarClave</url-pattern>
+    </servlet-mapping>
+
+    <!-- Servlet para buscar clientes -->
+    <servlet>
+        <servlet-name>BuscarCliente</servlet-name>
+        <servlet-class>com.cptsoft.erp.servlets.BuscarClienteServlet</servlet-class>
+    </servlet>
+    
+    <servlet-mapping>
+        <servlet-name>BuscarCliente</servlet-name>
+        <url-pattern>/BuscarCliente</url-pattern>
+    </servlet-mapping>
+
+    <!-- Servlet para cotizaciones -->
+    <servlet>
+        <servlet-name>CotizacionServlet</servlet-name>
+        <servlet-class>com.cptsoft.erp.servlets.CotizacionServlet</servlet-class>
+    </servlet>
+    
+    <servlet-mapping>
+        <servlet-name>CotizacionServlet</servlet-name>
+        <url-pattern>/CotizacionServlet</url-pattern>
+    </servlet-mapping>
+
+    <!-- Servlet para gestión de productos -->
+    <servlet>
+        <servlet-name>ProductoServlet</servlet-name>
+        <servlet-class>com.cptsoft.erp.servlets.ProductoServlet</servlet-class>
+    </servlet>
+    
+    <servlet-mapping>
+        <servlet-name>ProductoServlet</servlet-name>
+        <url-pattern>/ProductoServlet</url-pattern>
+    </servlet-mapping>
+
+    <!-- Servlet para reportes -->
+    <servlet>
+        <servlet-name>ReporteServlet</servlet-name>
+        <servlet-class>com.cptsoft.erp.servlets.ReporteServlet</servlet-class>
+    </servlet>
+    
+    <servlet-mapping>
+        <servlet-name>ReporteServlet</servlet-name>
+        <url-pattern>/ReporteServlet</url-pattern>
+    </servlet-mapping>
+
+    <!-- Configuración de sesión -->
+    <session-config>
+        <session-timeout>60</session-timeout>
+    </session-config>
+
+    <!-- Página de bienvenida -->
+    <welcome-file-list>
+        <welcome-file>index.jsp</welcome-file>
+        <welcome-file>index.html</welcome-file>
+    </welcome-file-list>
+
+    <!-- Configuración de errores -->
+    <error-page>
+        <error-code>404</error-code>
+        <location>/error/404.jsp</location>
+    </error-page>
+    
+    <error-page>
+        <error-code>500</error-code>
+        <location>/error/500.jsp</location>
+    </error-page>
+
+</web-app>

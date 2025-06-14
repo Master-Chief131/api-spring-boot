@@ -2,10 +2,10 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crear Cotización</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>Crear Cotización</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="js/api-url-helper.js"></script>
     <style>
         .form-section {
             background-color: #f8f9fa;
@@ -482,10 +482,13 @@
             const jsonString = JSON.stringify(datos, null, 2);
             
             mostrarRespuesta('Preview del JSON a enviar:', jsonString, 'info');
-        }
-
-        async function enviarCotizacion(datos) {
-            const response = await fetch('/api/prefactura-db/cotizacion', {
+        }        async function enviarCotizacion(datos) {
+            const endpoint = '/api/prefactura-db/cotizacion';
+            const fullUrl = buildApiUrl(endpoint);
+            
+            console.log('Enviando cotización a:', fullUrl); // Para debugging
+            
+            const response = await fetch(fullUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

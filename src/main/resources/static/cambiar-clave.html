@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cambiar Contraseña - API CPTSOFT</title>
     <link rel="icon" href="images/logos/logo_icono.svg" type="image/svg+xml">
+    <script src="js/api-url-helper.js"></script>
     <style>
         * {
             margin: 0;
@@ -481,11 +481,8 @@
                     claveActual: claveActual,
                     claveNueva: claveNueva
                 };
-                
-                // Realizar petición
-                const baseUrl = window.location.origin;
-                const endpoint = '/api/usuarios/cambiar-clave';
-                const response = await fetch(baseUrl + endpoint, {
+                  // Realizar petición
+                const response = await fetch(buildApiUrl('/api/usuarios/cambiar-clave'), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Buscar Cliente</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar Cliente</title>    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="images/logos/logo_icono.svg" type="image/svg+xml">
+    <script src="js/api-url-helper.js"></script>
     <style>
         body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0; }
         .container { max-width: 500px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 2em; }
@@ -43,9 +43,8 @@
         const noCliente = document.getElementById('noCliente').value;
         const grupo = document.getElementById('grupo').value;
         const resultado = document.getElementById('resultado');
-        resultado.innerHTML = '';
-        try {
-            const res = await fetch(`api/clientes/buscar?noCia=${noCia}&noCliente=${noCliente}&grupo=${encodeURIComponent(grupo)}`);
+        resultado.innerHTML = '';        try {
+            const res = await fetch(buildApiUrl(`/api/clientes/buscar?noCia=${noCia}&noCliente=${noCliente}&grupo=${encodeURIComponent(grupo)}`));
             const data = await res.json();
             if (data.mensaje) {
                 resultado.innerHTML = `<div class="error">${data.mensaje}</div>`;

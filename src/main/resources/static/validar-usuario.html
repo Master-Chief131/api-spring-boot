@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Validar Usuario por Email - API CPTSOFT</title>
     <link rel="icon" href="images/logos/logo_icono.svg" type="image/svg+xml">
+    <script src="js/api-url-helper.js"></script>
     <style>
         * {
             margin: 0;
@@ -277,15 +278,16 @@
             // Mostrar loading
             loading.style.display = 'block';
             resultContainer.style.display = 'none';
-            
-            try {
-                // Construir URL de la API
-                const baseUrl = window.location.origin;
-                const endpoint = `/api/usuarios/validar-email?usuario=${encodeURIComponent(email)}`;
-                const fullUrl = baseUrl + endpoint;
+              try {
+                // Construir URL de la API usando el helper
+                const endpoint = '/api/usuarios/validar-email';
+                const params = { usuario: email };
+                const fullUrl = buildApiUrl(endpoint, params);
                 
-                // Actualizar la URL mostrada
-                apiUrl.textContent = `GET ${endpoint}`;
+                // Actualizar la URL mostrada (sin parámetros sensibles)
+                apiUrl.textContent = `GET ${endpoint}?usuario={email}`;
+                
+                console.log('Llamando a API:', fullUrl); // Para debugging
                 
                 // Realizar petición
                 const response = await fetch(fullUrl);

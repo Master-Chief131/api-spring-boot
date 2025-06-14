@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Registro de Cliente - API CPTSOFT</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Cliente - API CPTSOFT</title>  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="images/logos/logo_icono.svg" type="image/svg+xml">
+  <script src="js/api-url-helper.js"></script>
   <style>
     * {
       margin: 0;
@@ -1009,10 +1009,8 @@
 
             try {
                 const jsonData = buildJSONData();
-                console.log('Enviando datos:', JSON.stringify(jsonData, null, 2));
-
-                // const response = await fetch('/api/clientes/registro-portal', {
-                const response = await fetch('http://localhost:8080/api/clientes/registro-portal', {
+                console.log('Enviando datos:', JSON.stringify(jsonData, null, 2));                // const response = await fetch('/api/clientes/registro-portal', {
+                const response = await fetch(buildApiUrl('/api/clientes/registro-portal'), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

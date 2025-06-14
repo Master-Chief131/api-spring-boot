@@ -205,21 +205,19 @@ public class ErpWebXmlReaderService {
             return nodes.item(0).getTextContent().trim();
         }
         return null;
-    }
-
-    /**
+    }    /**
      * Carga mappings por defecto si no se puede leer el web.xml
      */
     private void loadDefaultMappings() {
         servletMappings = new HashMap<>();
         
-        // Mappings por defecto basados en convenciones típicas
-        servletMappings.put("ValidarUsuario", "/cptsoft-erp-prueba/ValidarUsuario");
-        servletMappings.put("CambiarClave", "/cptsoft-erp-prueba/CambiarClave");
-        servletMappings.put("BuscarCliente", "/cptsoft-erp-prueba/BuscarCliente");
-        servletMappings.put("CotizacionServlet", "/cptsoft-erp-prueba/CotizacionServlet");
+        // Mappings reales basados en el web.xml del ERP
+        servletMappings.put("ValidarUsuario", "/cptsoft-erp-prueba/acceseguridad");
+        servletMappings.put("CambiarClave", "/cptsoft-erp-prueba/sv_cambio_clave");
+        servletMappings.put("BuscarCliente", "/cptsoft-erp-prueba/usuario");  // Temporal, necesita implementación
+        servletMappings.put("CotizacionServlet", "/cptsoft-erp-prueba/CotizacionServlet");  // Temporal, necesita implementación
         
-        System.out.println("Usando servlet mappings por defecto:");
+        System.out.println("Usando servlet mappings por defecto (actualizados):");
         servletMappings.forEach((key, value) -> 
             System.out.println("  " + key + " -> " + value)
         );

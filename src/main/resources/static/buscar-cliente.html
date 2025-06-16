@@ -15,12 +15,23 @@
         button:hover { background: #125ea2; }
         .result { margin-top: 2em; padding: 1em; background: #e3f2fd; border-radius: 6px; }
         .error { color: #c62828; background: #ffebee; padding: 1em; border-radius: 6px; margin-top: 2em; }
-        .field { margin-bottom: 0.7em; }
-        .field span { font-weight: bold; color: #1976d2; }
+        .field { margin-bottom: 0.7em; }        .field span { font-weight: bold; color: #1976d2; }
+        .btn-regresar { 
+            display: inline-block; 
+            background: #6c757d; 
+            color: white; 
+            text-decoration: none; 
+            padding: 8px 16px; 
+            border-radius: 4px; 
+            margin-bottom: 20px; 
+            transition: background 0.2s; 
+        }
+        .btn-regresar:hover { background: #5a6268; color: white; }
     </style>
 </head>
 <body>
 <div class="container">
+    <a href="index.html" class="btn-regresar">← Regresar al Inicio</a>
     <h2>Buscar Cliente</h2>
     <form id="buscarForm">
         <label for="noCia">Número de Compañía:</label>

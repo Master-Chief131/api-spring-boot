@@ -16,12 +16,23 @@
     table { width: 100%; border-collapse: collapse; margin-top: 2em; }
     th, td { padding: 0.7em; border-bottom: 1px solid #e0e0e0; text-align: left; }
     th { background: #e3f2fd; color: #1976d2; }
-    tr:last-child td { border-bottom: none; }
-    .error { color: #c62828; background: #ffebee; padding: 1em; border-radius: 6px; margin-top: 2em; }
+    tr:last-child td { border-bottom: none; }    .error { color: #c62828; background: #ffebee; padding: 1em; border-radius: 6px; margin-top: 2em; }
+    .btn-regresar { 
+      display: inline-block; 
+      background: #6c757d; 
+      color: white; 
+      text-decoration: none; 
+      padding: 8px 16px; 
+      border-radius: 4px; 
+      margin-bottom: 20px; 
+      transition: background 0.2s; 
+    }
+    .btn-regresar:hover { background: #5a6268; color: white; }
   </style>
 </head>
 <body>
 <div class="container">
+  <a href="index.html" class="btn-regresar">← Regresar al Inicio</a>
   <h2>Buscar Familias</h2>
   <form id="buscarFamiliaForm">
     <label for="criterio">Buscar por nombre o código (opcional):</label>

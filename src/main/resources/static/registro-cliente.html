@@ -390,16 +390,30 @@
 
             .buttons {
                 flex-direction: column;
-            }
-
-            .step-indicator {
+            }            .step-indicator {
                 flex-direction: column;
                 gap: 10px;
             }
         }
+        
+        .btn-regresar {
+            display: inline-block;
+            background: #95a5a6;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin: 20px;
+            transition: background 0.2s;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        .btn-regresar:hover { background: #7f8c8d; color: white; }
     </style>
 </head>
 <body>
+    <a href="index.html" class="btn-regresar">← Inicio</a>
     <div class="container">
         <div class="header">
             <h1>🏢 Registro de Cliente</h1>

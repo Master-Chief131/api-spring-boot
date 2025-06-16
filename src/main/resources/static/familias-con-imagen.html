@@ -13,13 +13,24 @@
     .familia-card { background: #e3f2fd; border-radius: 8px; box-shadow: 0 1px 4px #0001; padding: 1.5em; width: 220px; display: flex; flex-direction: column; align-items: center; transition: box-shadow 0.2s; }
     .familia-card:hover { box-shadow: 0 4px 16px #0002; }
     .familia-img { width: 120px; height: 120px; object-fit: contain; border-radius: 6px; background: #fff; border: 1px solid #b3c6e0; margin-bottom: 1em; }
-    .familia-nombre { font-size: 1.1em; font-weight: bold; color: #1976d2; margin-bottom: 0.5em; text-align: center; }
-    .familia-codigo { color: #555; font-size: 0.95em; margin-bottom: 0.5em; }
+    .familia-nombre { font-size: 1.1em; font-weight: bold; color: #1976d2; margin-bottom: 0.5em; text-align: center; }    .familia-codigo { color: #555; font-size: 0.95em; margin-bottom: 0.5em; }
     .sin-imagen { color: #b0b0b0; font-size: 0.9em; margin-bottom: 1em; }
+    .btn-regresar { 
+      display: inline-block; 
+      background: #1976d2; 
+      color: white; 
+      text-decoration: none; 
+      padding: 10px 20px; 
+      border-radius: 6px; 
+      margin-bottom: 20px; 
+      transition: background 0.2s; 
+    }
+    .btn-regresar:hover { background: #1565c0; color: white; }
   </style>
 </head>
 <body>
 <div class="container">
+  <a href="ejemplos.html" class="btn-regresar">← Regresar al Inicio</a>
   <h2>Familias de Productos</h2>
   <div id="familias" class="familias-grid"></div>
 </div>

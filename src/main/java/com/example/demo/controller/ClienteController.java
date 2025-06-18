@@ -5,6 +5,8 @@ import com.example.demo.dto.UsuarioDTO;
 import com.example.demo.entity.Cliente;
 import com.example.demo.entity.ClienteId;
 import com.example.demo.repository.ClienteRepository;
+import com.example.demo.utils.PasswordUtils;
+import com.example.demo.service.EmailService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -32,10 +34,12 @@ import java.util.Optional;
 public class ClienteController {
   private final ClienteRepository repository;
   private final DataSource dataSource;
+  private final EmailService emailService;
 
-  public ClienteController(ClienteRepository repository, DataSource dataSource) {
+  public ClienteController(ClienteRepository repository, DataSource dataSource, EmailService emailService) {
     this.repository = repository;
     this.dataSource = dataSource;
+    this.emailService = emailService;
   }
   @GetMapping
   @Operation(
@@ -356,10 +360,40 @@ public class ClienteController {
       if (!(Boolean) actualizacionContacto.get("success")) {
         throw new RuntimeException("Error al actualizar contacto con usuario: " + actualizacionContacto.get("mensaje"));
       }
-      
-      // Si llegamos aquí, todo salió bien - HACER COMMIT
+        // Si llegamos aquí, todo salió bien - HACER COMMIT
       conn.commit();
       System.out.println("=== TRANSACCIÓN COMPLETADA EXITOSAMENTE - COMMIT REALIZADO ===");
+        // PASO 5: Enviar credenciales por correo
+      System.out.println("=== PASO 5: Enviando credenciales por correo ===");
+      try {
+        String emailDestino = cliente.getEmail1();
+        String nombreCompleto = cliente.getNombre() + (cliente.getApellidoCont() != null ? " " + cliente.getApellidoCont() : "");
+        String usuarioWeb = (String) usuarioInfo.get("usuario");
+        String claveOriginal = cliente.getUsuario() != null && cliente.getUsuario().getClave() != null ? 
+                              cliente.getUsuario().getClave() : "123456";
+        
+        System.out.println("DEBUG - Email destino: " + emailDestino);
+        System.out.println("DEBUG - Nombre completo: " + nombreCompleto);
+        System.out.println("DEBUG - Usuario web: " + usuarioWeb);
+        System.out.println("DEBUG - Clave original: " + claveOriginal);
+          if (emailDestino != null && !emailDestino.trim().isEmpty()) {
+          System.out.println("DEBUG - Procediendo a enviar correo...");
+          emailService.enviarCredenciales(usuarioWeb, claveOriginal, nombreCompleto, emailDestino, cliente.getId().getNoCia());
+          System.out.println("DEBUG - Correo enviado exitosamente");
+          response.put("correo_enviado", true);
+          response.put("correo_destino", emailDestino);
+        } else {
+          System.out.println("ADVERTENCIA: No se pudo enviar correo - email no proporcionado o vacío");
+          System.out.println("DEBUG - emailDestino value: '" + emailDestino + "'");
+          response.put("correo_enviado", false);
+          response.put("correo_mensaje", "Email no proporcionado o vacío");
+        }
+      } catch (Exception emailError) {
+        System.err.println("ERROR enviando correo: " + emailError.getMessage());
+        emailError.printStackTrace();
+        response.put("correo_enviado", false);
+        response.put("correo_error", emailError.getMessage());
+      }
         response.put("success", true);
       response.put("mensaje", "Cliente, contacto y usuario registrados exitosamente. Código generado: " + vSecuencial);
       response.put("V_SECUENCIAL", vSecuencial);
@@ -740,9 +774,8 @@ public class ClienteController {
           return usuarioInfo;
         }
       }
-      
-      // Función simple para encriptar clave (similar al servlet original)
-      String claveEncriptada = encriptarClave(usuarioDTO.getClave());
+        // Encriptar clave usando SHA + Base64 compatible con ERP
+      String claveEncriptada = PasswordUtils.encriptarClave(usuarioDTO.getClave());
       
       // Insertar el usuario
       String insertSql = "INSERT INTO segweb_usuario " +
@@ -888,12 +921,6 @@ public class ClienteController {
     }
     
     return usuarioInfo;
-  }
-
-  private String encriptarClave(String clave) {
-    // Implementación simple de encriptación (puedes mejorarla según tus necesidades)
-    // Por ahora retorna la clave en uppercase como en el servlet original
-    return clave != null ? clave.toUpperCase() : "123456";
   }
   @GetMapping("/buscar")
   @Operation(
@@ -1066,5 +1093,280 @@ public class ClienteController {
       resultado.put("mensaje", "Error al actualizar usuario web en contacto: " + e.getMessage());
     }    
     return resultado;
+  }
+
+  @PostMapping("/test-email")
+  @Operation(
+    summary = "Probar envío de correo",
+    description = "Endpoint de prueba para verificar la configuración de correo"
+  )
+  public Map<String, Object> testEmail(@RequestParam String email) {
+    Map<String, Object> response = new HashMap<>();
+    
+    try {
+      emailService.enviarCredenciales("usuario_prueba", "clave_prueba", "Usuario de Prueba", email);
+      response.put("success", true);
+      response.put("mensaje", "Correo de prueba enviado exitosamente");
+      response.put("email_destino", email);
+    } catch (Exception e) {
+      response.put("success", false);
+      response.put("error", e.getMessage());
+      e.printStackTrace();
+    }
+    
+    return response;
+  }
+  @GetMapping("/test-email-config")
+  @Operation(
+    summary = "Probar configuración de email",
+    description = "Endpoint de prueba para verificar la configuración de email desde la base de datos"
+  )
+  public Map<String, Object> testEmailConfig(
+      @Parameter(description = "Número de compañía", example = "1", required = false)
+      @RequestParam(defaultValue = "1") Integer noCia) {
+    
+    Map<String, Object> response = new HashMap<>();
+    
+    try {
+      // Intentar obtener configuración de email desde la BD
+      System.out.println("=== PROBANDO CONFIGURACIÓN DE EMAIL ===");
+      System.out.println("Buscando configuración para compañía: " + noCia);
+      
+      java.sql.Connection conn = dataSource.getConnection();
+      String sql = "SELECT host_correo, usuario, contrasena, email_from, host_puerto, " +
+                   "cifrado, autenticar_correo, EMAIL_HELPDESK, CONTRASENA_HD_FROM, EMAIL_HD_FROM " +
+                   "FROM arweb_cia WHERE no_cia = ?";
+      
+      java.sql.PreparedStatement stmt = conn.prepareStatement(sql);
+      stmt.setInt(1, noCia);
+      java.sql.ResultSet rs = stmt.executeQuery();
+      
+      if (rs.next()) {
+        response.put("success", true);
+        response.put("host_correo", rs.getString("host_correo"));
+        response.put("usuario", rs.getString("usuario"));
+        response.put("contrasena_exists", rs.getString("contrasena") != null);
+        response.put("email_from", rs.getString("email_from"));
+        response.put("host_puerto", rs.getInt("host_puerto"));
+        response.put("cifrado", rs.getString("cifrado"));
+        response.put("autenticar_correo", rs.getBoolean("autenticar_correo"));
+        response.put("email_helpdesk", rs.getString("EMAIL_HELPDESK"));
+        response.put("email_hd_from", rs.getString("EMAIL_HD_FROM"));
+        
+        System.out.println("Configuración encontrada:");
+        System.out.println("- Host: " + rs.getString("host_correo"));
+        System.out.println("- Puerto: " + rs.getInt("host_puerto"));
+        System.out.println("- Usuario: " + rs.getString("usuario"));
+        System.out.println("- Email From: " + rs.getString("email_from"));
+        System.out.println("- Cifrado: " + rs.getString("cifrado"));
+        System.out.println("- Autenticar: " + rs.getBoolean("autenticar_correo"));
+      } else {
+        response.put("success", false);
+        response.put("mensaje", "No se encontró configuración para la compañía " + noCia);
+      }
+      
+      conn.close();
+      
+    } catch (Exception e) {
+      System.err.println("Error probando configuración de email: " + e.getMessage());
+      e.printStackTrace();
+      response.put("success", false);
+      response.put("error", e.getMessage());
+    }
+    
+    return response;
+  }
+  @GetMapping("/test-smtp-connectivity")
+  @Operation(
+    summary = "Probar conectividad SMTP",
+    description = "Prueba la conectividad con el servidor SMTP sin enviar correo"
+  )
+  public Map<String, Object> testSmtpConnectivity() {
+    Map<String, Object> response = new HashMap<>();
+    
+    try {
+      System.out.println("=== INICIANDO PRUEBA DE CONECTIVIDAD SMTP ===");
+        boolean conectividad = emailService.probarConectividad();      response.put("success", conectividad);
+      response.put("servidor", "smtp.gmail.com:587/465");
+      response.put("usuario", "opinto@cpt-soft.com");
+      response.put("tipo", "Gmail STARTTLS/SSL");
+      
+      if (conectividad) {
+        response.put("mensaje", "Conectividad SMTP exitosa");
+        System.out.println("✅ Prueba de conectividad completada: EXITOSA");
+      } else {
+        response.put("mensaje", "Falló conectividad SMTP");
+        System.out.println("❌ Prueba de conectividad completada: FALLÓ");
+      }
+      
+    } catch (Exception e) {
+      System.err.println("Error en prueba de conectividad: " + e.getMessage());
+      response.put("success", false);
+      response.put("error", e.getMessage());
+    }
+    
+    return response;
+  }  @PostMapping("/test-gmail-credentials")
+  @Operation(
+    summary = "Probar credenciales de Gmail específicas",
+    description = "Permite probar diferentes combinaciones de usuario/contraseña para Gmail usando múltiples configuraciones"
+  )
+  public Map<String, Object> testGmailCredentials(
+      @RequestBody Map<String, String> credentials) {
+    
+    Map<String, Object> response = new HashMap<>();
+    
+    try {
+      String email = credentials.get("email");
+      String password = credentials.get("password");
+      
+      if (email == null || password == null) {
+        response.put("success", false);
+        response.put("error", "Se requieren 'email' y 'password' en el body");
+        response.put("ejemplo", Map.of(
+          "email", "tu-email@gmail.com",
+          "password", "tu-password-o-app-password"
+        ));
+        return response;
+      }
+      
+      System.out.println("=== ENDPOINT: PROBANDO CREDENCIALES GMAIL PERSONALIZADAS ===");
+      
+      // Usar el método mejorado del EmailService
+      boolean funciona = emailService.probarCredencialesPersonalizadas(email, password);
+      
+      if (funciona) {
+        response.put("success", true);
+        response.put("mensaje", "✅ Credenciales Gmail válidas - Al menos una configuración funciona");
+        response.put("email", email);
+        response.put("detalles", "El servicio puede enviar correos con estas credenciales");
+        
+        System.out.println("✅ ENDPOINT: Credenciales válidas para " + email);
+      } else {
+        response.put("success", false);
+        response.put("mensaje", "❌ Credenciales Gmail no funcionan");
+        response.put("email", email);
+        response.put("detalles", "Ninguna configuración (SSL/STARTTLS) funcionó");
+        
+        // Agregar instrucciones detalladas
+        response.put("instrucciones", Map.of(
+          "verificar_2fa", "Si tienes 2FA, genera una contraseña de aplicación en https://myaccount.google.com/security",
+          "apps_menos_seguras", "Si NO tienes 2FA, habilita apps menos seguras en https://myaccount.google.com/lesssecureapps",
+          "desbloqueo", "Intenta desbloquear la cuenta en https://accounts.google.com/DisplayUnlockCaptcha",
+          "red", "Verifica que no hay firewall bloqueando puertos 465 o 587"
+        ));
+        
+        System.err.println("❌ ENDPOINT: Credenciales no válidas para " + email);
+      }
+      
+    } catch (Exception e) {
+      System.err.println("ERROR EN ENDPOINT: " + e.getMessage());
+      response.put("success", false);
+      response.put("error", e.getMessage());
+      response.put("tipo_error", e.getClass().getSimpleName());
+    }
+    
+    return response;
+  }
+  
+  @PostMapping("/test-envio-correo")
+  @Operation(
+    summary = "Probar envío de correo con credenciales personalizadas",
+    description = "Envía un correo de prueba usando credenciales específicas"
+  )
+  public Map<String, Object> testEnvioCorreo(
+      @RequestBody Map<String, String> datos) {
+    
+    Map<String, Object> response = new HashMap<>();
+    
+    try {
+      String emailOrigen = datos.get("emailOrigen");
+      String passwordOrigen = datos.get("passwordOrigen");
+      String emailDestino = datos.get("emailDestino");
+      
+      if (emailOrigen == null || passwordOrigen == null || emailDestino == null) {
+        response.put("success", false);
+        response.put("error", "Se requieren 'emailOrigen', 'passwordOrigen' y 'emailDestino'");
+        response.put("ejemplo", Map.of(
+          "emailOrigen", "tu-email@gmail.com",
+          "passwordOrigen", "tu-password-o-app-password",
+          "emailDestino", "destino@example.com"
+        ));
+        return response;
+      }
+      
+      System.out.println("=== PROBANDO ENVÍO DE CORREO REAL ===");
+      System.out.println("Origen: " + emailOrigen);
+      System.out.println("Destino: " + emailDestino);
+      
+      // Crear un EmailService temporal con las credenciales proporcionadas
+      // TODO: Implementar método en EmailService para usar credenciales dinámicas
+      
+      // Por ahora, crear el envío manualmente
+      org.springframework.mail.javamail.JavaMailSenderImpl mailSender = 
+          new org.springframework.mail.javamail.JavaMailSenderImpl();
+      mailSender.setHost("smtp.gmail.com");
+      mailSender.setPort(587);  // Usar STARTTLS por defecto
+      mailSender.setUsername(emailOrigen);
+      mailSender.setPassword(passwordOrigen);
+      
+      java.util.Properties props = mailSender.getJavaMailProperties();
+      props.put("mail.transport.protocol", "smtp");
+      props.put("mail.smtp.auth", "true");
+      props.put("mail.smtp.starttls.enable", "true");
+      props.put("mail.smtp.starttls.required", "true");
+      props.put("mail.smtp.ssl.protocols", "TLSv1.2 TLSv1.3");
+      props.put("mail.smtp.ssl.trust", "smtp.gmail.com");
+      props.put("mail.smtp.connectiontimeout", "30000");
+      props.put("mail.smtp.timeout", "30000");
+      
+      // Crear mensaje de prueba
+      org.springframework.mail.SimpleMailMessage message = 
+          new org.springframework.mail.SimpleMailMessage();
+      message.setFrom(emailOrigen);
+      message.setTo(emailDestino);
+      message.setSubject("Prueba de Correo - CPT-SOFT ERP");
+      message.setText(
+        "Este es un correo de prueba enviado desde el sistema CPT-SOFT ERP.\n\n" +
+        "Si recibes este mensaje, significa que la configuración SMTP está funcionando correctamente.\n\n" +
+        "Enviado desde: " + emailOrigen + "\n" +
+        "Fecha: " + new java.util.Date() + "\n\n" +
+        "Atentamente,\n" +
+        "Sistema CPT-SOFT ERP"
+      );
+      
+      // Enviar correo
+      mailSender.send(message);
+      
+      response.put("success", true);
+      response.put("mensaje", "✅ Correo enviado exitosamente");
+      response.put("origen", emailOrigen);
+      response.put("destino", emailDestino);
+      response.put("servidor", "smtp.gmail.com:587 (STARTTLS)");
+      
+      System.out.println("✅ CORREO DE PRUEBA ENVIADO EXITOSAMENTE");
+      
+    } catch (Exception e) {
+      System.err.println("❌ ERROR ENVIANDO CORREO DE PRUEBA: " + e.getMessage());
+      response.put("success", false);
+      response.put("error", e.getMessage());
+      response.put("tipo_error", e.getClass().getSimpleName());
+      
+      // Diagnóstico específico
+      if (e.getMessage() != null) {
+        String mensaje = e.getMessage().toLowerCase();
+        if (mensaje.contains("authentication failed") || mensaje.contains("username and password not accepted")) {
+          response.put("diagnostico", "Autenticación fallida");
+          response.put("solucion", "Verifica email/password o usa contraseña de aplicación");
+        } else if (mensaje.contains("timeout")) {
+          response.put("diagnostico", "Timeout de conexión");
+          response.put("solucion", "Verifica conectividad o firewall");
+        }
+      }
+      
+      e.printStackTrace();
+    }
+    
+    return response;
   }
 }

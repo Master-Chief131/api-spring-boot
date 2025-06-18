@@ -51,11 +51,14 @@ public class CotizacionRequest {
     private BigDecimal sucursalCliente;
     private String noPlazo;
     private String indLocalidad;
-    private String grupoCliente;
-    private String email;
+    private String grupoCliente;    private String email;
     private Integer noReferido;
     private String nomReferido;
     private String rucCedula;
+    
+    // Campos adicionales para API_COTIZACION
+    private String origenProceso;
+    private String noCotizacion;
 
     // Detalle de líneas
     private List<CotizacionDetalle> detalle;
@@ -256,9 +259,15 @@ public class CotizacionRequest {
     public Integer getNoReferido() { return noReferido; }
     public void setNoReferido(Integer noReferido) { this.noReferido = noReferido; }
     public String getNomReferido() { return nomReferido; }
-    public void setNomReferido(String nomReferido) { this.nomReferido = nomReferido; }
-    public String getRucCedula() { return rucCedula; }
+    public void setNomReferido(String nomReferido) { this.nomReferido = nomReferido; }    public String getRucCedula() { return rucCedula; }
     public void setRucCedula(String rucCedula) { this.rucCedula = rucCedula; }
+    
+    // Getters y setters para campos adicionales
+    public String getOrigenProceso() { return origenProceso; }
+    public void setOrigenProceso(String origenProceso) { this.origenProceso = origenProceso; }
+    public String getNoCotizacion() { return noCotizacion; }
+    public void setNoCotizacion(String noCotizacion) { this.noCotizacion = noCotizacion; }
+    
     public List<CotizacionDetalle> getDetalle() { return detalle; }
     public void setDetalle(List<CotizacionDetalle> detalle) { this.detalle = detalle; }
 }

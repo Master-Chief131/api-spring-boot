@@ -246,13 +246,14 @@
                 <div id="detallesContainer">
                     <!-- Los detalles se agregan dinámicamente aquí -->
                 </div>
-            </div>
-
-            <!-- Botones de Acción -->
+            </div>            <!-- Botones de Acción -->
             <div class="row mb-4">
                 <div class="col-12">
                     <button type="submit" class="btn btn-primary btn-lg me-3">
-                        <i class="fas fa-paper-plane"></i> Enviar Cotización
+                        <i class="fas fa-paper-plane"></i> Enviar Cotización (Tradicional)
+                    </button>
+                    <button type="button" class="btn btn-success btn-lg me-3" onclick="enviarCotizacionApi()">
+                        <i class="fas fa-rocket"></i> Enviar con API_COTIZACION
                     </button>
                     <button type="button" class="btn btn-secondary btn-lg me-3" onclick="limpiarFormulario()">
                         <i class="fas fa-broom"></i> Limpiar
@@ -535,7 +536,56 @@
             document.getElementById('detallesContainer').innerHTML = '';
             document.getElementById('responseSection').style.display = 'none';
             contadorDetalle = 0;
-            agregarDetalle();
+            agregarDetalle();        }
+
+        // Función para enviar cotización usando el nuevo endpoint API_COTIZACION
+        async function enviarCotizacionApi() {
+            const loadingElement = document.getElementById('loading');
+            
+            try {
+                loadingElement.style.display = 'block';
+                
+                const formData = recopilarDatos();
+                
+                // Agregar campos específicos para API_COTIZACION
+                formData.origenProceso = 'A'; // A = API, W = Web, etc.
+                formData.noCotizacion = '0'; // 0 para nueva cotización
+                
+                const fullUrl = buildApiUrl('/api/prefactura-db/cotizacion-api');
+                
+                const response = await fetch(fullUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                
+                if (response.ok && result.estado === 'exitoso') {
+                    mostrarRespuesta(
+                        'Cotización procesada exitosamente con API_COTIZACION',
+                        `${result.mensaje}\n\nDetalle del proceso:\n${result.detalleProceso}\n\nNúmero de solicitud generada: ${result.noSolicitudGenerada}`,
+                        'success'
+                    );
+                } else {
+                    mostrarRespuesta(
+                        'Error al procesar cotización',
+                        result.mensaje || 'Error desconocido',
+                        'error'
+                    );
+                }
+                
+            } catch (error) {
+                mostrarRespuesta(
+                    'Error de conexión',
+                    'No se pudo conectar con el servidor: ' + error.message,
+                    'error'
+                );
+            } finally {
+                loadingElement.style.display = 'none';
+            }
         }
 
         // Manejar envío del formulario

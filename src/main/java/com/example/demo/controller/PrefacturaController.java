@@ -21,15 +21,47 @@ import javax.sql.DataSource;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.Types;
+import java.sql.Date;
 import java.util.Map;
+import java.util.HashMap;
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.text.ParseException;
 
 @RestController
 @RequestMapping("/api/prefactura-db")
 @Tag(name = "Prefacturas", description = "API para gestión de prefacturas y documentos de salida")
-public class PrefacturaController {
-
-    @Autowired
+public class PrefacturaController {    @Autowired
     private DataSource dataSource;
+
+    /**
+     * Convierte una fecha de String a java.sql.Date
+     * @param fechaString Fecha en formato "yyyy-MM-dd" o "dd/MM/yyyy"
+     * @return java.sql.Date o null si la conversión falla
+     */    private Date convertStringToSqlDate(String fechaString) {
+        if (fechaString == null || fechaString.trim().isEmpty()) {
+            return null;
+        }
+        
+        try {
+            SimpleDateFormat format;
+            if (fechaString.contains("/")) {
+                format = new SimpleDateFormat("dd/MM/yyyy");
+            } else {
+                format = new SimpleDateFormat("yyyy-MM-dd");
+            }
+            java.util.Date utilDate = format.parse(fechaString.trim());
+            return new Date(utilDate.getTime());
+        } catch (ParseException e) {
+            // Si falla la conversión, intentar con el formato ISO
+            try {
+                return Date.valueOf(fechaString.trim());
+            } catch (IllegalArgumentException ex) {
+                System.err.println("Error al convertir fecha: " + fechaString + " - " + ex.getMessage());
+                return null;
+            }
+        }
+    }
     @Autowired
     private JdbcTemplate jdbcTemplate;
     @Autowired
@@ -304,18 +336,270 @@ public class PrefacturaController {
             if (noSolicitudGenerada != null && !noSolicitudGenerada.isEmpty()) {
                 mensajeRespuesta += " SOLICITUD DE PEDIDO NO. " + noSolicitudGenerada;
             }
+              Map<String, Object> response = new HashMap<>();
+            response.put("mensaje", mensajeRespuesta);
+            response.put("noSolicitud", noSolicitudGenerada);
+            response.put("estado", "exitoso");
+            return ResponseEntity.ok().body(response);        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("mensaje", "Error al registrar cotización: " + e.getMessage());
+            errorResponse.put("estado", "error");
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+
+    @PostMapping("/cotizacion-api")
+    @Operation(
+        summary = "Registrar cotización usando API_COTIZACION",
+        description = "Registra una nueva cotización mediante el procedimiento almacenado API_COTIZACION. " +
+                      "Este procedimiento procesa tanto validaciones como la creación de la cotización."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Cotización procesada exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Datos de la cotización inválidos o incompletos"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor durante el proceso")
+    })    public ResponseEntity<?> registrarCotizacionApi(
+        @Parameter(description = "Datos de la cotización para el procedimiento API_COTIZACION", 
+                   required = true)
+        @RequestBody CotizacionRequest request) {
+        
+        System.out.println("=== INICIO ENDPOINT COTIZACION-API ===");
+        
+        try {
+            // Validación básica del request
+            if (request == null) {
+                System.err.println("ERROR: Request es null");
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("mensaje", "Request no puede ser null");
+                errorResponse.put("estado", "error");
+                return ResponseEntity.status(400).body(errorResponse);
+            }
             
-            return ResponseEntity.ok().body(Map.of(
-                "mensaje", mensajeRespuesta,
-                "noSolicitud", noSolicitudGenerada,
-                "estado", "exitoso"
-            ));
+            // Log de campos principales
+            System.out.println("Request recibido:");
+            System.out.println("- noCia: " + request.getNoCia());
+            System.out.println("- noSucursal: " + request.getNoSucursal());
+            System.out.println("- noBodega: " + request.getNoBodega());
+            System.out.println("- noCliente: " + request.getNoCliente());
+            System.out.println("- fecha: " + request.getFecha());
+            
+            // Validar detalle
+            if (request.getDetalle() == null || request.getDetalle().isEmpty()) {
+                System.err.println("ERROR: Detalle es null o está vacío");
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("mensaje", "El detalle de la cotización no puede estar vacío");
+                errorResponse.put("estado", "error");
+                return ResponseEntity.status(400).body(errorResponse);
+            }
+            
+            System.out.println("- Número de líneas de detalle: " + request.getDetalle().size());
             
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of(
-                "mensaje", "Error al registrar cotización: " + e.getMessage(),
-                "estado", "error"
-            ));
+            System.err.println("ERROR al procesar request inicial: " + e.getMessage());
+            e.printStackTrace();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("mensaje", "Error al procesar datos de entrada: " + e.getMessage());
+            errorResponse.put("estado", "error");
+            return ResponseEntity.status(400).body(errorResponse);
+        }
+        
+        try (Connection conn = dataSource.getConnection()) {
+            conn.setAutoCommit(false);// Procedimiento API_COTIZACION con 50 parámetros (46 IN + 4 OUT)
+            String sql = "{call API_COTIZACION(?,?,?,?,?,?,?,?,?,?," +  // 1-10
+                        "?,?,?,?,?,?,?,?,?,?," +                        // 11-20
+                        "?,?,?,?,?,?,?,?,?,?," +                        // 21-30
+                        "?,?,?,?,?,?,?,?,?,?," +                        // 31-40
+                        "?,?,?,?,?,?,?,?,?,?)}";                       // 41-50 (46 IN + 4 OUT)
+            
+            StringBuilder mensajeCompleto = new StringBuilder();
+            String noSolicitudGenerada = null;
+            String lineaGenerada = null;
+            
+            // Procesar cada línea del detalle
+            for (CotizacionRequest.CotizacionDetalle detalle : request.getDetalle()) {
+                try (CallableStatement stmt = conn.prepareCall(sql)) {
+                    int idx = 1;
+                      // DEBUG: Contador para verificar parámetros
+                    System.out.println("=== INICIANDO CONFIGURACIÓN DE PARÁMETROS ===");
+                    System.out.println("Procesando línea: " + detalle.getLinea());
+                    
+                    // Validaciones antes de los parseInt
+                    try {
+                        if (request.getNoCia() == null || request.getNoCia().trim().isEmpty()) {
+                            throw new IllegalArgumentException("noCia no puede estar vacío");
+                        }
+                        if (request.getNoSucursal() == null || request.getNoSucursal().trim().isEmpty()) {
+                            throw new IllegalArgumentException("noSucursal no puede estar vacío");
+                        }
+                        if (request.getNoBodega() == null || request.getNoBodega().trim().isEmpty()) {
+                            throw new IllegalArgumentException("noBodega no puede estar vacío");
+                        }
+                        if (request.getNoCliente() == null || request.getNoCliente().trim().isEmpty()) {
+                            throw new IllegalArgumentException("noCliente no puede estar vacío");
+                        }
+                        if (request.getNoVendedor() == null || request.getNoVendedor().trim().isEmpty()) {
+                            throw new IllegalArgumentException("noVendedor no puede estar vacío");
+                        }
+                        if (detalle.getLinea() == null || detalle.getLinea().trim().isEmpty()) {
+                            throw new IllegalArgumentException("linea de detalle no puede estar vacía");
+                        }
+                        if (detalle.getCantidad() == null || detalle.getCantidad().trim().isEmpty()) {
+                            throw new IllegalArgumentException("cantidad no puede estar vacía");
+                        }
+                    } catch (IllegalArgumentException e) {
+                        System.err.println("ERROR de validación: " + e.getMessage());
+                        conn.rollback();
+                        Map<String, Object> errorResponse = new HashMap<>();
+                        errorResponse.put("mensaje", "Datos inválidos: " + e.getMessage());
+                        errorResponse.put("estado", "error");
+                        return ResponseEntity.status(400).body(errorResponse);
+                    }
+                    
+                    // Parámetros IN (1-46)
+                    stmt.setInt(idx++, Integer.parseInt(request.getNoCia()));                    // 1. p_no_cia
+                    stmt.setInt(idx++, Integer.parseInt(request.getNoSucursal()));              // 2. p_no_sucursal
+                    stmt.setInt(idx++, Integer.parseInt(request.getNoBodega()));                // 3. p_no_bodega
+                    stmt.setString(idx++, detalle.getCodBarra());                               // 4. p_cod_barra
+                    stmt.setBigDecimal(idx++, new BigDecimal(detalle.getCantidad()));          // 5. p_cantidad
+                    stmt.setInt(idx++, Integer.parseInt(request.getNoCliente()));              // 6. p_no_cliente
+                    stmt.setString(idx++, request.getTipoFactura());                           // 7. p_tipo_factura
+                    stmt.setDate(idx++, convertStringToSqlDate(request.getFecha()));          // 8. p_fecha
+                    stmt.setString(idx++, request.getMoneda());                                // 9. p_moneda
+                    stmt.setString(idx++, request.getUsuario());                               // 10. p_usuario
+                    
+                    // Si es la primera línea o no hay solicitud, usar null para generar nueva
+                    if (noSolicitudGenerada != null) {
+                        stmt.setInt(idx++, Integer.parseInt(noSolicitudGenerada));             // 11. p_no_solicitud
+                    } else if (request.getNoSolicitud() != null && !request.getNoSolicitud().isEmpty()) {
+                        stmt.setInt(idx++, Integer.parseInt(request.getNoSolicitud()));       // 11. p_no_solicitud
+                    } else {
+                        stmt.setNull(idx++, Types.INTEGER);                                    // 11. p_no_solicitud
+                    }
+                    
+                    stmt.setInt(idx++, request.getNoCotizacion() != null ? 
+                        Integer.parseInt(request.getNoCotizacion()) : 0);                      // 12. p_no_cotizacion
+                    stmt.setString(idx++, request.getOrigenProceso() != null ? 
+                        request.getOrigenProceso() : "A");                                     // 13. p_origen_proceso
+                    stmt.setInt(idx++, Integer.parseInt(request.getNoVendedor()));            // 14. p_no_vendedor
+                    stmt.setBigDecimal(idx++, request.getPorcentajeDescuento());              // 15. p_porcentaje_descuento
+                    stmt.setBigDecimal(idx++, request.getDescuentoNominal());                 // 16. p_descuento_nominal
+                    stmt.setBigDecimal(idx++, request.getSubtotalNominal());                  // 17. p_subtotal_nominal
+                    stmt.setBigDecimal(idx++, request.getImpuestoNominal());                  // 18. p_impuesto_nominal
+                    stmt.setBigDecimal(idx++, request.getTotalNominal());                     // 19. p_total_nominal
+                    stmt.setBigDecimal(idx++, request.getDescuentoDolar());                   // 20. p_descuento_dolar
+                    stmt.setBigDecimal(idx++, request.getSubtotalDolar());                    // 21. p_subtotal_dolar
+                    stmt.setBigDecimal(idx++, request.getImpuestoDolar());                    // 22. p_impuesto_dolar
+                    stmt.setBigDecimal(idx++, request.getTotalDolar());                       // 23. p_total_dolar
+                    stmt.setBigDecimal(idx++, new BigDecimal(request.getTipoCambio()));       // 24. p_tipo_cambio
+                    stmt.setDate(idx++, convertStringToSqlDate(request.getFechaCambio()));  // 25. p_fecha_cambio
+                    stmt.setString(idx++, request.getEstatus());                              // 26. p_estatus
+                    stmt.setString(idx++, request.getObservacion());                          // 27. p_observacion
+                    stmt.setInt(idx++, Integer.parseInt(detalle.getLinea()));                // 28. p_linea
+                    stmt.setDate(idx++, request.getFechaEntrega());                           // 29. p_fecha_entrega
+                    stmt.setString(idx++, request.getNomCliente());                           // 30. p_nom_cliente
+                    stmt.setInt(idx++, request.getTipoVenta() != null ? 
+                        request.getTipoVenta() : 1);                                          // 31. p_tipo_venta
+                    stmt.setInt(idx++, Integer.parseInt(request.getNoSucursalV()));          // 32. p_no_sucursal_v
+                    stmt.setString(idx++, detalle.getSerie() != null ? detalle.getSerie() : ""); // 33. p_serie_l
+                    stmt.setString(idx++, request.getPiliminar() != null ? 
+                        request.getPiliminar() : "N");                                        // 34. p_piliminar
+                    stmt.setString(idx++, request.getNoOrdenCompra() != null ? 
+                        request.getNoOrdenCompra() : "");                                     // 35. p_no_orden_compra
+                    stmt.setString(idx++, request.getAlias() != null ? 
+                        request.getAlias() : "");                                             // 36. p_alias
+                    stmt.setInt(idx++, Integer.parseInt(detalle.getNoSucursal()));           // 37. p_no_sucursal_l
+                    stmt.setString(idx++, request.getOrigenSolicitud() != null ? 
+                        request.getOrigenSolicitud() : "WEB");                               // 38. p_origen_solicitud
+                    stmt.setBigDecimal(idx++, request.getSucursalCliente() != null ? 
+                        request.getSucursalCliente() : new BigDecimal("1"));                  // 39. p_sucursal_cliente
+                    stmt.setInt(idx++, Integer.parseInt(request.getNoPlazo()));              // 40. p_no_plazo
+                    stmt.setString(idx++, request.getIndLocalidad() != null ? 
+                        request.getIndLocalidad() : "N");                                     // 41. p_ind_localidad
+                    stmt.setInt(idx++, Integer.parseInt(request.getGrupoCliente()));         // 42. p_grupo_cliente
+                    stmt.setString(idx++, request.getEmail() != null ? 
+                        request.getEmail() : "");                                             // 43. p_email
+                    stmt.setInt(idx++, request.getNoReferido() != null ? 
+                        request.getNoReferido() : 0);                                         // 44. p_no_referido
+                    stmt.setString(idx++, request.getNomReferido() != null ? 
+                        request.getNomReferido() : "");                                       // 45. p_nom_referido
+                    stmt.setString(idx++, request.getRucCedula() != null ? 
+                        request.getRucCedula() : "");                                         // 46. p_ruc_cedula
+                    
+                    System.out.println("Total parámetros IN configurados: " + (idx - 1));
+                    
+                    // Parámetros de salida (47-50)
+                    stmt.registerOutParameter(idx++, Types.INTEGER);                          // 47. p_resultado
+                    stmt.registerOutParameter(idx++, Types.LONGVARCHAR);                     // 48. p_mensaje
+                    stmt.registerOutParameter(idx++, Types.INTEGER);                          // 49. p_no_solicitud_generada
+                    stmt.registerOutParameter(idx++, Types.INTEGER);                          // 50. p_linea_generada
+                    
+                    System.out.println("Total parámetros (IN + OUT): " + (idx - 1));
+                    
+                    // Ejecutar el procedimiento
+                    stmt.execute();
+                      // Obtener resultados
+                    int resultado = stmt.getInt(47);
+                    String mensaje = stmt.getString(48);
+                    Integer solicitudGenerada = stmt.getInt(49);
+                    Integer lineaGen = stmt.getInt(50);
+                    
+                    // DEBUG: Mostrar los resultados del procedimiento
+                    System.out.println("=== RESULTADOS DEL PROCEDIMIENTO ===");
+                    System.out.println("Resultado: " + resultado);
+                    System.out.println("Mensaje: '" + mensaje + "'");
+                    System.out.println("Solicitud generada: " + solicitudGenerada);
+                    System.out.println("Línea generada: " + lineaGen);
+                    System.out.println("Mensaje es null: " + (mensaje == null));
+                    System.out.println("Mensaje está vacío: " + (mensaje != null && mensaje.isEmpty()));
+                    System.out.println("======================================");
+                    
+                    // Almacenar el número de solicitud para las siguientes líneas
+                    if (resultado == 1 && noSolicitudGenerada == null && solicitudGenerada != 0) {
+                        noSolicitudGenerada = String.valueOf(solicitudGenerada);
+                    }
+                    
+                    if (lineaGen != 0) {
+                        lineaGenerada = String.valueOf(lineaGen);
+                    }
+                    
+                    // Agregar mensaje de esta línea
+                    mensajeCompleto.append("Línea ").append(detalle.getLinea()).append(": ");
+                    if (resultado == 1) {
+                        mensajeCompleto.append("OK - ").append(mensaje);                    } else {
+                        String mensajeFinal = (mensaje != null && !mensaje.isEmpty()) ? mensaje : "Error sin descripción";
+                        mensajeCompleto.append("ERROR - ").append(mensajeFinal);
+                        // Si hay error, hacer rollback y retornar error
+                        conn.rollback();
+                        Map<String, Object> errorResponse = new HashMap<>();
+                        errorResponse.put("mensaje", "Error en línea " + detalle.getLinea() + ": " + mensajeFinal);
+                        errorResponse.put("estado", "error");
+                        errorResponse.put("resultado", resultado);
+                        errorResponse.put("mensajeOriginal", mensaje);
+                        errorResponse.put("codigoArticulo", detalle.getCodBarra());
+                        errorResponse.put("cantidad", detalle.getCantidad());
+                        return ResponseEntity.status(400).body(errorResponse);
+                    }
+                    mensajeCompleto.append("\n");
+                }
+            }
+              // Si llegamos aquí, todo fue exitoso
+            conn.commit();
+            
+            Map<String, Object> successResponse = new HashMap<>();
+            successResponse.put("mensaje", "COTIZACIÓN PROCESADA EXITOSAMENTE");
+            successResponse.put("detalleProceso", mensajeCompleto.toString());
+            successResponse.put("noSolicitudGenerada", noSolicitudGenerada);
+            successResponse.put("lineaGenerada", lineaGenerada);
+            successResponse.put("estado", "exitoso");
+            return ResponseEntity.ok().body(successResponse);        } catch (Exception e) {
+            System.err.println("ERROR GENERAL en cotizacion-api: " + e.getMessage());
+            e.printStackTrace();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("mensaje", "Error al procesar cotización: " + e.getMessage());
+            errorResponse.put("estado", "error");
+            errorResponse.put("tipoError", e.getClass().getSimpleName());
+            errorResponse.put("stackTrace", e.getStackTrace()[0].toString());
+            return ResponseEntity.status(500).body(errorResponse);
         }
     }
 }

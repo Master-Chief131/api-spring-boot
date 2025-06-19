@@ -31,15 +31,10 @@
 </head>
 <body>
 <div class="container">
-    <a href="index.html" class="btn-regresar">← Regresar al Inicio</a>
-    <h2>Buscar Cliente</h2>
+    <a href="index.html" class="btn-regresar">← Regresar al Inicio</a>    <h2>Buscar Cliente por RUC/Cédula</h2>
     <form id="buscarForm">
-        <label for="noCia">Número de Compañía:</label>
-        <input type="number" id="noCia" name="noCia" required>
-        <label for="noCliente">Número de Cliente:</label>
-        <input type="number" id="noCliente" name="noCliente" required>
-        <label for="grupo">Grupo:</label>
-        <input type="text" id="grupo" name="grupo" required>
+        <label for="rucCedula">RUC o Cédula:</label>
+        <input type="text" id="rucCedula" name="rucCedula" required placeholder="Ingrese el RUC o cédula del cliente">
         <button type="submit">Buscar</button>
     </form>
     <div id="resultado"></div>
@@ -50,13 +45,14 @@
 <script>
     document.getElementById('buscarForm').addEventListener('submit', async function(e) {
         e.preventDefault();
-        const noCia = document.getElementById('noCia').value;
-        const noCliente = document.getElementById('noCliente').value;
-        const grupo = document.getElementById('grupo').value;
+        const rucCedula = document.getElementById('rucCedula').value;
         const resultado = document.getElementById('resultado');
-        resultado.innerHTML = '';        try {
-            const res = await fetch(buildApiUrl(`/api/clientes/buscar?noCia=${noCia}&noCliente=${noCliente}&grupo=${encodeURIComponent(grupo)}`));
+        resultado.innerHTML = '';
+
+        try {
+            const res = await fetch(buildApiUrl(`/api/clientes/buscar-por-ruc-cedula?rucCedula=${encodeURIComponent(rucCedula)}`));
             const data = await res.json();
+            
             if (data.mensaje) {
                 resultado.innerHTML = `<div class="error">${data.mensaje}</div>`;
             } else {

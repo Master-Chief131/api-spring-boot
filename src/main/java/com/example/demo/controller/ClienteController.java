@@ -943,13 +943,42 @@ public class ClienteController {
       id.setNoCia(noCia);
       id.setNoCliente(noCliente);
       id.setGrupo(grupo);
-      Optional<Cliente> cliente = repository.findById(id);
-      if (cliente.isPresent()) {
+      Optional<Cliente> cliente = repository.findById(id);      if (cliente.isPresent()) {
           return cliente.get();
       } else {
           return java.util.Collections.singletonMap("mensaje", "Cliente no existe");
       }
-  }  private Map<String, Object> actualizarUsuarioWebContacto(int noCliente, int noContacto, String usuarioWeb, java.sql.Connection conn) {
+  }
+
+  @GetMapping("/buscar-por-ruc-cedula")
+  @Operation(
+    summary = "Buscar cliente por RUC o cédula",
+    description = "Busca un cliente utilizando su número de RUC o cédula de identidad"
+  )
+  @ApiResponses(value = {
+    @ApiResponse(responseCode = "200", description = "Cliente encontrado exitosamente"),
+    @ApiResponse(responseCode = "404", description = "Cliente no encontrado"),
+    @ApiResponse(responseCode = "400", description = "Parámetro de búsqueda inválido")
+  })
+  public Object buscarClientePorRucCedula(
+          @Parameter(description = "Número de RUC o cédula del cliente", example = "1234567890", required = true)
+          @RequestParam String rucCedula) {
+      
+      // Buscar en todos los clientes por RUC/cédula
+      List<Cliente> clientes = repository.findAll().stream()
+          .filter(c -> c.getRucCedula() != null && c.getRucCedula().equals(rucCedula))
+          .collect(java.util.stream.Collectors.toList());
+      
+      if (!clientes.isEmpty()) {
+          // Si hay múltiples clientes con el mismo RUC/cédula, devolver el primero
+          // En un caso real, podrías querer devolver todos o manejar esto diferente
+          return clientes.get(0);
+      } else {
+          return java.util.Collections.singletonMap("mensaje", "Cliente no encontrado con RUC/cédula: " + rucCedula);
+      }
+  }
+
+  private Map<String, Object> actualizarUsuarioWebContacto(int noCliente, int noContacto, String usuarioWeb, java.sql.Connection conn) {
     Map<String, Object> resultado = new HashMap<>();
     
     try {
@@ -1127,48 +1156,63 @@ public class ClienteController {
     
     Map<String, Object> response = new HashMap<>();
     
-    try {
-      // Intentar obtener configuración de email desde la BD
+    try {      // Intentar obtener configuración de email desde la BD
       System.out.println("=== PROBANDO CONFIGURACIÓN DE EMAIL ===");
       System.out.println("Buscando configuración para compañía: " + noCia);
       
-      java.sql.Connection conn = dataSource.getConnection();
-      String sql = "SELECT host_correo, usuario, contrasena, email_from, host_puerto, " +
-                   "cifrado, autenticar_correo, EMAIL_HELPDESK, CONTRASENA_HD_FROM, EMAIL_HD_FROM " +
-                   "FROM arweb_cia WHERE no_cia = ?";
-      
-      java.sql.PreparedStatement stmt = conn.prepareStatement(sql);
-      stmt.setInt(1, noCia);
-      java.sql.ResultSet rs = stmt.executeQuery();
-      
-      if (rs.next()) {
-        response.put("success", true);
-        response.put("host_correo", rs.getString("host_correo"));
-        response.put("usuario", rs.getString("usuario"));
-        response.put("contrasena_exists", rs.getString("contrasena") != null);
-        response.put("email_from", rs.getString("email_from"));
-        response.put("host_puerto", rs.getInt("host_puerto"));
-        response.put("cifrado", rs.getString("cifrado"));
-        response.put("autenticar_correo", rs.getBoolean("autenticar_correo"));
-        response.put("email_helpdesk", rs.getString("EMAIL_HELPDESK"));
-        response.put("email_hd_from", rs.getString("EMAIL_HD_FROM"));
+      java.sql.Connection conn = null;
+      try {
+        conn = dataSource.getConnection();
+        String sql = "SELECT host_correo, usuario, contrasena, email_from, host_puerto, " +
+                     "cifrado, autenticar_correo, EMAIL_HELPDESK, CONTRASENA_HD_FROM, EMAIL_HD_FROM " +
+                     "FROM arweb_cia WHERE no_cia = ?";
         
-        System.out.println("Configuración encontrada:");
-        System.out.println("- Host: " + rs.getString("host_correo"));
-        System.out.println("- Puerto: " + rs.getInt("host_puerto"));
-        System.out.println("- Usuario: " + rs.getString("usuario"));
-        System.out.println("- Email From: " + rs.getString("email_from"));
-        System.out.println("- Cifrado: " + rs.getString("cifrado"));
-        System.out.println("- Autenticar: " + rs.getBoolean("autenticar_correo"));
-      } else {
+        java.sql.PreparedStatement stmt = conn.prepareStatement(sql);
+        stmt.setInt(1, noCia);
+        java.sql.ResultSet rs = stmt.executeQuery();
+        
+        if (rs.next()) {
+          response.put("success", true);
+          response.put("host_correo", rs.getString("host_correo"));
+          response.put("usuario", rs.getString("usuario"));
+          response.put("contrasena_exists", rs.getString("contrasena") != null);
+          response.put("email_from", rs.getString("email_from"));
+          response.put("host_puerto", rs.getInt("host_puerto"));
+          response.put("cifrado", rs.getString("cifrado"));
+          response.put("autenticar_correo", rs.getBoolean("autenticar_correo"));
+          response.put("email_helpdesk", rs.getString("EMAIL_HELPDESK"));
+          response.put("email_hd_from", rs.getString("EMAIL_HD_FROM"));
+          
+          System.out.println("Configuración encontrada:");
+          System.out.println("- Host: " + rs.getString("host_correo"));
+          System.out.println("- Puerto: " + rs.getInt("host_puerto"));
+          System.out.println("- Usuario: " + rs.getString("usuario"));
+          System.out.println("- Email From: " + rs.getString("email_from"));
+          System.out.println("- Cifrado: " + rs.getString("cifrado"));
+          System.out.println("- Autenticar: " + rs.getBoolean("autenticar_correo"));
+        } else {
+          response.put("success", false);
+          response.put("mensaje", "No se encontró configuración para la compañía " + noCia);
+        }
+        
+      } catch (Exception e) {
+        System.err.println("Error probando configuración de email: " + e.getMessage());
+        e.printStackTrace();
         response.put("success", false);
-        response.put("mensaje", "No se encontró configuración para la compañía " + noCia);
+        response.put("error", e.getMessage());
+      } finally {
+        // ✅ CERRAR CONEXIÓN SIEMPRE, incluso si hay excepciones
+        if (conn != null) {
+          try {
+            conn.close();
+            System.out.println("🔒 Conexión cerrada correctamente en getEmailConfig");
+          } catch (Exception closeEx) {            System.err.println("❌ Error cerrando conexión en getEmailConfig: " + closeEx.getMessage());
+          }
+        }
       }
-      
-      conn.close();
-      
+    
     } catch (Exception e) {
-      System.err.println("Error probando configuración de email: " + e.getMessage());
+      System.err.println("Error general en getEmailConfig: " + e.getMessage());
       e.printStackTrace();
       response.put("success", false);
       response.put("error", e.getMessage());

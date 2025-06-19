@@ -6,8 +6,8 @@ import com.example.demo.entity.InvwebSubfamiliaImg;
 import com.example.demo.repository.InvwebFamiliaImgRepository;
 import com.example.demo.repository.InvwebFamiliaRepository;
 import com.example.demo.repository.InvwebSubfamiliaImgRepository;
+import com.example.demo.service.ImagenService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,29 +30,31 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/familias-producto")
 @Tag(name = "Familias de Productos", description = "API para consulta de familias de productos y sus imágenes")
-public class InvwebFamiliaController {
-    @Autowired
+public class InvwebFamiliaController {    @Autowired
     private InvwebFamiliaRepository invwebFamiliaRepository;
     @Autowired
     private InvwebFamiliaImgRepository invwebFamiliaImgRepository;
     @Autowired
     private InvwebSubfamiliaImgRepository invwebSubfamiliaImgRepository;
-
-    @Value("${familia.img.base-url:http://localhost:8088/cptsoft-erp-prueba/Imagenes/}")
-    private String familiaImgBaseUrl;
-
-    @GetMapping
+    @Autowired
+    private ImagenService imagenService;    @GetMapping
     @Transactional(readOnly = true)
     public List<InvwebFamilia> getAllFamilias() {
         List<InvwebFamilia> familias = invwebFamiliaRepository.findByVerPortal("S");
-        // Agregar imagenUrl a familia y subfamilia usando métodos transient
+        // Agregar imagenUrl a familia y subfamilia usando el nuevo servicio de imágenes
         familias.forEach(f -> {
             invwebFamiliaImgRepository.findByNoCiaAndNoFamilia(f.getNoCia(), f.getNoFamilia())
-                .ifPresent(img -> f.setImagenUrl(familiaImgBaseUrl + img.getArchivo()));
+                .ifPresent(img -> {
+                    String urlImagen = imagenService.obtenerUrlImagen(img.getArchivo());
+                    f.setImagenUrl(urlImagen);
+                });
             if (f.getSubfamilias() != null) {
                 f.getSubfamilias().forEach(sf -> {
                     invwebSubfamiliaImgRepository.findByNoCiaAndNoFamiliaAndNoSubfamilia(f.getNoCia(), f.getNoFamilia(), sf.getNoSubfamilia())
-                        .ifPresent(img -> sf.setImagenUrl(familiaImgBaseUrl + img.getArchivo()));
+                        .ifPresent(img -> {
+                            String urlImagen = imagenService.obtenerUrlImagen(img.getArchivo());
+                            sf.setImagenUrl(urlImagen);
+                        });
                 });
             }
         });

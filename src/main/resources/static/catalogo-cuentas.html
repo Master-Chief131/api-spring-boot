@@ -7,6 +7,7 @@
     <title>Catálogo de Cuentas Contables</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="js/api-url-helper.js"></script>
     <style>
         body {
             background-color: #f8f9fa;
@@ -346,8 +347,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        // URL base de la API
-        const API_BASE_URL = '/api/cuentas';
+        // URL base de la API - usar helper para manejar contexto de Tomcat
+        const API_BASE_URL = buildApiUrl('/api/cuentas');
         
         // Variables globales
         let ultimaRespuesta = null;

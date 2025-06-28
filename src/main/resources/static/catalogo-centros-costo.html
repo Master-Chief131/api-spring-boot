@@ -243,7 +243,7 @@
 
         // Función para obtener la URL base de la API
         function getApiBaseUrl() {
-            return window.ApiUrlHelper ? window.ApiUrlHelper.getApiBaseUrl() : 'http://localhost:8080';
+            return window.ApiUrlHelper ? buildApiUrl('') : 'http://localhost:8080';
         }
 
         // Inicializar la página

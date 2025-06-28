@@ -83,6 +83,18 @@
             color: #dc3545;
             font-weight: bold;
         }
+        .pagination-sm .page-link {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+        .card-footer {
+            background-color: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+        }
+        #infoPaginacion {
+            color: #6c757d;
+            font-size: 0.875rem;
+        }
     </style>
 </head>
 <body>
@@ -171,7 +183,7 @@
                 </div>
                 <div class="row mt-3">
                     <div class="col-12">
-                        <button type="button" class="btn btn-primary me-2" onclick="buscarCuentas()">
+                        <button type="button" class="btn btn-primary me-2" onclick="paginaActual = 0; buscarCuentas(0)">
                             <i class="fas fa-search me-1"></i>
                             Buscar Cuentas
                         </button>
@@ -251,6 +263,32 @@
                     </table>
                 </div>
             </div>
+            
+            <!-- Paginación -->
+            <div class="card-footer" id="paginacionSection" style="display: none;">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <label for="tamañoPagina" class="form-label me-2 mb-0">Mostrar:</label>
+                            <select class="form-select form-select-sm me-2" id="tamañoPagina" style="width: auto;" onchange="cambiarTamañoPagina()">
+                                <option value="10">10</option>
+                                <option value="25" selected>25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <span class="text-muted">por página</span>
+                        </div>
+                        <small class="text-muted" id="infoPaginacion">Mostrando 0 - 0 de 0 resultados</small>
+                    </div>
+                    <div class="col-md-6">
+                        <nav aria-label="Paginación de cuentas">
+                            <ul class="pagination pagination-sm justify-content-end mb-0" id="controlesPaginacion">
+                                <!-- Se genera dinámicamente -->
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Response JSON Section -->
@@ -295,6 +333,11 @@
         
         // Variables globales
         let ultimaRespuesta = null;
+        let paginaActual = 0; // Spring Boot usa páginas basadas en 0
+        let tamañoPaginaActual = 25;
+        let totalElementos = 0;
+        let totalPaginas = 0;
+        let ultimosFiltros = null;
         
         // Función para mostrar loading
         function mostrarLoading(mostrar = true) {
@@ -303,7 +346,7 @@
         }
         
         // Función para buscar cuentas con filtros
-        async function buscarCuentas() {
+        async function buscarCuentas(pagina = 0) {
             try {
                 mostrarLoading(true);
                 
@@ -317,6 +360,11 @@
                 if (modo === 'completo') {
                     endpoint = `${API_BASE_URL}/completo`;
                 }
+                
+                // Agregar parámetros de paginación
+                params.append('page', pagina.toString());
+                params.append('size', tamañoPaginaActual.toString());
+                params.append('sort', 'cuenta,asc'); // Ordenar por código de cuenta
                 
                 // Agregar parámetros según el modo
                 for (const [key, value] of formData.entries()) {
@@ -341,32 +389,61 @@
                     throw new Error(`Error HTTP: ${response.status}`);
                 }
                 
-                const cuentas = await response.json();
-                ultimaRespuesta = cuentas;
+                const respuestaPaginada = await response.json();
+                ultimaRespuesta = respuestaPaginada;
+                
+                // Actualizar variables de paginación
+                paginaActual = pagina;
+                ultimosFiltros = Object.fromEntries(formData.entries());
                 
                 // Procesar respuesta según el tipo
                 if (modo === 'operativo') {
-                    // Los DTOs ya vienen procesados
-                    mostrarCuentasEnTabla(cuentas);
+                    // Para DTOs, la respuesta es un array simple sin paginación del servidor
+                    // Simular paginación del lado cliente
+                    const inicio = pagina * tamañoPaginaActual;
+                    const fin = inicio + tamañoPaginaActual;
+                    const cuentasPaginadas = respuestaPaginada.slice(inicio, fin);
+                    
+                    totalElementos = respuestaPaginada.length;
+                    totalPaginas = Math.ceil(totalElementos / tamañoPaginaActual);
+                    
+                    mostrarCuentasEnTabla(cuentasPaginadas);
+                    actualizarPaginacion(inicio, fin, totalElementos);
                 } else {
-                    // Para el modo completo, convertir entidades a DTOs del lado cliente
-                    const cuentasContent = cuentas.content || cuentas; // Manejar paginación
-                    const cuentasDTO = Array.isArray(cuentasContent) 
-                        ? cuentasContent.map(cuenta => convertirADTO(cuenta))
-                        : [convertirADTO(cuentasContent)];
-                    mostrarCuentasEnTabla(cuentasDTO);
+                    // Para el modo completo, usar paginación del servidor
+                    if (respuestaPaginada.content) {
+                        // Respuesta paginada del servidor
+                        totalElementos = respuestaPaginada.totalElements;
+                        totalPaginas = respuestaPaginada.totalPages;
+                        
+                        const cuentasDTO = respuestaPaginada.content.map(cuenta => convertirADTO(cuenta));
+                        mostrarCuentasEnTabla(cuentasDTO);
+                        
+                        const inicio = respuestaPaginada.number * respuestaPaginada.size;
+                        const fin = Math.min(inicio + respuestaPaginada.size, totalElementos);
+                        actualizarPaginacion(inicio, fin, totalElementos);
+                    } else {
+                        // Respuesta simple sin paginación
+                        const cuentasArray = Array.isArray(respuestaPaginada) ? respuestaPaginada : [respuestaPaginada];
+                        const cuentasDTO = cuentasArray.map(cuenta => convertirADTO(cuenta));
+                        mostrarCuentasEnTabla(cuentasDTO);
+                        
+                        totalElementos = cuentasArray.length;
+                        totalPaginas = 1;
+                        actualizarPaginacion(0, totalElementos, totalElementos);
+                    }
                 }
                 
-                mostrarRespuestaJSON(cuentas);
-                const total = cuentas.content ? cuentas.content.length : (Array.isArray(cuentas) ? cuentas.length : 1);
-                actualizarContadorCuentas(total);
+                mostrarRespuestaJSON(respuestaPaginada);
+                actualizarContadorCuentas(totalElementos);
                 
                 // Actualizar título según el modo
-                actualizarTituloSegunModo(modo, total);
+                actualizarTituloSegunModo(modo, totalElementos);
                 
             } catch (error) {
                 console.error('Error al buscar cuentas:', error);
                 mostrarError('Error al consultar las cuentas: ' + error.message);
+                ocultarPaginacion();
             } finally {
                 mostrarLoading(false);
             }
@@ -384,16 +461,34 @@
                 const cuentas = await response.json();
                 ultimaRespuesta = cuentas;
                 
+                // Para el plan completo, simular paginación del lado cliente
+                paginaActual = 0;
+                totalElementos = cuentas.length;
+                totalPaginas = Math.ceil(totalElementos / tamañoPaginaActual);
+                
+                const inicio = 0;
+                const fin = Math.min(tamañoPaginaActual, totalElementos);
+                const cuentasPaginadas = cuentas.slice(inicio, fin);
+                
                 // Convertir a DTOs del lado cliente
-                const cuentasDTO = cuentas.map(cuenta => convertirADTO(cuenta));
+                const cuentasDTO = cuentasPaginadas.map(cuenta => convertirADTO(cuenta));
                 
                 mostrarCuentasEnTabla(cuentasDTO);
                 mostrarRespuestaJSON(cuentas);
-                actualizarContadorCuentas(cuentas.length);
+                actualizarContadorCuentas(totalElementos);
+                actualizarPaginacion(inicio, fin, totalElementos);
+                
+                // Actualizar título
+                const tituloCard = document.querySelector('.card-header span');
+                tituloCard.innerHTML = '<i class="fas fa-list me-2"></i>Plan de Cuentas Completo';
+                
+                // Guardar filtros para paginación
+                ultimosFiltros = { planCompleto: true, noCia: noCia };
                 
             } catch (error) {
                 console.error('Error al obtener plan completo:', error);
                 mostrarError('Error al obtener el plan de cuentas: ' + error.message);
+                ocultarPaginacion();
             } finally {
                 mostrarLoading(false);
             }
@@ -544,6 +639,14 @@
             document.getElementById('filtrosForm').reset();
             document.getElementById('noCia').value = '1';
             document.getElementById('modo').value = 'operativo';
+            document.getElementById('tamañoPagina').value = '25';
+            
+            // Resetear variables de paginación
+            paginaActual = 0;
+            tamañoPaginaActual = 25;
+            totalElementos = 0;
+            totalPaginas = 0;
+            ultimosFiltros = null;
             
             // Ocultar filtros administrativos
             document.getElementById('filtroActivo').style.display = 'none';
@@ -564,6 +667,143 @@
             // Actualizar título
             const tituloCard = document.querySelector('.card-header span');
             tituloCard.innerHTML = '<i class="fas fa-list me-2"></i>Cuentas Operativas (Activas + Movimiento)';
+            
+            // Ocultar paginación
+            ocultarPaginacion();
+        }
+        
+        // Funciones de paginación
+        function actualizarPaginacion(inicio, fin, total) {
+            if (total === 0) {
+                ocultarPaginacion();
+                return;
+            }
+            
+            // Mostrar información de paginación
+            document.getElementById('infoPaginacion').textContent = 
+                `Mostrando ${inicio + 1} - ${fin} de ${total.toLocaleString()} resultados`;
+            
+            // Generar controles de paginación
+            generarControlesPaginacion();
+            
+            // Mostrar sección de paginación
+            document.getElementById('paginacionSection').style.display = 'block';
+        }
+        
+        function generarControlesPaginacion() {
+            const controles = document.getElementById('controlesPaginacion');
+            const maxBotones = 5; // Máximo número de botones de página a mostrar
+            
+            let html = '';
+            
+            // Botón anterior
+            html += `
+                <li class="page-item ${paginaActual === 0 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="cambiarPagina(${paginaActual - 1})" aria-label="Anterior">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            `;
+            
+            // Calcular rango de páginas a mostrar
+            let inicioRango = Math.max(0, paginaActual - Math.floor(maxBotones / 2));
+            let finRango = Math.min(totalPaginas - 1, inicioRango + maxBotones - 1);
+            
+            // Ajustar inicio si estamos cerca del final
+            if (finRango - inicioRango < maxBotones - 1) {
+                inicioRango = Math.max(0, finRango - maxBotones + 1);
+            }
+            
+            // Primera página si no está en el rango
+            if (inicioRango > 0) {
+                html += `
+                    <li class="page-item">
+                        <a class="page-link" href="#" onclick="cambiarPagina(0)">1</a>
+                    </li>
+                `;
+                if (inicioRango > 1) {
+                    html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                }
+            }
+            
+            // Páginas en el rango
+            for (let i = inicioRango; i <= finRango; i++) {
+                html += `
+                    <li class="page-item ${i === paginaActual ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="cambiarPagina(${i})">${i + 1}</a>
+                    </li>
+                `;
+            }
+            
+            // Última página si no está en el rango
+            if (finRango < totalPaginas - 1) {
+                if (finRango < totalPaginas - 2) {
+                    html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                }
+                html += `
+                    <li class="page-item">
+                        <a class="page-link" href="#" onclick="cambiarPagina(${totalPaginas - 1})">${totalPaginas}</a>
+                    </li>
+                `;
+            }
+            
+            // Botón siguiente
+            html += `
+                <li class="page-item ${paginaActual >= totalPaginas - 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="cambiarPagina(${paginaActual + 1})" aria-label="Siguiente">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            `;
+            
+            controles.innerHTML = html;
+        }
+        
+        function cambiarPagina(nuevaPagina) {
+            if (nuevaPagina < 0 || nuevaPagina >= totalPaginas || nuevaPagina === paginaActual) {
+                return;
+            }
+            
+            // Verificar si estamos en modo plan completo
+            if (ultimosFiltros && ultimosFiltros.planCompleto) {
+                cargarPaginaPlanCompleto(nuevaPagina);
+            } else {
+                buscarCuentas(nuevaPagina);
+            }
+        }
+        
+        function cargarPaginaPlanCompleto(pagina) {
+            if (!ultimaRespuesta || !Array.isArray(ultimaRespuesta)) {
+                return;
+            }
+            
+            paginaActual = pagina;
+            const inicio = pagina * tamañoPaginaActual;
+            const fin = Math.min(inicio + tamañoPaginaActual, ultimaRespuesta.length);
+            const cuentasPaginadas = ultimaRespuesta.slice(inicio, fin);
+            
+            // Convertir a DTOs del lado cliente
+            const cuentasDTO = cuentasPaginadas.map(cuenta => convertirADTO(cuenta));
+            
+            mostrarCuentasEnTabla(cuentasDTO);
+            actualizarPaginacion(inicio, fin, ultimaRespuesta.length);
+        }
+        
+        function cambiarTamañoPagina() {
+            tamañoPaginaActual = parseInt(document.getElementById('tamañoPagina').value);
+            paginaActual = 0; // Resetear a la primera página
+            
+            // Verificar si estamos en modo plan completo
+            if (ultimosFiltros && ultimosFiltros.planCompleto) {
+                totalPaginas = Math.ceil(ultimaRespuesta.length / tamañoPaginaActual);
+                cargarPaginaPlanCompleto(0);
+            } else {
+                buscarCuentas(0);
+            }
+        }
+        
+        function ocultarPaginacion() {
+            document.getElementById('paginacionSection').style.display = 'none';
         }
         
         // Función para ver detalles de cuenta
@@ -721,13 +961,21 @@
             // Inicializar modo
             manejarCambioModo();
             
-            // Buscar cuentas operativas por defecto
-            buscarCuentas();
+            // Inicializar variables de paginación
+            paginaActual = 0;
+            tamañoPaginaActual = 25;
+            totalElementos = 0;
+            totalPaginas = 0;
+            ultimosFiltros = null;
+            
+            // Buscar cuentas operativas por defecto (primera página)
+            buscarCuentas(0);
             
             // Enter en el campo de búsqueda
             document.getElementById('descripcion').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
-                    buscarCuentas();
+                    paginaActual = 0; // Resetear a primera página al buscar
+                    buscarCuentas(0);
                 }
             });
         });

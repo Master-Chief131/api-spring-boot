@@ -42,11 +42,12 @@ public class CuentaDTO {
         BigDecimal debitos = cuenta.getDebitos() != null ? cuenta.getDebitos() : BigDecimal.ZERO;
         BigDecimal creditos = cuenta.getCreditos() != null ? cuenta.getCreditos() : BigDecimal.ZERO;
         
-        if ("D".equals(cuenta.getNaturaleza())) {
-            this.saldoActual = debitos.subtract(creditos);
-        } else {
-            this.saldoActual = creditos.subtract(debitos);
-        }
+        this.saldoActual = debitos.subtract(creditos);
+        // if ("D".equals(cuenta.getNaturaleza())) {
+        //     this.saldoActual = debitos.subtract(creditos);
+        // } else {
+        //     this.saldoActual = creditos.subtract(debitos);
+        // }
         
         // Descripciones amigables
         this.tipoMovimiento = "S".equals(cuenta.getIndMov()) ? "Permite Movimiento" : "No Permite Movimiento";

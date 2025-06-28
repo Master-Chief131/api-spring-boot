@@ -75,14 +75,6 @@
         .nivel-3 { background-color: #ffc107; color: #212529; }
         .nivel-4 { background-color: #28a745; }
         .nivel-5 { background-color: #20c997; }
-        .saldo-positivo {
-            color: #28a745;
-            font-weight: bold;
-        }
-        .saldo-negativo {
-            color: #dc3545;
-            font-weight: bold;
-        }
         .pagination-sm .page-link {
             padding: 0.25rem 0.5rem;
             font-size: 0.875rem;
@@ -246,7 +238,7 @@
                                 <th>Descripción</th>
                                 <th>Tipo</th>
                                 <th>Movimiento</th>
-                                <th>Saldo</th>
+                                <th>Detalle de tercero</th>
                                 <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
@@ -556,8 +548,8 @@
                         </span>
                     </td>
                     <td>
-                        <span class="${cuenta.saldoActual >= 0 ? 'saldo-positivo' : 'saldo-negativo'}">
-                            ${formatearMoneda(cuenta.saldoActual)}
+                        <span class="badge ${cuenta.indTercero && cuenta.indTercero !== '' ? 'bg-primary' : 'bg-light text-dark'}">
+                            ${cuenta.indTercero && cuenta.indTercero !== '' ? cuenta.indTercero : 'N'}
                         </span>
                     </td>
                     <td>
@@ -833,10 +825,11 @@
                             <h6>Configuración</h6>
                             <table class="table table-sm">
                                 <tr><td><strong>Permite Mov.:</strong></td><td>${cuentaDetalle.indMov}</td></tr>
-                                <tr><td><strong>Estado:</strong></td><td>${cuentaDetalle.activo}</td></tr>
-                                <tr><td><strong>Clase:</strong></td><td>${cuentaDetalle.clase || 'N/A'}</td></tr>
-                                <tr><td><strong>Ajustable:</strong></td><td>${cuentaDetalle.ajustable || 'N/A'}</td></tr>
-                                <tr><td><strong>Acepta CC:</strong></td><td>${cuentaDetalle.aceptaCc || 'N/A'}</td></tr>
+                                <tr><td><strong>Activo:</strong></td><td>${cuentaDetalle.activo}</td></tr>
+                                <tr><td><strong>Clase:</strong></td><td>${cuentaDetalle.clase || 'N'}</td></tr>
+                                <tr><td><strong>Ajustable:</strong></td><td>${cuentaDetalle.ajustable || 'N'}</td></tr>
+                                <tr><td><strong>Acepta CC:</strong></td><td>${cuentaDetalle.aceptaCc || 'N'}</td></tr>
+                                <tr><td><strong>Ind. Tercero:</strong></td><td>${cuentaDetalle.indTercero || 'N'}</td></tr>
                             </table>
                         </div>
                     </div>
@@ -870,21 +863,8 @@
             `;
         }
         
-        // Función para formatear moneda
-        function formatearMoneda(valor) {
-            if (valor === null || valor === undefined) return '$0.00';
-            return new Intl.NumberFormat('es-PA', {
-                style: 'currency',
-                currency: 'USD',
-                minimumFractionDigits: 2
-            }).format(valor);
-        }
-        
         // Función para convertir entidad a DTO (lado cliente)
         function convertirADTO(cuenta) {
-            // Para el saldo, usar un cálculo simple sin naturaleza
-            const saldoActual = (cuenta.debitos || 0) - (cuenta.creditos || 0);
-            
             return {
                 noCia: cuenta.noCia,
                 cuenta: cuenta.cuenta,
@@ -896,7 +876,7 @@
                 nivel: cuenta.nivel,
                 padre: cuenta.padre,
                 activo: cuenta.activo,
-                saldoActual: saldoActual,
+                indTercero: cuenta.indTercero,
                 tipoMovimiento: cuenta.indMov === 'S' ? 'Permite Movimiento' : 'No Permite Movimiento',
                 estadoDescripcion: cuenta.activo === 'S' ? 'Activa' : 'Inactiva'
             };

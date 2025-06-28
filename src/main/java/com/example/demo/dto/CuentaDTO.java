@@ -18,6 +18,7 @@ public class CuentaDTO {
     private String nivel;
     private String padre;
     private String activo;
+    private String indTercero;
     private BigDecimal saldoActual;
     private String tipoMovimiento;
     private String estadoDescripcion;
@@ -37,6 +38,7 @@ public class CuentaDTO {
         this.nivel = cuenta.getNivel();
         this.padre = cuenta.getPadre();
         this.activo = cuenta.getActivo();
+        this.indTercero = cuenta.getIndTercero();
         
         // Calcular saldo actual (ejemplo simple)
         BigDecimal debitos = cuenta.getDebitos() != null ? cuenta.getDebitos() : BigDecimal.ZERO;
@@ -133,6 +135,14 @@ public class CuentaDTO {
 
     public void setActivo(String activo) {
         this.activo = activo;
+    }
+
+    public String getIndTercero() {
+        return indTercero;
+    }
+
+    public void setIndTercero(String indTercero) {
+        this.indTercero = indTercero;
     }
 
     public BigDecimal getSaldoActual() {

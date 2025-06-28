@@ -388,6 +388,65 @@ public class CuentaController {
                      .collect(Collectors.toList());
     }
 
+    @GetMapping("/dto-paginado")
+    @Operation(
+        summary = "Obtener catálogo de cuentas operativas (DTO) con paginación",
+        description = "Obtiene una lista paginada y simplificada del catálogo de cuentas que están ACTIVAS y PERMITEN MOVIMIENTO. " +
+                     "Utiliza DTOs optimizados para una mejor presentación en interfaces de usuario con soporte de paginación. " +
+                     "Por defecto filtra por compañía 1, pero se puede especificar otra compañía con el parámetro 'noCia'."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Catálogo de cuentas operativas DTO paginado obtenido exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Parámetros de consulta inválidos"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    public Page<CuentaDTO> getCatalogoCuentasDTOPaginado(
+            @Parameter(description = "Número de compañía", example = "1", required = false)
+            @RequestParam(required = false) Integer noCia,
+            @Parameter(description = "Buscar en la descripción de la cuenta", example = "CAJA", required = false)
+            @RequestParam(required = false) String descripcion,
+            @Parameter(description = "Tipo de cuenta", example = "1", required = false)
+            @RequestParam(required = false) Integer tipo,
+            @Parameter(description = "Naturaleza de la cuenta (D=Débito, C=Crédito)", example = "D", required = false)
+            @RequestParam(required = false) String naturaleza,
+            @Parameter(description = "Información de paginación y ordenamiento")
+            Pageable pageable) {
+        
+        // Construir especificación dinámica con condiciones OBLIGATORIAS
+        Specification<Cuenta> spec = Specification.where(null);
+        
+        // CONDICIONES OBLIGATORIAS: Solo cuentas activas que permiten movimiento
+        spec = spec.and((root, query, cb) -> cb.equal(root.get("activo"), "S"));
+        spec = spec.and((root, query, cb) -> cb.equal(root.get("indMov"), "S"));
+        
+        // CONDICIÓN OBLIGATORIA: Filtrar por compañía (por defecto compañía 1)
+        Integer companiaFiltro = noCia != null ? noCia : 1;
+        spec = spec.and((root, query, cb) -> cb.equal(root.get("noCia"), companiaFiltro));
+        
+        if (descripcion != null && !descripcion.trim().isEmpty()) {
+            spec = spec.and((root, query, cb) -> 
+                cb.or(
+                    cb.like(cb.lower(root.get("cuenta")), "%" + descripcion.toLowerCase() + "%"),
+                    cb.like(cb.lower(root.get("descripcion")), "%" + descripcion.toLowerCase() + "%"),
+                    cb.like(cb.lower(root.get("descrip1")), "%" + descripcion.toLowerCase() + "%"),
+                    cb.like(cb.lower(root.get("descripLarga")), "%" + descripcion.toLowerCase() + "%")
+                )
+            );
+        }
+        
+        if (tipo != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("tipo"), tipo));
+        }
+        
+        if (naturaleza != null && !naturaleza.trim().isEmpty()) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("naturaleza"), naturaleza));
+        }
+        
+        // Obtener página de entidades y convertir a DTOs
+        Page<Cuenta> cuentasPage = cuentaRepository.findAll(spec, pageable);
+        return cuentasPage.map(CuentaDTO::new);
+    }
+
     @GetMapping("/completo")
     @Operation(
         summary = "Obtener catálogo completo de cuentas (Administrativo)",

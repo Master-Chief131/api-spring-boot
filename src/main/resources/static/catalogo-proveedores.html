@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="images/logos/logo_icono.svg" type="image/svg+xml">
+    <title>Catálogo de Proveedores</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="js/api-url-helper.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .header-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border-radius: 0.5rem;
+        }
+        .card-header {
+            background-color: #495057;
+            color: white;
+            font-weight: 600;
+        }
+        .search-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .table-responsive {
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        .badge-activo {
+            background-color: #28a745;
+        }
+        .badge-inactivo {
+            background-color: #dc3545;
+        }
+        .badge-nacional {
+            background-color: #007bff;
+        }
+        .badge-internacional {
+            background-color: #17a2b8;
+        }
+        .proveedor-codigo {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #495057;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        .tipo-indicator {
+            display: inline-block;
+            width: 30px;
+            text-align: center;
+            font-weight: bold;
+            border-radius: 3px;
+            color: white;
+            font-size: 0.8rem;
+        }
+        .tipo-1 { background-color: #dc3545; }
+        .tipo-2 { background-color: #fd7e14; }
+        .tipo-3 { background-color: #ffc107; color: #212529; }
+        .tipo-4 { background-color: #28a745; }
+        .tipo-5 { background-color: #20c997; }
+        .pagination-sm .page-link {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+        .card-footer {
+            background-color: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+        }
+        #infoPaginacion {
+            color: #6c757d;
+            font-size: 0.875rem;
+        }
+        .email-link {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .email-link:hover {
+            text-decoration: underline;
+        }
+        .web-link {
+            color: #17a2b8;
+            text-decoration: none;
+        }
+        .web-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Section -->
+    <div class="header-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-0">
+                        <i class="fas fa-truck me-2"></i>
+                        Catálogo de Proveedores
+                    </h1>
+                    <p class="mb-0 mt-2 opacity-75">Consulta y gestión del catálogo de proveedores activos</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-light" onclick="window.location.href='index.html'">
+                        <i class="fas fa-home me-1"></i>
+                        Volver al Inicio
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Filtros de Búsqueda -->
+        <div class="search-container">
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label for="filtroCompania" class="form-label">
+                        <i class="fas fa-building me-1"></i>Compañía
+                    </label>
+                    <select class="form-select" id="filtroCompania">
+                        <option value="">Todas las compañías</option>
+                        <option value="1">Compañía 1</option>
+                        <option value="2">Compañía 2</option>
+                        <option value="3">Compañía 3</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="filtroClase" class="form-label">
+                        <i class="fas fa-tags me-1"></i>Clase
+                    </label>
+                    <select class="form-select" id="filtroClase">
+                        <option value="">Todas las clases</option>
+                        <option value="1">Clase 1</option>
+                        <option value="2">Clase 2</option>
+                        <option value="3">Clase 3</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="filtroTipo" class="form-label">
+                        <i class="fas fa-layer-group me-1"></i>Tipo
+                    </label>
+                    <select class="form-select" id="filtroTipo">
+                        <option value="">Todos los tipos</option>
+                        <option value="1">Tipo 1</option>
+                        <option value="2">Tipo 2</option>
+                        <option value="3">Tipo 3</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="filtroNacional" class="form-label">
+                        <i class="fas fa-globe-americas me-1"></i>Ámbito
+                    </label>
+                    <select class="form-select" id="filtroNacional">
+                        <option value="">Todos</option>
+                        <!-- N nacional e Extranjero -->
+                        <option value="N">Nacional</option>
+                        <option value="E">Internacional</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="buscarTexto" class="form-label">
+                        <i class="fas fa-search me-1"></i>Búsqueda por texto
+                    </label>
+                    <input type="text" class="form-control" id="buscarTexto" 
+                           placeholder="Buscar por nombre, código, email, teléfono...">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="tamanioPagina" class="form-label">
+                        <i class="fas fa-list me-1"></i>Registros por página
+                    </label>
+                    <select class="form-select" id="tamanioPagina">
+                        <option value="10">10</option>
+                        <option value="25" selected>25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3 d-flex align-items-end">
+                    <button class="btn btn-primary w-100" onclick="cargarProveedores()">
+                        <i class="fas fa-search me-1"></i>Buscar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-2">Cargando proveedores...</p>
+        </div>
+
+        <!-- Estadísticas -->
+        <!-- <div class="row mb-4" id="estadisticas" style="display: none;">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body text-center">
+                        <h4 id="totalProveedores">0</h4>
+                        <small>Total Proveedores</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center">
+                        <h4 id="proveedoresActivos">0</h4>
+                        <small>Activos</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center">
+                        <h4 id="proveedoresNacionales">0</h4>
+                        <small>Nacionales</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-dark">
+                    <div class="card-body text-center">
+                        <h4 id="proveedoresInternacionales">0</h4>
+                        <small>Internacionales</small>
+                    </div>
+                </div>
+            </div>
+        </div> -->
+
+        <!-- Tabla de Resultados -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    <i class="fas fa-table me-2"></i>Catálogo de Proveedores
+                </span>
+                <button class="btn btn-outline-light btn-sm" onclick="exportarExcel()">
+                    <i class="fas fa-file-excel me-1"></i>Exportar Excel
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th width="8%">Código</th>
+                            <th width="8%">Clase</th>
+                            <th width="20%">Nombre</th>
+                            <th width="15%">Identificación</th>
+                            <th width="12%">Teléfono</th>
+                            <th width="15%">Email</th>
+                            <th width="8%">Tipo</th>
+                            <th width="8%">Ámbito</th>
+                            <th width="6%">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaProveedores">
+                        <!-- Los datos se cargarán aquí -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer d-flex justify-content-between align-items-center">
+                <div id="infoPaginacion">
+                    Mostrando 0 a 0 de 0 registros
+                </div>
+                <nav aria-label="Navegación de páginas">
+                    <ul class="pagination pagination-sm mb-0" id="paginacion">
+                        <!-- La paginación se generará aquí -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalles del Proveedor -->
+    <div class="modal fade" id="modalDetalle" tabindex="-1" aria-labelledby="modalDetalleLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalDetalleLabel">
+                        <i class="fas fa-info-circle me-2"></i>Detalles del Proveedor
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="detalleContent">
+                    <!-- El contenido del detalle se cargará aquí -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Variables globales
+        let currentPage = 0;
+        let totalPages = 0;
+        let totalElements = 0;
+        const pageSize = 25;
+
+        // Configuración de la API
+        const API_BASE_URL = buildApiUrl('/api/proveedores');
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarEstadisticas();
+            cargarProveedores();
+            
+            // Event listeners para filtros
+            document.getElementById('buscarTexto').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    cargarProveedores();
+                }
+            });
+        });
+
+        // Función para cargar estadísticas
+        async function cargarEstadisticas() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/estadisticas?noCia=1`);
+                if (response.ok) {
+                    const stats = await response.json();
+                    // document.getElementById('totalProveedores').textContent = stats.total_proveedores || 0;
+                    document.getElementById('proveedoresActivos').textContent = stats.proveedores_activos || 0;
+                    document.getElementById('proveedoresNacionales').textContent = stats.proveedores_nacionales || 0;
+                    document.getElementById('proveedoresInternacionales').textContent = stats.proveedores_extranjeros || 0;
+                    document.getElementById('estadisticas').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error al cargar estadísticas:', error);
+            }
+        }
+
+        // Función para cargar proveedores
+        async function cargarProveedores(page = 0) {
+            const loading = document.getElementById('loading');
+            const tabla = document.getElementById('tablaProveedores');
+            
+            loading.style.display = 'block';
+            tabla.innerHTML = '';
+
+            try {
+                const buscarTexto = document.getElementById('buscarTexto').value.trim();
+                const compania = document.getElementById('filtroCompania').value || '1';
+                
+                let url;
+                let esResultadoBusqueda = false;
+                
+                if (buscarTexto) {
+                    // Para búsqueda por texto, usar el endpoint /buscar
+                    url = `${API_BASE_URL}/buscar?noCia=${compania}&termino=${encodeURIComponent(buscarTexto)}`;
+                    esResultadoBusqueda = true;
+                } else {
+                    // Para catálogo normal con filtros, usar el endpoint principal
+                    const params = new URLSearchParams({
+                        page: page,
+                        size: document.getElementById('tamanioPagina').value || 25,
+                        sort: 'noProveedor,asc'
+                    });
+
+                    // Agregar filtros si están definidos
+                    if (compania) params.append('noCia', compania);
+
+                    const clase = document.getElementById('filtroClase').value;
+                    if (clase) params.append('noClase', clase);
+
+                    const tipo = document.getElementById('filtroTipo').value;
+                    if (tipo) params.append('tipo', tipo);
+
+                    const nacional = document.getElementById('filtroNacional').value;
+                    if (nacional) params.append('indNacional', nacional);
+
+                    url = `${API_BASE_URL}?${params.toString()}`;
+                }
+
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                // Manejar diferentes formatos de respuesta
+                let proveedores = [];
+                if (esResultadoBusqueda) {
+                    // Respuesta de búsqueda: array simple o objeto con mensaje
+                    if (Array.isArray(data)) {
+                        proveedores = data;
+                        currentPage = 0;
+                        totalPages = 1;
+                        totalElements = data.length;
+                    } else if (data.mensaje) {
+                        // Sin resultados
+                        proveedores = [];
+                        currentPage = 0;
+                        totalPages = 0;
+                        totalElements = 0;
+                    }
+                } else {
+                    // Respuesta paginada normal
+                    proveedores = data.content || [];
+                    currentPage = data.number || 0;
+                    totalPages = data.totalPages || 0;
+                    totalElements = data.totalElements || 0;
+                }
+
+                // Renderizar tabla
+                renderizarTabla(proveedores);
+                
+                // Actualizar paginación
+                actualizarPaginacion();
+
+            } catch (error) {
+                console.error('Error al cargar proveedores:', error);
+                tabla.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="text-center text-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Error al cargar los datos: ${error.message}
+                        </td>
+                    </tr>
+                `;
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // Función para renderizar la tabla
+        function renderizarTabla(proveedores) {
+            const tbody = document.getElementById('tablaProveedores');
+            
+            if (proveedores.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="text-center text-muted">
+                            <i class="fas fa-inbox me-2"></i>
+                            No se encontraron proveedores
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = proveedores.map(proveedor => `
+                <tr onclick="verDetalle(${proveedor.noCia}, ${proveedor.noProveedor}, ${proveedor.noClase})" 
+                    style="cursor: pointer;" 
+                    title="Clic para ver detalles">
+                    <td class="proveedor-codigo">${proveedor.noProveedor}</td>
+                    <td>
+                        <span class="tipo-indicator tipo-${(proveedor.noClase || 1)}">${proveedor.noClase || 'N/A'}</span>
+                    </td>
+                    <td>
+                        <strong>${proveedor.nombreLargo || proveedor.nombre || 'Sin nombre'}</strong>
+                        ${proveedor.encargado ? `<br><small class="text-muted">${proveedor.encargado}</small>` : ''}
+                    </td>
+                    <td>
+                        ${proveedor.cedulaRuc || 'N/A'}
+                        ${proveedor.dv ? `-${proveedor.dv}` : ''}
+                    </td>
+                    <td>${proveedor.telefono || 'N/A'}</td>
+                    <td>
+                        ${proveedor.email ? 
+                            `<a href="mailto:${proveedor.email}" class="email-link" onclick="event.stopPropagation()">${proveedor.email}</a>` : 
+                            'N/A'
+                        }
+                    </td>
+                    <td>
+                        <span class="tipo-indicator tipo-${proveedor.tipo || 1}">${proveedor.tipoDescripcion || `Tipo ${proveedor.tipo}`}</span>
+                    </td>
+                    <td>
+                        <span class="badge ${proveedor.indNacional === 'N' ? 'badge-nacional' : 'badge-internacional'}">
+                            ${proveedor.ambitoDescripcion || (proveedor.indNacional === 'N' ? 'Nacional' : 'Internacional')}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge ${proveedor.activo === 'S' ? 'badge-activo' : 'badge-inactivo'}">
+                            ${proveedor.estadoDescripcion || (proveedor.activo === 'S' ? 'Activo' : 'Inactivo')}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Función para actualizar la paginación
+        function actualizarPaginacion() {
+            const paginacion = document.getElementById('paginacion');
+            const infoPaginacion = document.getElementById('infoPaginacion');
+            
+            // Actualizar información de paginación
+            const inicio = currentPage * parseInt(document.getElementById('tamanioPagina').value) + 1;
+            const fin = Math.min((currentPage + 1) * parseInt(document.getElementById('tamanioPagina').value), totalElements);
+            infoPaginacion.textContent = `Mostrando ${inicio} a ${fin} de ${totalElements} registros`;
+
+            // Generar controles de paginación
+            let paginacionHTML = '';
+            
+            // Botón anterior
+            paginacionHTML += `
+                <li class="page-item ${currentPage === 0 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="cargarProveedores(${currentPage - 1})">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+            `;
+
+            // Páginas numeradas
+            const startPage = Math.max(0, currentPage - 2);
+            const endPage = Math.min(totalPages - 1, currentPage + 2);
+
+            for (let i = startPage; i <= endPage; i++) {
+                paginacionHTML += `
+                    <li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="cargarProveedores(${i})">${i + 1}</a>
+                    </li>
+                `;
+            }
+
+            // Botón siguiente
+            paginacionHTML += `
+                <li class="page-item ${currentPage >= totalPages - 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="cargarProveedores(${currentPage + 1})">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            `;
+
+            paginacion.innerHTML = paginacionHTML;
+        }
+
+        // Función para ver detalle del proveedor
+        async function verDetalle(noCia, noProveedor, noClase) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/${noCia}/${noProveedor}/${noClase}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                const proveedor = await response.json();
+                mostrarDetalle(proveedor);
+
+            } catch (error) {
+                console.error('Error al cargar detalles:', error);
+                alert('Error al cargar los detalles del proveedor');
+            }
+        }
+
+        // Función para mostrar el modal de detalle
+        function mostrarDetalle(proveedor) {
+            const content = document.getElementById('detalleContent');
+            
+            content.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary"><i class="fas fa-info-circle me-2"></i>Información General</h6>
+                        <table class="table table-sm">
+                            <tr><th width="40%">Código:</th><td>${proveedor.noProveedor}</td></tr>
+                            <tr><th>Clase:</th><td>${proveedor.noClase}</td></tr>
+                            <tr><th>Nombre:</th><td>${proveedor.nombre || 'N/A'}</td></tr>
+                            <tr><th>Nombre Largo:</th><td>${proveedor.nombreLargo || 'N/A'}</td></tr>
+                            <tr><th>Encargado:</th><td>${proveedor.encargado || 'N/A'}</td></tr>
+                            <tr><th>Tipo:</th><td>${proveedor.tipo} - ${proveedor.tipoDescripcion || 'N/A'}</td></tr>
+                        </table>
+
+                        <h6 class="text-primary mt-3"><i class="fas fa-id-card me-2"></i>Identificación</h6>
+                        <table class="table table-sm">
+                            <tr><th width="40%">Cédula/RUC:</th><td>${proveedor.cedulaRuc || 'N/A'}</td></tr>
+                            <tr><th>DV:</th><td>${proveedor.dv || 'N/A'}</td></tr>
+                            <tr><th>Tipo ID:</th><td>${proveedor.tipoIdTributario || 'N/A'}</td></tr>
+                            <tr><th>Condición:</th><td>${proveedor.condicionTributaria || 'N/A'}</td></tr>
+                            <tr><th>Código Tercero:</th><td>${proveedor.codigoTercero || 'N/A'}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary"><i class="fas fa-map-marker-alt me-2"></i>Contacto y Ubicación</h6>
+                        <table class="table table-sm">
+                            <tr><th width="40%">Dirección:</th><td>${proveedor.direccion || 'N/A'}</td></tr>
+                            <tr><th>Teléfono:</th><td>${proveedor.telefono || 'N/A'}</td></tr>
+                            <tr><th>Móvil:</th><td>${proveedor.movil || 'N/A'}</td></tr>
+                            <tr><th>Fax:</th><td>${proveedor.fax || 'N/A'}</td></tr>
+                            <tr><th>Email:</th><td>${proveedor.email ? `<a href="mailto:${proveedor.email}">${proveedor.email}</a>` : 'N/A'}</td></tr>
+                            <tr><th>Email 2:</th><td>${proveedor.email2 ? `<a href="mailto:${proveedor.email2}">${proveedor.email2}</a>` : 'N/A'}</td></tr>
+                            <tr><th>Página Web:</th><td>${proveedor.paginaWeb ? `<a href="${proveedor.paginaWeb}" target="_blank">${proveedor.paginaWeb}</a>` : 'N/A'}</td></tr>
+                        </table>
+
+                        <h6 class="text-primary mt-3"><i class="fas fa-credit-card me-2"></i>Información Financiera</h6>
+                        <table class="table table-sm">
+                            <tr><th width="40%">Plazo Pago:</th><td>${proveedor.plazoPago || 'N/A'} días</td></tr>
+                            <tr><th>Saldo:</th><td>${proveedor.saldo ? `$${Number(proveedor.saldo).toLocaleString('es-ES', {minimumFractionDigits: 2})}` : 'N/A'}</td></tr>
+                            <tr><th>Disponible:</th><td>${proveedor.disponible ? `$${Number(proveedor.disponible).toLocaleString('es-ES', {minimumFractionDigits: 2})}` : 'N/A'}</td></tr>
+                            <tr><th>Límite Crédito:</th><td>${proveedor.limiteCredito ? `$${Number(proveedor.limiteCredito).toLocaleString('es-ES', {minimumFractionDigits: 2})}` : 'N/A'}</td></tr>
+                            <tr><th>Acepta Retenciones:</th><td>${proveedor.indAceptaRetenciones === 'S' ? 'Sí' : 'No'}</td></tr>
+                        </table>
+
+                        <h6 class="text-primary mt-3"><i class="fas fa-flag me-2"></i>Estados y Clasificación</h6>
+                        <table class="table table-sm">
+                            <tr><th width="40%">Estado:</th><td><span class="badge ${proveedor.activo === 'S' ? 'badge-activo' : 'badge-inactivo'}">${proveedor.estadoDescripcion || (proveedor.activo === 'S' ? 'Activo' : 'Inactivo')}</span></td></tr>
+                            <tr><th>Ámbito:</th><td><span class="badge ${proveedor.indNacional === 'N' ? 'badge-nacional' : 'badge-internacional'}">${proveedor.ambitoDescripcion || (proveedor.indNacional === 'N' ? 'Nacional' : 'Internacional')}</span></td></tr>
+                            <tr><th>Última Compra:</th><td>${proveedor.fechaUltimaCompra ? new Date(proveedor.fechaUltimaCompra).toLocaleDateString('es-ES') : 'N/A'}</td></tr>
+                        </table>
+                    </div>
+                </div>
+                ${proveedor.observaciones ? `
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6 class="text-primary"><i class="fas fa-sticky-note me-2"></i>Observaciones</h6>
+                            <div class="alert alert-light">${proveedor.observaciones}</div>
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+
+            // Mostrar el modal
+            const modal = new bootstrap.Modal(document.getElementById('modalDetalle'));
+            modal.show();
+        }
+
+        // Función para exportar a Excel
+        function exportarExcel() {
+            const buscarTexto = document.getElementById('buscarTexto').value.trim();
+            const compania = document.getElementById('filtroCompania').value || '1';
+            
+            if (buscarTexto) {
+                // Para búsqueda por texto, usar el endpoint /buscar
+                const url = `${API_BASE_URL}/buscar?noCia=${compania}&termino=${encodeURIComponent(buscarTexto)}&export=excel`;
+                window.open(url, '_blank');
+            } else {
+                // Para catálogo normal con filtros
+                const params = new URLSearchParams({
+                    sort: 'noProveedor,asc',
+                    export: 'excel'
+                });
+
+                if (compania) params.append('noCia', compania);
+
+                const clase = document.getElementById('filtroClase').value;
+                if (clase) params.append('noClase', clase);
+
+                const tipo = document.getElementById('filtroTipo').value;
+                if (tipo) params.append('tipo', tipo);
+
+                const nacional = document.getElementById('filtroNacional').value;
+                if (nacional) params.append('indNacional', nacional);
+
+                const url = `${API_BASE_URL}?${params.toString()}`;
+                window.open(url, '_blank');
+            }
+        }
+    </script>
+</body>
+</html>

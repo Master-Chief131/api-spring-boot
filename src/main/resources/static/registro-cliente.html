@@ -374,6 +374,33 @@
             color: #e74c3c;
         }
 
+        .validation-message {
+            margin-top: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 8px 12px;
+            border-radius: 5px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .validation-success {
+            color: #155724;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+
+        .validation-error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+
+        .validation-loading {
+            color: #6c757d;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+
         @media (max-width: 768px) {
             .container {
                 margin: 10px;
@@ -503,13 +530,34 @@
                         <div class="form-group">
                             <label for="rucCedula">RUC/Cédula <span class="required">*</span></label>
                             <input type="text" id="rucCedula" name="rucCedula" required 
-                                   placeholder="Ej: 8-123-456 / 155123456789001">
+                                   placeholder="Ej: 8-123-456 / 155123456789001 (se validará automáticamente)">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="dv">DV </label>
+                            <input type="text" id="dv" name="dv" maxlength="2"
+                                   placeholder="Ej: 1">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tipoP">Tipo de Persona <span class="required">*</span></label>
+                            <select id="tipoP" name="tipoP" required>
+                                <option value="">Seleccione...</option>
+                                <option value="NA">Nacional</option>
+                                <option value="EX">Extranjero</option>
+                            </select>
                         </div>
 
                         <div class="form-group">
                             <label for="telefono">Teléfono <span class="required">*</span></label>
                             <input type="tel" id="telefono" name="telefono" required 
                                    placeholder="Ej: 507-1234-5678">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="telefono2">Teléfono 2</label>
+                            <input type="tel" id="telefono2" name="telefono2" 
+                                   placeholder="Ej: 507-9876-5432">
                         </div>
 
                         <div class="form-group">
@@ -522,6 +570,33 @@
                             <label for="direccion">Dirección <span class="required">*</span></label>
                             <textarea id="direccion" name="direccion" rows="3" required 
                                       placeholder="Dirección completa del cliente"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="noActividad">Actividad de la Empresa</label>
+                            <select id="noActividad" name="noActividad">
+                                <option value="">Seleccione...</option>
+                                <option value="1">Comercial</option>
+                                <option value="2">Industrial</option>
+                                <option value="3">Servicios</option>
+                                <option value="4">Agricultura</option>
+                                <option value="5">Construcción</option>
+                                <option value="6">Tecnología</option>
+                                <option value="7">Educación</option>
+                                <option value="8">Salud</option>
+                                <option value="9">Transporte</option>
+                                <option value="10">Otro</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="noTipoEmpresa">Tipo de Empresa</label>
+                            <select id="noTipoEmpresa" name="noTipoEmpresa">
+                                <option value="">Seleccione...</option>
+                                <option value="1">EMPRESAS DEL SECTOR PRIMARIO</option>
+                                <option value="2">EMPRESAS DEL SECTOR SECUNDARIO O INDUSTRIAL</option>
+                                <option value="3">EMPRESAS DEL SECTOR TERCIARIO O DE SERVICIOS</option>
+                            </select>
                         </div>
 
                         <div class="form-group">
@@ -588,6 +663,12 @@
                         <p><strong>Para personas jurídicas:</strong> Información del contacto principal de la empresa.</p>
                         
                         <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label for="nombreEmpresa">Nombre de la Empresa</label>
+                                <input type="text" id="nombreEmpresa" name="nombreEmpresa" 
+                                       placeholder="Nombre comercial o razón social de la empresa">
+                            </div>
+
                             <div class="form-group">
                                 <label for="contactoNombre">Nombre del Contacto <span class="required">*</span></label>
                                 <input type="text" id="contactoNombre" name="contactoNombre" 
@@ -782,9 +863,19 @@
             document.getElementById('noProvincia').value = '1';
             document.getElementById('noDistrito').value = '1';
             document.getElementById('noCorregimiento').value = '1';
+            document.getElementById('tipoP').value = 'NA'; // Nacional por defecto
 
             // Agregar listeners para actualización automática del usuario
             setupEmailListeners();
+            
+            // Listener para cambios en la compañía (re-validar RUC/Cédula)
+            document.getElementById('noCia').addEventListener('change', function() {
+                const rucCedula = document.getElementById('rucCedula').value.trim();
+                if (rucCedula) {
+                    clearRucCedulaValidation();
+                    setTimeout(() => validateRucCedula(rucCedula), 500);
+                }
+            });
         });
 
         function setupEmailListeners() {
@@ -797,6 +888,121 @@
             document.getElementById('contactoEmail').addEventListener('input', function() {
                 updateUsuarioFromEmail();
             });
+            
+            // Listener para validar RUC/Cédula
+            setupRucCedulaValidation();
+        }
+
+        function setupRucCedulaValidation() {
+            const rucCedulaField = document.getElementById('rucCedula');
+            let validationTimeout;
+            
+            rucCedulaField.addEventListener('input', function() {
+                // Limpiar timeout anterior
+                clearTimeout(validationTimeout);
+                
+                const rucCedula = this.value.trim();
+                
+                // Limpiar validación anterior
+                clearRucCedulaValidation();
+                
+                // Si el campo está vacío, no validar
+                if (!rucCedula) {
+                    return;
+                }
+                
+                // Validar después de 1 segundo de inactividad
+                validationTimeout = setTimeout(() => {
+                    validateRucCedula(rucCedula);
+                }, 1000);
+            });
+        }
+
+        async function validateRucCedula(rucCedula) {
+            const noCia = document.getElementById('noCia').value;
+            
+            if (!noCia) {
+                showRucCedulaValidation('error', 'Por favor seleccione una compañía primero');
+                return;
+            }
+            
+            try {
+                showRucCedulaValidation('loading', 'Validando...');
+                
+                const response = await fetch(buildApiUrl(`/api/clientes/validar-ruc-cedula?rucCedula=${encodeURIComponent(rucCedula)}&noCia=${noCia}`));
+                const result = await response.json();
+                
+                if (result.success) {
+                    if (result.existe) {
+                        const cliente = result.clienteExistente;
+                        const mensaje = `Este RUC/Cédula ya está registrado para: ${cliente.nombre} (${cliente.email})`;
+                        showRucCedulaValidation('error', mensaje);
+                        setRucCedulaValid(false);
+                    } else {
+                        showRucCedulaValidation('success', 'RUC/Cédula disponible');
+                        setRucCedulaValid(true);
+                    }
+                } else {
+                    showRucCedulaValidation('error', 'Error al validar RUC/Cédula');
+                    setRucCedulaValid(false);
+                }
+            } catch (error) {
+                console.error('Error validando RUC/Cédula:', error);
+                showRucCedulaValidation('error', 'Error de conexión al validar');
+                setRucCedulaValid(false);
+            }
+        }
+
+        function showRucCedulaValidation(type, message) {
+            const rucCedulaField = document.getElementById('rucCedula');
+            let validationElement = document.getElementById('rucValidation');
+            
+            // Crear elemento de validación si no existe
+            if (!validationElement) {
+                validationElement = document.createElement('div');
+                validationElement.id = 'rucValidation';
+                validationElement.className = 'validation-message';
+                rucCedulaField.parentNode.appendChild(validationElement);
+            }
+            
+            // Limpiar clases anteriores
+            validationElement.className = 'validation-message';
+            
+            // Configurar estilos según el tipo
+            switch (type) {
+                case 'loading':
+                    validationElement.classList.add('validation-loading');
+                    validationElement.innerHTML = '🔄 ' + message;
+                    rucCedulaField.style.borderColor = '#6c757d';
+                    break;
+                case 'success':
+                    validationElement.classList.add('validation-success');
+                    validationElement.innerHTML = '✅ ' + message;
+                    rucCedulaField.style.borderColor = '#28a745';
+                    break;
+                case 'error':
+                    validationElement.classList.add('validation-error');
+                    validationElement.innerHTML = '❌ ' + message;
+                    rucCedulaField.style.borderColor = '#dc3545';
+                    break;
+            }
+        }
+
+        function clearRucCedulaValidation() {
+            const validationElement = document.getElementById('rucValidation');
+            if (validationElement) {
+                validationElement.innerHTML = '';
+            }
+            
+            const rucCedulaField = document.getElementById('rucCedula');
+            rucCedulaField.style.borderColor = '#e1e1e1';
+            setRucCedulaValid(null);
+        }
+
+        let isRucCedulaValid = null;
+        
+        function setRucCedulaValid(valid) {
+            isRucCedulaValid = valid;
         }
 
         function updateUsuarioFromEmail() {
@@ -971,6 +1177,28 @@
                     showAlert('Por favor seleccione el tipo de persona', 'error');
                     return false;
                 }
+                
+                const tipoP = document.getElementById('tipoP');
+                if (!tipoP.value) {
+                    showAlert('Por favor seleccione si es Nacional o Extranjero', 'error');
+                    tipoP.style.borderColor = '#e74c3c';
+                    return false;
+                } else {
+                    tipoP.style.borderColor = '#e1e1e1';
+                }
+                
+                // Validar RUC/Cédula
+                const rucCedulaField = document.getElementById('rucCedula');
+                if (rucCedulaField.value.trim() && isRucCedulaValid === false) {
+                    showAlert('El RUC/Cédula ingresado ya está registrado. Por favor verifique los datos.', 'error');
+                    rucCedulaField.focus();
+                    return false;
+                }
+                
+                if (rucCedulaField.value.trim() && isRucCedulaValid === null) {
+                    showAlert('Por favor espere mientras se valida el RUC/Cédula', 'error');
+                    return false;
+                }
             }
 
             if (currentStep === 2 && document.querySelector('input[name="personaNj"]:checked')?.value === 'J') {
@@ -1065,14 +1293,21 @@
                 },
                 nombre: formData.get('nombre'),
                 personaNj: tipoPersona,
+                tipoP: formData.get('tipoP'),
                 rucCedula: formData.get('rucCedula'),
+                dv: formData.get('dv'),
                 telefono: formData.get('telefono'),
+                telefono2: formData.get('telefono2'),
                 email1: formData.get('email1'),
                 direccion: formData.get('direccion'),
+                noActividad: formData.get('noActividad') ? parseInt(formData.get('noActividad')) : null,
+                noTipoEmpresa: formData.get('noTipoEmpresa') ? parseInt(formData.get('noTipoEmpresa')) : null,
                 noPais: parseInt(formData.get('noPais')) || 1,
                 noProvincia: parseInt(formData.get('noProvincia')) || 1,
                 noDistrito: parseInt(formData.get('noDistrito')) || 1,
                 noCorregimiento: parseInt(formData.get('noCorregimiento')) || 1,
+                noOrigen: 9, // Portal por defecto
+                noPlazo: 6, // Corriente por defecto
                 accesoWeb: "S",
                 usuarioCreacion: "PORTAL_ADMIN",
                 moduloOrigen: "WEB"
@@ -1088,6 +1323,7 @@
                 // Persona Jurídica
                 clienteData.nombreCont = formData.get('contactoNombre');
                 clienteData.apellidoCont = formData.get('contactoApellido');
+                clienteData.nombreEmpresa = formData.get('nombreEmpresa');
                 
                 // Objeto contacto para persona jurídica
                 clienteData.contacto = {

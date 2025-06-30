@@ -460,10 +460,27 @@ public class ClienteController {
       // Datos básicos
       cliente.setNombre((String) clienteData.get("nombre"));
       cliente.setPersonaNj((String) clienteData.get("personaNj"));
+      cliente.setTipoP((String) clienteData.get("tipoP"));
       cliente.setRucCedula((String) clienteData.get("rucCedula"));
+      cliente.setDv((String) clienteData.get("dv"));
       cliente.setTelefono((String) clienteData.get("telefono"));
+      cliente.setTelefono2((String) clienteData.get("telefono2"));
       cliente.setEmail1((String) clienteData.get("email1"));
       cliente.setDireccion((String) clienteData.get("direccion"));
+      
+      // Campos de empresa
+      if (clienteData.get("noActividad") != null) {
+        cliente.setNoActividad(Integer.parseInt(clienteData.get("noActividad").toString()));
+      }
+      if (clienteData.get("noTipoEmpresa") != null) {
+        cliente.setNoTipoEmpresa(Integer.parseInt(clienteData.get("noTipoEmpresa").toString()));
+      }
+      
+      // Origen y plazo por defecto
+      cliente.setNoOrigen(clienteData.get("noOrigen") != null ? 
+          Integer.parseInt(clienteData.get("noOrigen").toString()) : 9);
+      cliente.setNoPlazo(clienteData.get("noPlazo") != null ? 
+          Integer.parseInt(clienteData.get("noPlazo").toString()) : 6);
       
       // Datos de ubicación
       cliente.setNoPais(clienteData.get("noPais") != null ? 
@@ -968,6 +985,65 @@ public class ClienteController {
       } else {
           return java.util.Collections.singletonMap("mensaje", "Cliente no encontrado con RUC/cédula: " + rucCedula);
       }
+  }
+
+  @GetMapping("/validar-ruc-cedula")
+  @Operation(
+    summary = "Validar si RUC/Cédula ya existe",
+    description = "Verifica si un RUC o cédula ya está registrado en la base de datos para una compañía específica"
+  )
+  @ApiResponses(value = {
+    @ApiResponse(responseCode = "200", description = "Validación completada"),
+    @ApiResponse(responseCode = "400", description = "Parámetros inválidos")
+  })
+  public Map<String, Object> validarRucCedula(
+      @Parameter(description = "RUC o cédula a validar", required = true)
+      @RequestParam String rucCedula,
+      @Parameter(description = "Número de compañía", required = true)
+      @RequestParam Integer noCia) {
+    
+    Map<String, Object> response = new HashMap<>();
+    
+    try {
+      System.out.println("=== VALIDANDO RUC/CÉDULA ===");
+      System.out.println("RUC/Cédula: " + rucCedula);
+      System.out.println("Compañía: " + noCia);
+      
+      // Buscar cliente por RUC/Cédula y compañía
+      List<Cliente> clientesExistentes = repository.findByRucCedulaAndId_NoCia(rucCedula, noCia);
+      
+      boolean existe = !clientesExistentes.isEmpty();
+      response.put("existe", existe);
+      response.put("rucCedula", rucCedula);
+      response.put("noCia", noCia);
+      
+      if (existe) {
+        Cliente clienteExistente = clientesExistentes.get(0);
+        response.put("mensaje", "Este RUC/Cédula ya está registrado en el sistema");
+        
+        Map<String, String> clienteInfo = new HashMap<>();
+        clienteInfo.put("nombre", clienteExistente.getNombre());
+        clienteInfo.put("grupo", clienteExistente.getId().getGrupo());
+        clienteInfo.put("email", clienteExistente.getEmail1() != null ? clienteExistente.getEmail1() : "No disponible");
+        clienteInfo.put("telefono", clienteExistente.getTelefono() != null ? clienteExistente.getTelefono() : "No disponible");
+        
+        response.put("clienteExistente", clienteInfo);
+      } else {
+        response.put("mensaje", "RUC/Cédula disponible para registro");
+      }
+      
+      response.put("success", true);
+      
+    } catch (Exception e) {
+      System.err.println("Error validando RUC/Cédula: " + e.getMessage());
+      e.printStackTrace();
+      
+      response.put("success", false);
+      response.put("error", "Error interno del servidor");
+      response.put("mensaje", "No se pudo validar el RUC/Cédula");
+    }
+    
+    return response;
   }
 
   private Map<String, Object> actualizarUsuarioWebContacto(int noCliente, int noContacto, String usuarioWeb, java.sql.Connection conn) {

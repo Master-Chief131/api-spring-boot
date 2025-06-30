@@ -3,7 +3,7 @@ package com.example.demo.dto;
 import com.example.demo.entity.Empleado;
 import com.example.demo.service.EstadoEmpleadoService;
 import com.example.demo.service.EstadoCivilService;
-import java.math.BigDecimal;
+// import java.math.BigDecimal; // Comentado por si se necesita más adelante
 
 /**
  * DTO para mostrar información simplificada de los empleados
@@ -20,7 +20,7 @@ public class EmpleadoDTO {
     private String depto;
     private String puesto;
     private String estado;
-    private BigDecimal salario;
+    // private BigDecimal salario; // Comentado por si se necesita más adelante
     
     // Campos calculados para mejor presentación
     private String estadoDescripcion;
@@ -42,7 +42,7 @@ public class EmpleadoDTO {
         this.puesto = empleado.getPuesto();
         this.depto = empleado.getDepto();
         this.estado = empleado.getEstado();
-        this.salario = empleado.getSalario();
+        // this.salario = empleado.getSalario(); // Comentado por si se necesita más adelante
         
         // Descripciones amigables usando el servicio
         if (estadoEmpleadoService != null) {
@@ -67,7 +67,7 @@ public class EmpleadoDTO {
         this.puesto = empleado.getPuesto();
         this.depto = empleado.getDepto();
         this.estado = empleado.getEstado();
-        this.salario = empleado.getSalario();
+        // this.salario = empleado.getSalario(); // Comentado por si se necesita más adelante
         
         // Descripciones amigables usando los servicios
         if (estadoEmpleadoService != null) {
@@ -187,13 +187,14 @@ public class EmpleadoDTO {
         this.estado = estado;
     }
 
-    public BigDecimal getSalario() {
-        return salario;
-    }
+    // Comentado por si se necesita más adelante
+    // public BigDecimal getSalario() {
+    //     return salario;
+    // }
 
-    public void setSalario(BigDecimal salario) {
-        this.salario = salario;
-    }
+    // public void setSalario(BigDecimal salario) {
+    //     this.salario = salario;
+    // }
 
     public String getEstadoDescripcion() {
         return estadoDescripcion;

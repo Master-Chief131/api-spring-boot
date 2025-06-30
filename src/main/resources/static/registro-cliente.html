@@ -581,11 +581,6 @@
                                     <option value="F">Femenino</option>
                                 </select>
                             </div>
-
-                            <div class="form-group">
-                                <label for="fechaNacimiento">Fecha de Nacimiento</label>
-                                <input type="date" id="fechaNacimiento" name="fechaNacimiento">
-                            </div>
                         </div>
                     </div>
 
@@ -1089,9 +1084,6 @@
                 clienteData.apellidoCont = formData.get('apellidoCont');
                 clienteData.movil = formData.get('movil');
                 clienteData.indSexo = formData.get('indSexo');
-                if (formData.get('fechaNacimiento')) {
-                    clienteData.fechaNacimiento = formData.get('fechaNacimiento');
-                }
             } else {
                 // Persona Jurídica
                 clienteData.nombreCont = formData.get('contactoNombre');

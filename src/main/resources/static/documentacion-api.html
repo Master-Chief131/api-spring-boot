@@ -17,43 +17,115 @@
   </style>
 </head>
 <body>
-  <h1>Documentación de Endpoints API CPTSOFT</h1>
-  <code>http://localhost:8088/Api-Prochem/index.html</code>
+  <div class="container">
+    
 
-  <div class="endpoint">
-    <h2>Registrar Cliente</h2>
-    <p><b>M├⌐todo:</b> <code>POST</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/clientes/registro-portal</code></p>
-    <p><b>Estado:</b> <span class="warn">Funciona, pero faltan validaciones de datos</span></p>    <p>Permite registrar un cliente nuevo enviando un JSON con los datos requeridos. Ahora incluye registro autom├ítico de contacto: si es persona natural, el cliente es su propio contacto; si es jur├¡dica, se registra el contacto proporcionado.</p>
-    <b>Ejemplo de JSON para Persona Jur├¡dica:</b>
-    <pre>{
-  "id": { "noCia": 1, "noCliente": 123, "grupo": "1" },
+    <h1>Documentación de Endpoints API CPTSOFT</h1>
+    <code>http://localhost:8088/Api-Prochem/index.html</code>
+
+    <div class="endpoint" id="clientes">
+      <h2>Registrar Cliente</h2>
+      <p><b>Método:</b> <code>POST</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/clientes/registro-portal</code></p>
+      <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p> 
+      <p>Permite registrar un cliente nuevo enviando un JSON con los datos requeridos. El sistema registra automáticamente el cliente, su contacto y su usuario web en una sola transacción.</p>
+      
+      <h3>Campos Obligatorios:</h3>
+      <ul class="params">
+        <li><code>id.noCia</code>: número de compañía (Integer)</li>
+        <li><code>id.grupo</code>: grupo del cliente (String)</li>
+        <li><code>nombre</code>: nombre del cliente o razón social (String)</li>
+        <li><code>personaNj</code>: tipo de persona - "N" para natural, "J" para jurídica (String)</li>
+        <li><code>rucCedula</code>: RUC o cédula de identidad (String)</li>
+        <li><code>email1</code>: correo electrónico principal (String)</li>
+        <li><code>telefono</code>: teléfono principal (String)</li>
+        <li><code>usuarioCreacion</code>: usuario que registra (String)</li>
+        <li><code>accesoWeb</code>: indica si tendrá acceso web - "S" o "N" (String)</li>
+        <li><code>usuarioWeb</code>: nombre de usuario para acceso web (String)</li>
+      </ul>
+
+      <h3>Campos Opcionales para Persona Jurídica:</h3>
+      <ul class="params">
+        <li><code>nombreCont</code>: nombre del contacto (String)</li>
+        <li><code>apellidoCont</code>: apellido del contacto (String)</li>
+        <li><code>contacto</code>: objeto con datos del contacto principal (Object)</li>
+        <li><code>usuario</code>: objeto con datos del usuario web (Object)</li>
+      </ul>
+
+      <b>Ejemplo de JSON para Persona Jurídica:</b>
+      <pre>{
+  "id": { 
+    "noCia": 1, 
+    "grupo": "1" 
+  },
   "nombre": "Empresa Ejemplo S.A.",
   "personaNj": "J",
-  "rucCedula": "12345678901",
+  "rucCedula": "1234567890123",
   "telefono": "555-1234",
   "email1": "empresa@ejemplo.com",
+  "direccion": "Calle Principal 123",
+  "usuarioCreacion": "PORTAL_ADMIN",
+  "accesoWeb": "S",
+  "usuarioWeb": "empresa_ejemplo",
+  "nombreCont": "Juan",
+  "apellidoCont": "Pérez",
   "contacto": {
     "nombre": "Juan",
-    "apellido": "P├⌐rez",
+    "apellido": "Pérez",
     "telefono": "555-5678",
     "email": "juan.perez@empresa.com",
-    "codCargo": "GER001"
+    "codCargo": "GER001",
+    "cedula": "8-123-456",
+    "direccion": "Calle Secundaria 456",
+    "sexo": "M",
+    "indPrincipal": "S",
+    "indEstado": "S",
+    "accesoWeb": "S",
+    "usuarioWeb": "juan_perez"
+  },
+  "usuario": {
+    "usuario": "juan_perez",
+    "nomUsuario": "Juan",
+    "apeUsuario": "Pérez",
+    "email": "juan.perez@empresa.com",
+    "clave": "miClave123",
+    "indActivo": "S",
+    "indCliente": "S"
   }
 }</pre>
-    <b>Ejemplo de JSON para Persona Natural:</b>
-    <pre>{
-  "id": { "noCia": 1, "noCliente": 124, "grupo": "1" },
-  "nombre": "Juan P├⌐rez",
+      <b>Ejemplo de JSON para Persona Natural:</b>
+      <pre>{
+  "id": { 
+    "noCia": 1, 
+    "grupo": "1" 
+  },
+  "nombre": "Juan Pérez",
   "personaNj": "N",
   "rucCedula": "8-123-456",
   "telefono": "555-9999",
-  "email1": "juan@email.com"
+  "email1": "juan@email.com",
+  "direccion": "Residencial Los Pinos, Casa 45",
+  "usuarioCreacion": "PORTAL_ADMIN",
+  "accesoWeb": "S",
+  "usuarioWeb": "juan_perez",
+  "movil": "6000-1234",
+  "indSexo": "M",
+  "fechaNacimiento": "1990-05-15",
+  "usuario": {
+    "usuario": "juan_perez",
+    "nomUsuario": "Juan",
+    "apeUsuario": "Pérez",
+    "email": "juan@email.com",
+    "clave": "miClave456",
+    "indActivo": "S",
+    "indCliente": "S"
+  }
 }</pre>
-    <b>Ejemplo de respuesta exitosa:</b>
-    <pre>{
+      <b>Ejemplo de respuesta exitosa:</b>
+      <pre>{
   "success": true,
-  "mensaje": "Cliente registrado exitosamente. Código generado: 12345",
+  "mensaje": "Cliente, contacto y usuario registrados exitosamente. Código generado: 12345",
   "V_SECUENCIAL": 12345,
+  "transaccion_estado": "COMPLETADA",
   "contacto_registrado": {
     "success": true,
     "secuencial_contacto": 67890,
@@ -70,148 +142,288 @@
   "usuario_registrado": {
     "success": true,
     "mensaje": "Usuario registrado exitosamente",
-    "usuario": "8-123-456",
+    "usuario": "juan_perez",
     "nombre_completo": "Juan Pérez",
-    "nombre": "Juan",
-    "apellido": "Pérez",
     "email": "juan@email.com",
     "activo": "S",
     "es_cliente": "S",
-    "es_cajero": "N",
-    "es_cobrador": "N",
-    "es_vendedor": "N",
-    "es_supervisor": "N",
-    "puede_crear_clientes": "N",
-    "autoriza_descuentos": "N",
-    "acceso_portal_imagenes": "S",
-    "acceso_portal_graficas": "S",
-    "fecha_creacion": "Mon Jun 10 14:30:15 EST 2025",
-    "origen_registro": "PORTAL_WEB",
-    "permisos_especiales": {
-      "modifica_precios": "N",
-      "autoriza_compras": "N",
-      "monto_autorizado": "0.00",
-      "procesa_documentos_cxc": "N",
-      "procesa_documentos_cxp": "N",
-      "ve_precios_inventario": "N"
-    }
-  }
+    "fecha_creacion": "2024-01-10T14:30:15.000Z",
+    "origen_registro": "PORTAL_WEB"
+  },
+  "correo_enviado": true,
+  "correo_destino": "juan@email.com"
 }</pre>
-    <b>Respuesta:</b> JSON completo con información del cliente, contacto y usuario registrados.
-  </div>
+      <b>Respuesta:</b> JSON completo con información del cliente, contacto y usuario registrados, incluyendo estado de envío de credenciales por correo.
+    </div>
 
-  <div class="endpoint">
-    <h2>Registrar Prefactura</h2>
-    <p><b>M├⌐todo:</b> <code>POST</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/prefactura-db</code></p>
-    <p><b>Estado:</b> <span class="warn">Funciona, pero faltan validaciones y control de errores</span></p>
-    <p>Permite registrar una prefactura enviando un JSON con cabecera y detalles. Llama un procedimiento almacenado y guarda en la base de datos, pero no valida todos los campos ni controla errores de negocio.</p>
-    <b>Ejemplo de JSON:</b>
-    <pre>{
+    <div class="endpoint" id="prefacturas">
+      <h2>Registrar Prefactura</h2>
+      <p><b>Método:</b> <code>POST</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/prefactura-db</code></p>
+      <p><b>Estado:</b> <span class="warn">Funciona, pero faltan validaciones y control de errores</span></p>
+      <p>Permite registrar una prefactura enviando un JSON con cabecera y detalles. Llama un procedimiento almacenado y guarda en la base de datos, pero no valida todos los campos ni controla errores de negocio.</p>
+      <b>Ejemplo de JSON:</b>
+      <pre>{
   "noCia": 1,
   "cliente": 123,
   "detalles": [ { "codigo": "A001", "cantidad": 2 } ]
 }</pre>
-    <b>Respuesta:</b> JSON con mensaje de ├⌐xito o error.
-  </div>
+      <b>Respuesta:</b> JSON con mensaje de éxito o error.
+    </div>
 
-  <div class="endpoint">
-    <h2>Consultar Clientes</h2>
-    <p><b>M├⌐todo:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/clientes</code></p>
-    <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
-    <p>Devuelve una lista paginada de clientes. Permite filtrar por compa├▒├¡a.</p>
-    <b>Par├ímetros:</b>
-    <ul class="params">
-      <li><code>noCia</code> (opcional): filtra por compa├▒├¡a</li>
-      <li><code>page</code> (opcional, default 0): n├║mero de p├ígina</li>
-      <li><code>size</code> (opcional, default 20): tama├▒o de p├ígina</li>
-    </ul>
-    <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/clientes?noCia=1&page=0&size=10</code>
-    <b>Respuesta:</b> JSON con <code>content</code> (lista de clientes), <code>totalElements</code>, <code>totalPages</code>, etc.
-  </div>
+    <div class="endpoint">
+      <h2>Consultar Clientes</h2>
+      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/clientes</code></p>
+      <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
+      <p>Devuelve una lista paginada de clientes. Permite filtrar por compañía.</p>
+      <b>Parámetros:</b>
+      <ul class="params">
+        <li><code>noCia</code> (opcional): filtra por compañía</li>
+        <li><code>page</code> (opcional, default 0): número de página</li>
+        <li><code>size</code> (opcional, default 20): tamaño de página</li>
+      </ul>
+      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/clientes?noCia=1&page=0&size=10</code>
+      <b>Respuesta:</b> JSON con <code>content</code> (lista de clientes), <code>totalElements</code>, <code>totalPages</code>, etc.
+    </div>
 
-  <div class="endpoint">
-    <h2>Consultar Art├¡culos, Existencias, Lista de Precios, Ofertas, Familias, Sucursales, Bodegas, Servicios</h2>
-    <p><b>M├⌐todo:</b> <code>GET</code></p>
-    <p><b>Endpoints:</b></p>
-    <ul class="params">
-      <li><code>http://localhost:8088/Api-Prochem/api/articulos</code> <span class="ok">Art├¡culos</span></li>
-      <li><code>http://localhost:8088/Api-Prochem/api/existencias</code> <span class="ok">Existencias</span></li>
-      <li><code>http://localhost:8088/Api-Prochem/api/lista-precios</code> <span class="ok">Lista de Precios</span></li>
-      <li><code>http://localhost:8088/Api-Prochem/api/ofertas</code> <span class="ok">Ofertas</span></li>
-      <li><code>http://localhost:8088/Api-Prochem/api/familias-producto</code> <span class="ok">Familias</span></li>
-      <li><code>http://localhost:8088/Api-Prochem/api/sucursales</code> <span class="ok">Sucursales</span></li>
-      <li><code>http://localhost:8088/Api-Prochem/api/bodegas</code> <span class="ok">Bodegas</span></li>
-      <li><code>http://localhost:8088/Api-Prochem/api/servicios</code> <span class="ok">Servicios</span></li>
-    </ul>
-    <p><b>Estado:</b> <span class="ok">Funcionan correctamente</span></p>
-    <p>Devuelven datos paginados y permiten filtrar por compa├▒├¡a (par├ímetro <code>noCia</code>), p├ígina (<code>page</code>) y tama├▒o (<code>size</code>).</p>
-    <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/articulos?noCia=1&page=0&size=20</code>
-    <b>Respuesta:</b> JSON paginado con los datos solicitados.</p>
-  </div>
+    <div class="endpoint" id="catalogos-consulta">
+      <h2>Consultar Artículos, Existencias, Lista de Precios, Ofertas, Familias, Sucursales, Bodegas, Servicios</h2>
+      <p><b>Método:</b> <code>GET</code></p>
+      <p><b>Endpoints:</b></p>
+      <ul class="params">
+        <li><code>http://localhost:8088/Api-Prochem/api/articulos</code> <span class="ok">Artículos</span></li>
+        <li><code>http://localhost:8088/Api-Prochem/api/existencias</code> <span class="ok">Existencias</span></li>
+        <li><code>http://localhost:8088/Api-Prochem/api/lista-precios</code> <span class="ok">Lista de Precios</span></li>
+        <li><code>http://localhost:8088/Api-Prochem/api/ofertas</code> <span class="ok">Ofertas</span></li>
+        <li><code>http://localhost:8088/Api-Prochem/api/familias-producto</code> <span class="ok">Familias</span></li>
+        <li><code>http://localhost:8088/Api-Prochem/api/sucursales</code> <span class="ok">Sucursales</span></li>
+        <li><code>http://localhost:8088/Api-Prochem/api/bodegas</code> <span class="ok">Bodegas</span></li>
+        <li><code>http://localhost:8088/Api-Prochem/api/servicios</code> <span class="ok">Servicios</span></li>
+      </ul>
+      <p><b>Estado:</b> <span class="ok">Funcionan correctamente</span></p>
+      <p>Devuelven datos paginados y permiten filtrar por compañía (parámetro <code>noCia</code>), página (<code>page</code>) y tamaño (<code>size</code>).</p>
+      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/articulos?noCia=1&page=0&size=20</code>
+      <b>Respuesta:</b> JSON paginado con los datos solicitados.
+    </div>
 
-  <div class="endpoint">
-    <h2>Buscar Cliente</h2>
-    <p><b>M├⌐todo:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/clientes/buscar?noCia=1&noCliente=123&grupo=1</code></p>
-    <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
-    <p>Devuelve los datos de un cliente espec├¡fico seg├║n los par├ímetros enviados.</p>
-    <b>Par├ímetros:</b>
-    <ul class="params">
-      <li><code>noCia</code>: n├║mero de compa├▒├¡a</li>
-      <li><code>noCliente</code>: n├║mero de cliente</li>
-      <li><code>grupo</code>: n├║mero de grupo</li>
-    </ul>
-    <b>Respuesta:</b> JSON con los datos del cliente o mensaje de error si no existe.</p>
-  </div>
+    <div class="endpoint" id="catalogos-admin">
+      <h2>Consultar Catálogos: Cuentas, Empleados, Proveedores, Centros de Costo</h2>
+      <p><b>Método:</b> <code>GET</code></p>
+      <p><b>Endpoints:</b></p>
+      <ul class="params">
+        <li><code>http://localhost:8088/Api-Prochem/api/cuentas/dto-paginado</code> <span class="ok">Catálogo de Cuentas</span></li>
+        <li><code>http://localhost:8088/Api-Prochem/api/empleados/dto-paginado</code> <span class="ok">Catálogo de Empleados</span></li>
+        <li><code>http://localhost:8088/Api-Prochem/api/proveedores/dto-paginado</code> <span class="ok">Catálogo de Proveedores</span></li>
+        <li><code>http://localhost:8088/Api-Prochem/api/centros-costo/dto-paginado</code> <span class="ok">Catálogo de Centros de Costo</span></li>
+      </ul>
+      <p><b>Estado:</b> <span class="ok">Funcionan correctamente</span></p>
+      <p>Devuelven datos paginados de catálogos administrativos. Permiten filtrar por compañía (parámetro <code>noCia</code>), página (<code>page</code>) y tamaño (<code>size</code>).</p>
+      <b>Parámetros:</b>
+      <ul class="params">
+        <li><code>noCia</code> (opcional): filtra por compañía</li>
+        <li><code>page</code> (opcional, default 0): número de página</li>
+        <li><code>size</code> (opcional, default 20): tamaño de página</li>
+      </ul>
+      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/cuentas/dto-paginado?noCia=1&page=0&size=10</code>
+      <b>Respuesta:</b> JSON paginado con la estructura estándar Spring Boot: <code>content</code> (lista de registros), <code>totalElements</code>, <code>totalPages</code>, etc.
+    </div>
 
-  <div class="endpoint">
-    <h2>Buscar Sucursal por ID</h2>
-    <p><b>M├⌐todo:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/sucursales/{no_sucursal}</code></p>
-    <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
-    <p>Devuelve los datos de una sucursal espec├¡fica seg├║n el ID enviado.</p>
-    <b>Par├ímetros:</b>
-    <ul class="params">
-      <li><code>no_sucursal</code> (path): ID de la sucursal</li>
-    </ul>
-    <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/sucursales/1</code>
-    <b>Respuesta:</b> JSON con los datos de la sucursal o <code>null</code> si no existe.
-  </div>
+    <div class="endpoint" id="busquedas-especificas">
+      <h2>🔍 Búsquedas Específicas por ID/Código</h2>
+      <p>Endpoints para buscar registros específicos por sus identificadores únicos.</p>
+    </div>
 
-  <div class="endpoint">
-    <h2>Buscar Bodega por Sucursal y Bodega</h2>
-    <p><b>M├⌐todo:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/bodegas/{no_sucursal}/{no_bodega}</code></p>
-    <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
-    <p>Devuelve los datos de una bodega espec├¡fica seg├║n los IDs enviados.</p>
-    <b>Par├ímetros:</b>
-    <ul class="params">
-      <li><code>no_sucursal</code> (path): ID de la sucursal</li>
-      <li><code>no_bodega</code> (path): ID de la bodega</li>
-    </ul>
-    <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/bodegas/1/2</code>
-    <b>Respuesta:</b> JSON con los datos de la bodega o <code>null</code> si no existe.
-  </div>
+    <div class="endpoint" id="buscar-cliente-id">
+      <h2>Buscar Cliente por ID</h2>
+      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/clientes/buscar</code></p>
+      <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
+      <p>Busca un cliente específico utilizando su ID compuesto (número de compañía, número de cliente y grupo).</p>
+      <b>Parámetros:</b>
+      <ul class="params">
+        <li><code>noCia</code> (query): número de compañía (Integer)</li>
+        <li><code>noCliente</code> (query): número único del cliente (Integer)</li>
+        <li><code>grupo</code> (query): grupo del cliente (String)</li>
+      </ul>
+      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/clientes/buscar?noCia=1&noCliente=12345&grupo=1</code>
+      <b>Respuesta:</b> JSON con los datos del cliente encontrado o mensaje de error si no existe.
+    </div>
 
-  <div class="endpoint">
-    <h2>Buscar Familia por ID</h2>
-    <p><b>M├⌐todo:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/familias-producto/{no_familia}</code></p>
-    <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
-    <p>Devuelve los datos de una familia espec├¡fica seg├║n el ID enviado.</p>
-    <b>Par├ímetros:</b>
-    <ul class="params">
-      <li><code>no_familia</code> (path): ID de la familia</li>
-    </ul>
-    <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/familias-producto/10</code>
-    <b>Respuesta:</b> JSON con los datos de la familia o <code>null</code> si no existe.
-  </div>
+    <div class="endpoint" id="buscar-cliente-cedula">
+      <h2>Buscar Cliente por RUC/Cédula</h2>
+      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/clientes/buscar-por-ruc-cedula</code></p>
+      <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
+      <p>Busca un cliente específico utilizando su número de RUC o cédula de identidad.</p>
+      <b>Parámetros:</b>
+      <ul class="params">
+        <li><code>rucCedula</code> (query): número de RUC o cédula del cliente</li>
+      </ul>
+      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/clientes/buscar-por-ruc-cedula?rucCedula=1234567890</code>
+      <b>Respuesta:</b> JSON con los datos del cliente encontrado o mensaje de error si no existe.
+    </div>
 
-  <div class="endpoint">
-    <h2>Notas</h2>
-    <ul>
-      <li>Todos los endpoints <code>GET</code> de consulta funcionan y soportan paginaci├│n est├índar Spring Boot: <code>page</code> (n├║mero de p├ígina, inicia en 0) y <code>size</code> (cantidad de registros por p├ígina).</li>
-      <li>Los endpoints <code>POST</code> de registro requieren mejoras en validaci├│n de datos y control de errores.</li>
-      <li>El contexto base en Tomcat es <b>Api-Prochem/</b>, por lo que todas las URLs deben anteponerlo.</li>
-      <li>Para pruebas locales, usar siempre la URL base <code>http://localhost:8088/Api-Prochem/</code>.</li>
-      <li>Dentro del API est├í disponible la secci├│n de documentaci├│n Swagger para mayor informaci├│n sobre c├│mo enviar los JSON (<code>http://localhost:8088/Api-Prochem/swagger-ui.html</code>).</li>
-    </ul>
+    <div class="endpoint" id="validar-cedula">
+      <h2>Validar RUC/Cédula Existente</h2>
+      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/clientes/validar-ruc-cedula</code></p>
+      <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
+      <p>Verifica si un RUC o cédula ya está registrado en la base de datos para una compañía específica.</p>
+      <b>Parámetros:</b>
+      <ul class="params">
+        <li><code>rucCedula</code> (query): RUC o cédula a validar</li>
+        <li><code>noCia</code> (query): número de compañía</li>
+      </ul>
+      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/clientes/validar-ruc-cedula?rucCedula=8-123-456&noCia=1</code>
+      <b>Respuesta:</b> JSON con información de validación y datos del cliente si existe.
+    </div>
+
+    <div class="endpoint" id="buscar-familia-id">
+      <h2>Buscar Familia por ID</h2>
+      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/familias-producto/{no_familia}</code></p>
+      <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
+      <p>Devuelve los datos de una familia de productos específica según su ID.</p>
+      <b>Parámetros:</b>
+      <ul class="params">
+        <li><code>no_familia</code> (path): número de la familia de productos</li>
+      </ul>
+      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/familias-producto/1</code>
+      <b>Respuesta:</b> JSON con los datos de la familia o <code>null</code> si no existe.
+    </div>
+
+    <div class="endpoint" id="buscar-cuenta-id">
+      <h2>Buscar Cuenta Específica</h2>
+      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/cuentas/{noCia}/{cuenta}</code></p>
+      <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
+      <p>Devuelve los datos de una cuenta específica según los parámetros enviados.</p>
+      <b>Parámetros:</b>
+      <ul class="params">
+        <li><code>noCia</code> (path): número de compañía</li>
+        <li><code>cuenta</code> (path): código de la cuenta</li>
+      </ul>
+      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/cuentas/1/1105</code>
+      <b>Respuesta:</b> JSON con los datos de la cuenta o <code>null</code> si no existe.
+    </div>
+
+    <div class="endpoint" id="buscar-empleado-id">
+      <h2>Buscar Empleado Específico</h2>
+      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/empleados/{noCia}/{noEmpleado}</code></p>
+      <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
+      <p>Devuelve los datos de un empleado específico según los parámetros enviados.</p>
+      <b>Parámetros:</b>
+      <ul class="params">
+        <li><code>noCia</code> (path): número de compañía</li>
+        <li><code>noEmpleado</code> (path): número del empleado</li>
+      </ul>
+      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/empleados/1/001</code>
+      <b>Respuesta:</b> JSON con los datos del empleado o <code>null</code> si no existe.
+    </div>
+
+    <div class="endpoint" id="buscar-proveedor-id">
+      <h2>Buscar Proveedor Específico</h2>
+      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/proveedores/{noCia}/{noProveedor}/{noClase}</code></p>
+      <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
+      <p>Devuelve los datos de un proveedor específico según los parámetros enviados.</p>
+      <b>Parámetros:</b>
+      <ul class="params">
+        <li><code>noCia</code> (path): número de compañía</li>
+        <li><code>noProveedor</code> (path): número del proveedor</li>
+        <li><code>noClase</code> (path): número de clase del proveedor</li>
+      </ul>
+      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/proveedores/1/12345/1</code>
+      <b>Respuesta:</b> JSON con los datos del proveedor o <code>null</code> si no existe.
+    </div>
+
+    <div class="endpoint" id="buscar-centro-costo-id">
+      <h2>Buscar Centro de Costo Específico</h2>
+      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/centros-costo/{noCia}/{centro}</code></p>
+      <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
+      <p>Devuelve los datos de un centro de costo específico según los parámetros enviados.</p>
+      <b>Parámetros:</b>
+      <ul class="params">
+        <li><code>noCia</code> (path): número de compañía</li>
+        <li><code>centro</code> (path): código del centro de costo</li>
+      </ul>
+      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/centros-costo/1/ADM</code>
+      <b>Respuesta:</b> JSON con los datos del centro de costo o <code>null</code> si no existe.
+    </div>
+
+    <div class="endpoint" id="buscar-sucursal-id">
+      <h2>Buscar Sucursal Específica</h2>
+      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/sucursales/{noCia}/{sucursal}</code></p>
+      <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
+      <p>Devuelve los datos de una sucursal específica según los parámetros enviados.</p>
+      <b>Parámetros:</b>
+      <ul class="params">
+        <li><code>noCia</code> (path): número de compañía</li>
+        <li><code>sucursal</code> (path): código de la sucursal</li>
+      </ul>
+      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/sucursales/1/001</code>
+      <b>Respuesta:</b> JSON con los datos de la sucursal o <code>null</code> si no existe.
+    </div>
+
+    <div class="endpoint" id="buscar-bodega-id">
+      <h2>Buscar Bodega Específica</h2>
+      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/bodegas/{noCia}/{bodega}</code></p>
+      <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
+      <p>Devuelve los datos de una bodega específica según los parámetros enviados.</p>
+      <b>Parámetros:</b>
+      <ul class="params">
+        <li><code>noCia</code> (path): número de compañía</li>
+        <li><code>bodega</code> (path): código de la bodega</li>
+      </ul>
+      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/bodegas/1/BOD01</code>
+      <b>Respuesta:</b> JSON con los datos de la bodega o <code>null</code> si no existe.
+    </div>
+
+    <div class="endpoint" id="estructura-paginada">
+      <h2>📋 Estructura de Respuestas Paginadas</h2>
+      <p>Los endpoints que devuelven datos paginados (catálogos, artículos, etc.) utilizan la estructura estándar de Spring Boot:</p>
+      <pre><code>{
+  "content": [
+    {
+      // Objetos del catálogo o entidad solicitada
+    }
+  ],
+  "pageable": {
+    "sort": { "sorted": false, "unsorted": true },
+    "pageNumber": 0,
+    "pageSize": 20,
+    "offset": 0,
+    "paged": true,
+    "unpaged": false
+  },
+  "totalElements": 150,
+  "totalPages": 8,
+  "last": false,
+  "size": 20,
+  "number": 0,
+  "sort": { "sorted": false, "unsorted": true },
+  "numberOfElements": 20,
+  "first": true,
+  "empty": false
+}</code></pre>
+      <b>Campos principales:</b>
+      <ul class="params">
+        <li><code>content</code>: Array con los registros de la página actual</li>
+        <li><code>totalElements</code>: Total de registros disponibles</li>
+        <li><code>totalPages</code>: Total de páginas disponibles</li>
+        <li><code>number</code>: Número de página actual (base 0)</li>
+        <li><code>size</code>: Tamaño de página configurado</li>
+        <li><code>first</code>: Indica si es la primera página</li>
+        <li><code>last</code>: Indica si es la última página</li>
+      </ul>
+    </div>
+
+    <div class="endpoint">
+      <h2>📝 Notas Importantes</h2>
+      <ul>
+        <li><strong>Endpoints de Consulta:</strong> Todos los endpoints <code>GET</code> funcionan correctamente y soportan paginación estándar Spring Boot: <code>page</code> (número de página, inicia en 0) y <code>size</code> (cantidad de registros por página).</li>
+        <li><strong>Registro de Clientes:</strong> El endpoint <code>POST /api/clientes/registro-portal</code> maneja el registro completo (cliente, contacto, usuario) en una sola transacción y envía las credenciales por correo automáticamente.</li>
+        <li><strong>Validación de Datos:</strong> Use el endpoint <code>/api/clientes/validar-ruc-cedula</code> para verificar si un RUC/cédula ya existe antes de intentar el registro.</li>
+        <li><strong>Contexto de Aplicación:</strong> El contexto base en Tomcat es <b>Api-Prochem/</b>, por lo que todas las URLs deben anteponerlo.</li>
+        <li><strong>Ambiente de Desarrollo:</strong> Para pruebas locales, usar siempre la URL base <code>http://localhost:8088/Api-Prochem/</code>.</li>
+        <li><strong>Documentación Swagger:</strong> Documentación interactiva disponible en <code>http://localhost:8088/Api-Prochem/swagger-ui.html</code> para probar endpoints y ver esquemas de datos.</li>
+        <li><strong>Control de Errores:</strong> Los endpoints de registro incluyen control de transacciones y rollback automático en caso de error.</li>
+        <li><strong>Seguridad:</strong> Las claves de usuario se encriptan automáticamente usando SHA + Base64 compatible con el sistema ERP.</li>
+      </ul>
+    </div>
   </div>
 
 </body>

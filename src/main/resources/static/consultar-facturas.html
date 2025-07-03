@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Consultar Facturas de Clientes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="images/logos/logo_icono.svg" type="image/svg+xml">
+  <style>
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+      margin: 0; padding: 20px; min-height: 100vh; 
+    }
+    .container { 
+      max-width: 1200px; margin: 0 auto; background: #fff; 
+      border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); 
+      padding: 2em; 
+    }
+    h1 { 
+      text-align: center; color: #333; margin-bottom: 1.5em; 
+      font-size: 2.2em; font-weight: 300; 
+    }
+    .filtros { 
+      background: #f8f9fa; padding: 1.5em; border-radius: 8px; 
+      margin-bottom: 2em; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+      gap: 1em; align-items: end; 
+    }
+    .campo { display: flex; flex-direction: column; }
+    .campo label { 
+      font-weight: 500; color: #555; margin-bottom: 0.5em; 
+      font-size: 0.9em; 
+    }
+    .campo input, .campo select { 
+      padding: 0.8em; border: 1px solid #ddd; border-radius: 6px; 
+      font-size: 1em; transition: border-color 0.2s; 
+    }
+    .campo input:focus, .campo select:focus { 
+      outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); 
+    }
+    .botones { display: flex; gap: 1em; }
+    .btn { 
+      padding: 0.8em 2em; border: none; border-radius: 6px; 
+      cursor: pointer; font-size: 1em; font-weight: 500; 
+      transition: all 0.2s; text-decoration: none; display: inline-block; 
+      text-align: center; 
+    }
+    .btn-primary { background: #667eea; color: white; }
+    .btn-primary:hover { background: #5a6fd8; transform: translateY(-1px); }
+    .btn-secondary { background: #6c757d; color: white; }
+    .btn-secondary:hover { background: #5a6268; }
+    .btn-success { background: #28a745; color: white; }
+    .btn-success:hover { background: #218838; }
+    .btn-info { background: #17a2b8; color: white; }
+    .btn-info:hover { background: #138496; }
+    
+    .loading { 
+      text-align: center; padding: 2em; color: #666; 
+      font-style: italic; 
+    }
+    .error { 
+      background: #f8d7da; color: #721c24; padding: 1em; 
+      border-radius: 6px; margin: 1em 0; border: 1px solid #f5c6cb; 
+    }
+    .facturas-grid { 
+      display: grid; gap: 1.5em; margin-top: 2em; 
+    }
+    .factura-card { 
+      background: #fff; border: 1px solid #e3e6ea; border-radius: 8px; 
+      padding: 1.5em; box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+      transition: transform 0.2s, box-shadow 0.2s; 
+    }
+    .factura-card:hover { 
+      transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); 
+    }
+    .factura-header { 
+      display: flex; justify-content: space-between; align-items: flex-start; 
+      margin-bottom: 1em; 
+    }
+    .factura-numero { 
+      font-size: 1.3em; font-weight: 600; color: #667eea; 
+    }
+    .factura-status { 
+      padding: 0.3em 0.8em; border-radius: 20px; font-size: 0.8em; 
+      font-weight: 500; text-transform: uppercase; 
+      background: #d4edda; color: #155724; 
+    }
+    
+    .factura-info { 
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+      gap: 1em; margin-bottom: 1em; 
+    }
+    .info-item { display: flex; flex-direction: column; }
+    .info-label { font-size: 0.8em; color: #666; text-transform: uppercase; }
+    .info-value { font-weight: 500; color: #333; }
+    
+    .detalles-toggle { 
+      background: none; border: 1px solid #667eea; color: #667eea; 
+      padding: 0.5em 1em; border-radius: 4px; cursor: pointer; 
+      font-size: 0.9em; margin-top: 1em; 
+    }
+    .detalles-toggle:hover { background: #667eea; color: white; }
+    
+    .detalles { 
+      margin-top: 1em; padding: 1em; background: #f8f9fa; 
+      border-radius: 6px; display: none; 
+    }
+    .detalles.show { display: block; }
+    .detalle-item { 
+      display: grid; grid-template-columns: 1fr 2fr 1fr 1fr 1fr; 
+      gap: 1em; padding: 0.8em; border-bottom: 1px solid #e9ecef; 
+      align-items: center; 
+    }
+    .detalle-header { 
+      font-weight: 600; background: #e9ecef; border-radius: 4px; 
+      padding: 0.8em; 
+    }
+    
+    .volver { 
+      margin-top: 2em; text-align: center; 
+    }
+    .stats { 
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+      gap: 1em; margin-bottom: 2em; 
+    }
+    .stat-card { 
+      background: linear-gradient(45deg, #667eea, #764ba2); 
+      color: white; padding: 1.5em; border-radius: 8px; text-align: center; 
+    }
+    .stat-number { font-size: 2em; font-weight: 600; }
+    .stat-label { font-size: 0.9em; opacity: 0.9; }
+
+    /* Estilos de paginación */
+    .paginacion { 
+      display: flex; justify-content: center; align-items: center; 
+      margin: 2em 0; gap: 0.5em; 
+    }
+    .paginacion button { 
+      padding: 0.5em 1em; border: 1px solid #667eea; background: white; 
+      color: #667eea; border-radius: 4px; cursor: pointer; 
+    }
+    .paginacion button:hover { background: #667eea; color: white; }
+    .paginacion button:disabled { 
+      background: #f8f9fa; color: #6c757d; border-color: #dee2e6; 
+      cursor: not-allowed; 
+    }
+    .paginacion .actual { background: #667eea; color: white; }
+    .paginacion .info { 
+      margin: 0 1em; color: #666; font-size: 0.9em; 
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>🧾 Consultar Facturas de Clientes</h1>
+  
+  <div class="filtros">
+    <div class="campo">
+      <label for="noCia">Compañía</label>
+      <input type="number" id="noCia" value="1" min="1">
+    </div>
+    <div class="campo">
+      <label for="noCliente">Cliente (opcional)</label>
+      <input type="number" id="noCliente" placeholder="Número de cliente">
+    </div>
+    <div class="campo">
+      <label for="fechaDesde">Fecha Desde (opcional)</label>
+      <input type="datetime-local" id="fechaDesde">
+    </div>
+    <div class="campo">
+      <label for="fechaHasta">Fecha Hasta (opcional)</label>
+      <input type="datetime-local" id="fechaHasta">
+    </div>
+    <div class="botones">
+      <button class="btn btn-primary" onclick="buscarFacturas()">🔍 Buscar Facturas</button>
+      <button class="btn btn-success" onclick="buscarRecientes()">⏰ Recientes (30 días)</button>
+    </div>
+  </div>
+
+  <div class="stats" id="stats" style="display: none;">
+    <div class="stat-card">
+      <div class="stat-number" id="totalFacturas">0</div>
+      <div class="stat-label">Total Facturas</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="totalMonto">$0</div>
+      <div class="stat-label">Monto Total</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="totalArticulos">0</div>
+      <div class="stat-label">Artículos Totales</div>
+    </div>
+  </div>
+
+  <div id="loading" class="loading" style="display: none;">
+    Cargando facturas...
+  </div>
+  
+  <div id="error" class="error" style="display: none;"></div>
+  
+  <div id="info-inicial" class="info-inicial" style="display: block; text-align: center; padding: 2em; background: #f8f9fa; border-radius: 8px; margin: 2em 0; border: 1px solid #dee2e6;">
+    <h3 style="color: #6c757d; margin: 0 0 1em 0;">🧾 Consulta de Facturas</h3>
+    <p style="color: #6c757d; margin: 0;">Use los filtros arriba y haga clic en <strong>"Buscar Facturas"</strong> para ver las facturas facturadas.</p>
+    <p style="color: #6c757d; margin: 0.5em 0 0 0; font-size: 0.9em;">También puede usar <strong>"Recientes"</strong> para ver las facturas de los últimos 30 días.</p>
+    <p style="color: #dc3545; margin: 0.5em 0 0 0; font-size: 0.8em;"><strong>⚠️ Nota:</strong> Las búsquedas generales están paginadas (máximo 20 por página) para optimizar el rendimiento.</p>
+  </div>
+  
+  <div id="facturas" class="facturas-grid"></div>
+  
+  <div id="paginacion" class="paginacion" style="display: none;">
+    <button id="btnPrimera" onclick="irAPagina(0)" title="Primera página">⏮️</button>
+    <button id="btnAnterior" onclick="irAPaginaAnterior()" title="Página anterior">⬅️</button>
+    <span class="info" id="infoPaginacion">Página 1 de 1</span>
+    <button id="btnSiguiente" onclick="irAPaginaSiguiente()" title="Página siguiente">➡️</button>
+    <button id="btnUltima" onclick="irAPagina(-1)" title="Última página">⏭️</button>
+  </div>
+  
+  <div class="volver">
+    <button class="btn btn-secondary" onclick="window.location.href='ejemplos.html'">
+      ← Volver a Ejemplos
+    </button>
+  </div>
+</div>
+
+<script>
+const API_BASE = window.location.origin;
+let paginaActual = 0;
+let ultimaRespuestaPaginada = null;
+
+function mostrarLoading(show = true) {
+  document.getElementById('loading').style.display = show ? 'block' : 'none';
+}
+
+function mostrarError(mensaje) {
+  const errorDiv = document.getElementById('error');
+  errorDiv.textContent = mensaje;
+  errorDiv.style.display = 'block';
+}
+
+function ocultarError() {
+  document.getElementById('error').style.display = 'none';
+}
+
+function formatearFecha(fecha) {
+  if (!fecha) return 'N/A';
+  return new Date(fecha).toLocaleDateString('es-ES', {
+    year: 'numeric', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  });
+}
+
+function formatearMonto(monto) {
+  if (!monto) return '$0.00';
+  return new Intl.NumberFormat('es-ES', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(monto);
+}
+
+function mostrarEstadisticas(facturas, respuestaPaginada = null) {
+  const totalFacturas = facturas.length;
+  const totalMonto = facturas.reduce((sum, fac) => sum + (fac.totalNominal || 0), 0);
+  const totalArticulos = facturas.reduce((sum, fac) => sum + (fac.detalles?.length || 0), 0);
+
+  document.getElementById('totalFacturas').textContent = respuestaPaginada ? 
+    `${totalFacturas} (${respuestaPaginada.totalElementos} total)` : totalFacturas;
+  document.getElementById('totalMonto').textContent = formatearMonto(totalMonto);
+  document.getElementById('totalArticulos').textContent = totalArticulos;
+  document.getElementById('stats').style.display = totalFacturas > 0 ? 'grid' : 'none';
+}
+
+function mostrarPaginacion(respuestaPaginada) {
+  const paginacionDiv = document.getElementById('paginacion');
+  
+  if (!respuestaPaginada || respuestaPaginada.totalPaginas <= 1) {
+    paginacionDiv.style.display = 'none';
+    return;
+  }
+
+  paginacionDiv.style.display = 'flex';
+  
+  // Actualizar botones
+  document.getElementById('btnPrimera').disabled = respuestaPaginada.esPrimeraPagina;
+  document.getElementById('btnAnterior').disabled = respuestaPaginada.esPrimeraPagina;
+  document.getElementById('btnSiguiente').disabled = respuestaPaginada.esUltimaPagina;
+  document.getElementById('btnUltima').disabled = respuestaPaginada.esUltimaPagina;
+  
+  // Actualizar información
+  document.getElementById('infoPaginacion').textContent = 
+    `Página ${respuestaPaginada.paginaActual + 1} de ${respuestaPaginada.totalPaginas} (${respuestaPaginada.totalElementos} registros)`;
+}
+
+function irAPagina(pagina) {
+  if (pagina === -1) {
+    // Última página
+    paginaActual = ultimaRespuestaPaginada.totalPaginas - 1;
+  } else {
+    paginaActual = pagina;
+  }
+  buscarFacturas();
+}
+
+function irAPaginaAnterior() {
+  if (paginaActual > 0) {
+    paginaActual--;
+    buscarFacturas();
+  }
+}
+
+function irAPaginaSiguiente() {
+  if (ultimaRespuestaPaginada && !ultimaRespuestaPaginada.esUltimaPagina) {
+    paginaActual++;
+    buscarFacturas();
+  }
+}
+
+function toggleDetalles(facturaId) {
+  const detalles = document.getElementById(`detalles-${facturaId}`);
+  const isVisible = detalles.classList.contains('show');
+  
+  // Ocultar todos los detalles
+  document.querySelectorAll('.detalles').forEach(d => d.classList.remove('show'));
+  
+  // Mostrar el seleccionado si no estaba visible
+  if (!isVisible) {
+    detalles.classList.add('show');
+  }
+}
+
+function renderizarFacturas(data) {
+  const container = document.getElementById('facturas');
+  const infoInicial = document.getElementById('info-inicial');
+  
+  // Ocultar mensaje inicial cuando se muestren resultados
+  if (infoInicial) {
+    infoInicial.style.display = 'none';
+  }
+  
+  let facturas, respuestaPaginada = null;
+  
+  // Detectar si es una respuesta paginada o una lista simple
+  if (data.facturas && Array.isArray(data.facturas)) {
+    // Respuesta paginada
+    facturas = data.facturas;
+    respuestaPaginada = data;
+    ultimaRespuestaPaginada = data;
+  } else if (Array.isArray(data)) {
+    // Lista simple (para clientes específicos o recientes)
+    facturas = data;
+  } else {
+    facturas = [];
+  }
+  
+  if (!facturas || facturas.length === 0) {
+    container.innerHTML = '<div class="loading">No se encontraron facturas facturadas.</div>';
+    document.getElementById('stats').style.display = 'none';
+    document.getElementById('paginacion').style.display = 'none';
+    return;
+  }
+
+  const html = facturas.map(factura => `
+    <div class="factura-card">
+      <div class="factura-header">
+        <div class="factura-numero">Factura #${factura.noFactura}</div>
+        <div class="factura-status">Facturada</div>
+      </div>
+      
+      <div class="factura-info">
+        <div class="info-item">
+          <div class="info-label">Cliente</div>
+          <div class="info-value">${factura.noCliente} - ${factura.nombreCliente || 'N/A'}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">RUC/Cédula</div>
+          <div class="info-value">${factura.rucCedula || 'N/A'}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Fecha Registro</div>
+          <div class="info-value">${formatearFecha(factura.fechaRegistro)}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Fecha Facturada</div>
+          <div class="info-value">${formatearFecha(factura.fechaFacturo)}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Subtotal</div>
+          <div class="info-value">${formatearMonto(factura.subtotalNominal)}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Impuesto</div>
+          <div class="info-value">${formatearMonto(factura.impuestoNominal)}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Total</div>
+          <div class="info-value" style="font-size: 1.1em; color: #28a745; font-weight: 600;">${formatearMonto(factura.totalNominal)}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Artículos</div>
+          <div class="info-value">${factura.detalles?.length || 0} items</div>
+        </div>
+      </div>
+
+      ${factura.email ? `
+        <div class="factura-info">
+          <div class="info-item">
+            <div class="info-label">Email</div>
+            <div class="info-value">${factura.email}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Teléfono</div>
+            <div class="info-value">${factura.clienteTelefono || 'N/A'}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Dirección</div>
+            <div class="info-value">${factura.clienteDireccion || 'N/A'}</div>
+          </div>
+        </div>
+      ` : ''}
+
+      ${factura.observacion ? `
+        <div class="info-item" style="grid-column: 1/-1; margin-top: 1em;">
+          <div class="info-label">Observaciones</div>
+          <div class="info-value">${factura.observacion}</div>
+        </div>
+      ` : ''}
+
+      ${factura.consecutivoFiscal ? `
+        <div class="info-item" style="margin-top: 1em;">
+          <div class="info-label">Consecutivo Fiscal</div>
+          <div class="info-value">${factura.consecutivoFiscal}</div>
+        </div>
+      ` : ''}
+
+      <button class="detalles-toggle" onclick="toggleDetalles(${factura.noFactura})">
+        Ver Detalles de Artículos
+      </button>
+      
+      <div id="detalles-${factura.noFactura}" class="detalles">
+        <div class="detalle-item detalle-header">
+          <div>Artículo</div>
+          <div>Descripción</div>
+          <div>Cantidad</div>
+          <div>Precio Unit.</div>
+          <div>Total</div>
+        </div>
+        ${(factura.detalles || []).map(detalle => `
+          <div class="detalle-item">
+            <div>${detalle.noArticulo}</div>
+            <div>${detalle.descripcion || 'N/A'}</div>
+            <div>${detalle.cantidad || 0}</div>
+            <div>${formatearMonto(detalle.precioNominal)}</div>
+            <div>${formatearMonto(detalle.totalNominal)}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  container.innerHTML = html;
+  mostrarEstadisticas(facturas, respuestaPaginada);
+  mostrarPaginacion(respuestaPaginada);
+}
+
+async function buscarFacturas() {
+  mostrarLoading(true);
+  ocultarError();
+  
+  try {
+    const noCia = document.getElementById('noCia').value || 1;
+    const noCliente = document.getElementById('noCliente').value;
+    const fechaDesde = document.getElementById('fechaDesde').value;
+    const fechaHasta = document.getElementById('fechaHasta').value;
+    
+    let url = `${API_BASE}/api/facturas?noCia=${noCia}`;
+    if (noCliente) url += `&noCliente=${noCliente}`;
+    if (fechaDesde) url += `&fechaDesde=${fechaDesde}`;
+    if (fechaHasta) url += `&fechaHasta=${fechaHasta}`;
+    
+    // Solo agregar paginación si no es una búsqueda específica de cliente
+    if (!noCliente) {
+      url += `&pagina=${paginaActual}&tamano=20`;
+    }
+    
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    renderizarFacturas(data);
+    
+  } catch (error) {
+    console.error('Error al buscar facturas:', error);
+    mostrarError(`Error al buscar facturas: ${error.message}`);
+    document.getElementById('facturas').innerHTML = '';
+    document.getElementById('stats').style.display = 'none';
+    document.getElementById('paginacion').style.display = 'none';
+  } finally {
+    mostrarLoading(false);
+  }
+}
+
+async function buscarRecientes() {
+  mostrarLoading(true);
+  ocultarError();
+  
+  try {
+    const noCia = document.getElementById('noCia').value || 1;
+    const noCliente = document.getElementById('noCliente').value;
+    
+    let url = `${API_BASE}/api/facturas/recientes?noCia=${noCia}`;
+    if (noCliente) url += `&noCliente=${noCliente}`;
+    
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+    
+    const facturas = await response.json();
+    renderizarFacturas(facturas);
+    
+  } catch (error) {
+    console.error('Error al buscar facturas recientes:', error);
+    mostrarError(`Error al buscar facturas recientes: ${error.message}`);
+    document.getElementById('facturas').innerHTML = '';
+    document.getElementById('stats').style.display = 'none';
+  } finally {
+    mostrarLoading(false);
+  }
+}
+
+// Permitir búsqueda con Enter en los campos de filtro
+document.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    buscarFacturas();
+  }
+});
+
+// Inicializar la página sin cargar datos automáticamente
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('Página de consulta de facturas cargada. Use los filtros y haga clic en "Buscar Facturas" para ver los datos.');
+});
+</script>
+</body>
+</html>

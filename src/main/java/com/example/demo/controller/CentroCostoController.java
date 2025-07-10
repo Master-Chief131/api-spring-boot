@@ -137,62 +137,62 @@ public class CentroCostoController {
         }
     }
 
-    @GetMapping("/dto")
-    @Operation(
-        summary = "Obtener catálogo de centros de costo operativos (DTO)",
-        description = "Obtiene una lista simplificada del catálogo de centros de costo que están ACTIVOS y PERMITEN MOVIMIENTO. " +
-                     "Utiliza DTOs optimizados para una mejor presentación en interfaces de usuario."
-    )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Catálogo de centros de costo operativos DTO obtenido exitosamente"),
-        @ApiResponse(responseCode = "400", description = "Parámetros de consulta inválidos"),
-        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
-    })
-    public List<CentroCostoDTO> getCatalogoCentrosCostoDTO(
-            @Parameter(description = "Número de compañía", example = "1", required = false)
-            @RequestParam(required = false) Integer noCia,
-            @Parameter(description = "Buscar en la descripción del centro de costo", example = "ADMINISTRACION", required = false)
-            @RequestParam(required = false) String descripcion,
-            @Parameter(description = "Tipo de gasto", example = "01", required = false)
-            @RequestParam(required = false) String tipoGasto,
-            @Parameter(description = "Relacionado a cuentas (A=Administración, C=Costo, G=Gasto)", example = "A", required = false)
-            @RequestParam(required = false) String relacionadoACuentas) {
+    // @GetMapping("/dto")
+    // @Operation(
+    //     summary = "Obtener catálogo de centros de costo operativos (DTO)",
+    //     description = "Obtiene una lista simplificada del catálogo de centros de costo que están ACTIVOS y PERMITEN MOVIMIENTO. " +
+    //                  "Utiliza DTOs optimizados para una mejor presentación en interfaces de usuario."
+    // )
+    // @ApiResponses(value = {
+    //     @ApiResponse(responseCode = "200", description = "Catálogo de centros de costo operativos DTO obtenido exitosamente"),
+    //     @ApiResponse(responseCode = "400", description = "Parámetros de consulta inválidos"),
+    //     @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    // })
+    // public List<CentroCostoDTO> getCatalogoCentrosCostoDTO(
+    //         @Parameter(description = "Número de compañía", example = "1", required = false)
+    //         @RequestParam(required = false) Integer noCia,
+    //         @Parameter(description = "Buscar en la descripción del centro de costo", example = "ADMINISTRACION", required = false)
+    //         @RequestParam(required = false) String descripcion,
+    //         @Parameter(description = "Tipo de gasto", example = "01", required = false)
+    //         @RequestParam(required = false) String tipoGasto,
+    //         @Parameter(description = "Relacionado a cuentas (A=Administración, C=Costo, G=Gasto)", example = "A", required = false)
+    //         @RequestParam(required = false) String relacionadoACuentas) {
         
-        // Construir especificación dinámica con condiciones OBLIGATORIAS
-        Specification<CentroCosto> spec = Specification.where(null);
+    //     // Construir especificación dinámica con condiciones OBLIGATORIAS
+    //     Specification<CentroCosto> spec = Specification.where(null);
         
-        // CONDICIONES OBLIGATORIAS: Solo centros activos que permiten movimiento
-        spec = spec.and((root, query, cb) -> cb.equal(root.get("activo"), "S"));
-        spec = spec.and((root, query, cb) -> cb.equal(root.get("indMov"), "S"));
+    //     // CONDICIONES OBLIGATORIAS: Solo centros activos que permiten movimiento
+    //     spec = spec.and((root, query, cb) -> cb.equal(root.get("activo"), "S"));
+    //     spec = spec.and((root, query, cb) -> cb.equal(root.get("indMov"), "S"));
         
-        // CONDICIÓN OBLIGATORIA: Filtrar por compañía (por defecto compañía 1)
-        Integer companiaFiltro = noCia != null ? noCia : 1;
-        spec = spec.and((root, query, cb) -> cb.equal(root.get("noCia"), companiaFiltro));
+    //     // CONDICIÓN OBLIGATORIA: Filtrar por compañía (por defecto compañía 1)
+    //     Integer companiaFiltro = noCia != null ? noCia : 1;
+    //     spec = spec.and((root, query, cb) -> cb.equal(root.get("noCia"), companiaFiltro));
         
-        if (descripcion != null && !descripcion.trim().isEmpty()) {
-            spec = spec.and((root, query, cb) -> 
-                cb.or(
-                    cb.like(cb.lower(root.get("centro")), "%" + descripcion.toLowerCase() + "%"),
-                    cb.like(cb.lower(root.get("descripCc")), "%" + descripcion.toLowerCase() + "%"),
-                    cb.like(cb.lower(root.get("encargadoCc")), "%" + descripcion.toLowerCase() + "%")
-                )
-            );
-        }
+    //     if (descripcion != null && !descripcion.trim().isEmpty()) {
+    //         spec = spec.and((root, query, cb) -> 
+    //             cb.or(
+    //                 cb.like(cb.lower(root.get("centro")), "%" + descripcion.toLowerCase() + "%"),
+    //                 cb.like(cb.lower(root.get("descripCc")), "%" + descripcion.toLowerCase() + "%"),
+    //                 cb.like(cb.lower(root.get("encargadoCc")), "%" + descripcion.toLowerCase() + "%")
+    //             )
+    //         );
+    //     }
         
-        if (tipoGasto != null && !tipoGasto.trim().isEmpty()) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("tipoGasto"), tipoGasto));
-        }
+    //     if (tipoGasto != null && !tipoGasto.trim().isEmpty()) {
+    //         spec = spec.and((root, query, cb) -> cb.equal(root.get("tipoGasto"), tipoGasto));
+    //     }
         
-        if (relacionadoACuentas != null && !relacionadoACuentas.trim().isEmpty()) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("relacionadoACuentas"), relacionadoACuentas));
-        }
+    //     if (relacionadoACuentas != null && !relacionadoACuentas.trim().isEmpty()) {
+    //         spec = spec.and((root, query, cb) -> cb.equal(root.get("relacionadoACuentas"), relacionadoACuentas));
+    //     }
         
-        // Obtener entidades y convertir a DTOs
-        List<CentroCosto> centrosCosto = centroCostoRepository.findAll(spec);
-        return centrosCosto.stream()
-                          .map(CentroCostoDTO::new)
-                          .collect(Collectors.toList());
-    }
+    //     // Obtener entidades y convertir a DTOs
+    //     List<CentroCosto> centrosCosto = centroCostoRepository.findAll(spec);
+    //     return centrosCosto.stream()
+    //                       .map(CentroCostoDTO::new)
+    //                       .collect(Collectors.toList());
+    // }
 
     @GetMapping("/dto-paginado")
     @Operation(
@@ -311,54 +311,54 @@ public class CentroCostoController {
         }
     }
 
-    @GetMapping("/estadisticas")
-    @Operation(
-        summary = "Obtener estadísticas del catálogo de centros de costo",
-        description = "Obtiene estadísticas generales del catálogo de centros de costo"
-    )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Estadísticas obtenidas exitosamente"),
-        @ApiResponse(responseCode = "400", description = "Parámetros inválidos"),
-        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
-    })
-    public Map<String, Object> getEstadisticasCatalogo(
-            @Parameter(description = "Número de compañía", example = "1", required = true)
-            @RequestParam Integer noCia) {
+    // @GetMapping("/estadisticas")
+    // @Operation(
+    //     summary = "Obtener estadísticas del catálogo de centros de costo",
+    //     description = "Obtiene estadísticas generales del catálogo de centros de costo"
+    // )
+    // @ApiResponses(value = {
+    //     @ApiResponse(responseCode = "200", description = "Estadísticas obtenidas exitosamente"),
+    //     @ApiResponse(responseCode = "400", description = "Parámetros inválidos"),
+    //     @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    // })
+    // public Map<String, Object> getEstadisticasCatalogo(
+    //         @Parameter(description = "Número de compañía", example = "1", required = true)
+    //         @RequestParam Integer noCia) {
         
-        Map<String, Object> estadisticas = new HashMap<>();
+    //     Map<String, Object> estadisticas = new HashMap<>();
         
-        try {
-            // Total de centros de costo
-            long totalCentros = centroCostoRepository.count();
-            estadisticas.put("total_centros", totalCentros);
+    //     try {
+    //         // Total de centros de costo
+    //         long totalCentros = centroCostoRepository.count();
+    //         estadisticas.put("total_centros", totalCentros);
             
-            // Centros activos
-            List<CentroCosto> centrosActivos = centroCostoRepository.findByNoCiaAndActivo(noCia, "S");
-            estadisticas.put("centros_activos", centrosActivos.size());
+    //         // Centros activos
+    //         List<CentroCosto> centrosActivos = centroCostoRepository.findByNoCiaAndActivo(noCia, "S");
+    //         estadisticas.put("centros_activos", centrosActivos.size());
             
-            // Centros con movimiento
-            List<CentroCosto> centrosConMovimiento = centroCostoRepository.findByNoCiaAndIndMov(noCia, "S");
-            estadisticas.put("centros_con_movimiento", centrosConMovimiento.size());
+    //         // Centros con movimiento
+    //         List<CentroCosto> centrosConMovimiento = centroCostoRepository.findByNoCiaAndIndMov(noCia, "S");
+    //         estadisticas.put("centros_con_movimiento", centrosConMovimiento.size());
             
-            // Centros por tipo de relación
-            List<CentroCosto> centrosAdmin = centroCostoRepository.findByNoCiaAndRelacionadoACuentas(noCia, "A");
-            List<CentroCosto> centrosCosto = centroCostoRepository.findByNoCiaAndRelacionadoACuentas(noCia, "C");
-            List<CentroCosto> centrosGasto = centroCostoRepository.findByNoCiaAndRelacionadoACuentas(noCia, "G");
+    //         // Centros por tipo de relación
+    //         List<CentroCosto> centrosAdmin = centroCostoRepository.findByNoCiaAndRelacionadoACuentas(noCia, "A");
+    //         List<CentroCosto> centrosCosto = centroCostoRepository.findByNoCiaAndRelacionadoACuentas(noCia, "C");
+    //         List<CentroCosto> centrosGasto = centroCostoRepository.findByNoCiaAndRelacionadoACuentas(noCia, "G");
             
-            estadisticas.put("centros_administracion", centrosAdmin.size());
-            estadisticas.put("centros_costo", centrosCosto.size());
-            estadisticas.put("centros_gasto", centrosGasto.size());
+    //         estadisticas.put("centros_administracion", centrosAdmin.size());
+    //         estadisticas.put("centros_costo", centrosCosto.size());
+    //         estadisticas.put("centros_gasto", centrosGasto.size());
             
-            // Información adicional
-            estadisticas.put("compania", noCia);
-            estadisticas.put("fecha_consulta", java.time.LocalDateTime.now());
+    //         // Información adicional
+    //         estadisticas.put("compania", noCia);
+    //         estadisticas.put("fecha_consulta", java.time.LocalDateTime.now());
             
-        } catch (Exception e) {
-            estadisticas.put("error", "Error al obtener estadísticas: " + e.getMessage());
-        }
+    //     } catch (Exception e) {
+    //         estadisticas.put("error", "Error al obtener estadísticas: " + e.getMessage());
+    //     }
         
-        return estadisticas;
-    }
+    //     return estadisticas;
+    // }
 
     @GetMapping("/completo")
     @Operation(

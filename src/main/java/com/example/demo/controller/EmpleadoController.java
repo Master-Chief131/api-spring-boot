@@ -83,52 +83,52 @@ public class EmpleadoController {
         }
     }
 
-    @GetMapping("/dto")
-    @Operation(
-        summary = "Obtener catálogo de empleados en formato DTO",
-        description = "Obtiene una lista simplificada de empleados activos usando el DTO para mejor presentación"
-    )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Catálogo de empleados DTO obtenido exitosamente"),
-        @ApiResponse(responseCode = "400", description = "Parámetros de consulta inválidos"),
-        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
-    })
-    public List<EmpleadoDTO> getCatalogoEmpleadosDTO(
-            @Parameter(description = "Número de compañía", required = true)
-            @RequestParam(defaultValue = "1") Integer noCia,
+    // @GetMapping("/dto")
+    // @Operation(
+    //     summary = "Obtener catálogo de empleados en formato DTO",
+    //     description = "Obtiene una lista simplificada de empleados activos usando el DTO para mejor presentación"
+    // )
+    // @ApiResponses(value = {
+    //     @ApiResponse(responseCode = "200", description = "Catálogo de empleados DTO obtenido exitosamente"),
+    //     @ApiResponse(responseCode = "400", description = "Parámetros de consulta inválidos"),
+    //     @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    // })
+    // public List<EmpleadoDTO> getCatalogoEmpleadosDTO(
+    //         @Parameter(description = "Número de compañía", required = true)
+    //         @RequestParam(defaultValue = "1") Integer noCia,
             
-            @Parameter(description = "Código de planilla")
-            @RequestParam(required = false) String codPla,
+    //         @Parameter(description = "Código de planilla")
+    //         @RequestParam(required = false) String codPla,
             
-            @Parameter(description = "Departamento")
-            @RequestParam(required = false) String depto,
+    //         @Parameter(description = "Departamento")
+    //         @RequestParam(required = false) String depto,
             
-            @Parameter(description = "Tipo de empleado")
-            @RequestParam(required = false) String tipoEmp,
+    //         @Parameter(description = "Tipo de empleado")
+    //         @RequestParam(required = false) String tipoEmp,
             
-            @Parameter(description = "Estado del empleado")
-            @RequestParam(required = false) String estado,
+    //         @Parameter(description = "Estado del empleado")
+    //         @RequestParam(required = false) String estado,
             
-            @Parameter(description = "Sexo del empleado")
-            @RequestParam(required = false) String sexo) {
+    //         @Parameter(description = "Sexo del empleado")
+    //         @RequestParam(required = false) String sexo) {
         
-        try {
-            List<Empleado> empleados;
+    //     try {
+    //         List<Empleado> empleados;
             
-            if (codPla != null || depto != null || tipoEmp != null || estado != null || sexo != null) {
-                empleados = empleadoRepository.findByFiltros(noCia, codPla, depto, tipoEmp, estado, sexo, Pageable.unpaged()).getContent();
-            } else {
-                empleados = empleadoRepository.findByNoCiaAndEstadoActivo(noCia, Pageable.unpaged()).getContent();
-            }
+    //         if (codPla != null || depto != null || tipoEmp != null || estado != null || sexo != null) {
+    //             empleados = empleadoRepository.findByFiltros(noCia, codPla, depto, tipoEmp, estado, sexo, Pageable.unpaged()).getContent();
+    //         } else {
+    //             empleados = empleadoRepository.findByNoCiaAndEstadoActivo(noCia, Pageable.unpaged()).getContent();
+    //         }
             
-            return empleados.stream()
-                         .map(empleado -> new EmpleadoDTO(empleado, estadoEmpleadoService, estadoCivilService))
-                         .collect(Collectors.toList());
+    //         return empleados.stream()
+    //                      .map(empleado -> new EmpleadoDTO(empleado, estadoEmpleadoService, estadoCivilService))
+    //                      .collect(Collectors.toList());
                          
-        } catch (Exception e) {
-            throw new RuntimeException("Error al obtener el catálogo de empleados DTO: " + e.getMessage(), e);
-        }
-    }
+    //     } catch (Exception e) {
+    //         throw new RuntimeException("Error al obtener el catálogo de empleados DTO: " + e.getMessage(), e);
+    //     }
+    // }
 
     @GetMapping("/dto-paginado")
     @Operation(
@@ -353,96 +353,96 @@ public class EmpleadoController {
     
     // ENDPOINTS DE DEPURACIÓN - Para verificar qué empleados existen
     
-    @GetMapping("/debug/todos")
-    @Operation(
-        summary = "Obtener TODOS los empleados (sin filtros) - DEPURACIÓN",
-        description = "Obtiene todos los empleados sin filtrar por estado - Solo para depuración"
-    )
-    public ResponseEntity<Page<Empleado>> getTodosLosEmpleados(
-            @Parameter(description = "Número de compañía")
-            @RequestParam(required = false) Integer noCia,
-            Pageable pageable) {
+    // @GetMapping("/debug/todos")
+    // @Operation(
+    //     summary = "Obtener TODOS los empleados (sin filtros) - DEPURACIÓN",
+    //     description = "Obtiene todos los empleados sin filtrar por estado - Solo para depuración"
+    // )
+    // public ResponseEntity<Page<Empleado>> getTodosLosEmpleados(
+    //         @Parameter(description = "Número de compañía")
+    //         @RequestParam(required = false) Integer noCia,
+    //         Pageable pageable) {
         
-        try {
-            Page<Empleado> empleados;
-            if (noCia != null) {
-                empleados = empleadoRepository.findAllByNoCia(noCia, pageable);
-            } else {
-                empleados = empleadoRepository.findAllEmpleados(pageable);
-            }
+    //     try {
+    //         Page<Empleado> empleados;
+    //         if (noCia != null) {
+    //             empleados = empleadoRepository.findAllByNoCia(noCia, pageable);
+    //         } else {
+    //             empleados = empleadoRepository.findAllEmpleados(pageable);
+    //         }
             
-            return ResponseEntity.ok(empleados);
+    //         return ResponseEntity.ok(empleados);
             
-        } catch (Exception e) {
-            throw new RuntimeException("Error al obtener todos los empleados: " + e.getMessage(), e);
-        }
-    }
+    //     } catch (Exception e) {
+    //         throw new RuntimeException("Error al obtener todos los empleados: " + e.getMessage(), e);
+    //     }
+    // }
     
-    @GetMapping("/debug/contar")
-    @Operation(
-        summary = "Contar empleados - DEPURACIÓN",
-        description = "Cuenta cuántos empleados hay en la base de datos"
-    )
-    public ResponseEntity<Map<String, Object>> contarEmpleados(
-            @Parameter(description = "Número de compañía")
-            @RequestParam(required = false, defaultValue = "1") Integer noCia) {
+    // @GetMapping("/debug/contar")
+    // @Operation(
+    //     summary = "Contar empleados - DEPURACIÓN",
+    //     description = "Cuenta cuántos empleados hay en la base de datos"
+    // )
+    // public ResponseEntity<Map<String, Object>> contarEmpleados(
+    //         @Parameter(description = "Número de compañía")
+    //         @RequestParam(required = false, defaultValue = "1") Integer noCia) {
         
-        try {
-            Map<String, Object> estadisticas = new HashMap<>();
+    //     try {
+    //         Map<String, Object> estadisticas = new HashMap<>();
             
-            Long totalEmpleados = empleadoRepository.countAllEmpleados(noCia);
-            Long empleadosActivos = empleadoRepository.countEmpleadosActivos(noCia);
+    //         Long totalEmpleados = empleadoRepository.countAllEmpleados(noCia);
+    //         Long empleadosActivos = empleadoRepository.countEmpleadosActivos(noCia);
             
-            estadisticas.put("total_empleados", totalEmpleados);
-            estadisticas.put("empleados_activos", empleadosActivos);
-            estadisticas.put("compania", noCia);
+    //         estadisticas.put("total_empleados", totalEmpleados);
+    //         estadisticas.put("empleados_activos", empleadosActivos);
+    //         estadisticas.put("compania", noCia);
             
-            return ResponseEntity.ok(estadisticas);
+    //         return ResponseEntity.ok(estadisticas);
             
-        } catch (Exception e) {
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Error al contar empleados: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(errorResponse);
-        }
-    }
+    //     } catch (Exception e) {
+    //         Map<String, Object> errorResponse = new HashMap<>();
+    //         errorResponse.put("error", "Error al contar empleados: " + e.getMessage());
+    //         return ResponseEntity.internalServerError().body(errorResponse);
+    //     }
+    // }
     
-    @GetMapping("/debug/estados")
-    @Operation(
-        summary = "Ver qué estados de empleados existen - DEPURACIÓN",
-        description = "Muestra los diferentes valores de estado que existen en la base de datos"
-    )
-    public ResponseEntity<Map<String, Object>> verEstados(
-            @Parameter(description = "Número de compañía")
-            @RequestParam(required = false, defaultValue = "1") Integer noCia) {
+    // @GetMapping("/debug/estados")
+    // @Operation(
+    //     summary = "Ver qué estados de empleados existen - DEPURACIÓN",
+    //     description = "Muestra los diferentes valores de estado que existen en la base de datos"
+    // )
+    // public ResponseEntity<Map<String, Object>> verEstados(
+    //         @Parameter(description = "Número de compañía")
+    //         @RequestParam(required = false, defaultValue = "1") Integer noCia) {
         
-        try {
-            // Obtener algunos empleados para ver sus estados
-            Page<Empleado> empleados = empleadoRepository.findAllByNoCia(noCia, 
-                org.springframework.data.domain.PageRequest.of(0, 10));
+    //     try {
+    //         // Obtener algunos empleados para ver sus estados
+    //         Page<Empleado> empleados = empleadoRepository.findAllByNoCia(noCia, 
+    //             org.springframework.data.domain.PageRequest.of(0, 10));
             
-            Map<String, Object> resultado = new HashMap<>();
-            Map<String, Integer> estadosPorCantidad = new HashMap<>();
+    //         Map<String, Object> resultado = new HashMap<>();
+    //         Map<String, Integer> estadosPorCantidad = new HashMap<>();
             
-            for (Empleado emp : empleados.getContent()) {
-                String estado = emp.getEstado();
-                estadosPorCantidad.put(estado, estadosPorCantidad.getOrDefault(estado, 0) + 1);
-            }
+    //         for (Empleado emp : empleados.getContent()) {
+    //             String estado = emp.getEstado();
+    //             estadosPorCantidad.put(estado, estadosPorCantidad.getOrDefault(estado, 0) + 1);
+    //         }
             
-            resultado.put("total_empleados_muestra", empleados.getContent().size());
-            resultado.put("total_empleados_bd", empleados.getTotalElements());
-            resultado.put("estados_encontrados", estadosPorCantidad);
-            resultado.put("empleados_muestra", empleados.getContent().stream()
-                .map(emp -> "Estado: " + emp.getEstado() + " - Nombre: " + emp.getNombre() + " - Empleado: " + emp.getNoEmple())
-                .collect(java.util.stream.Collectors.toList()));
+    //         resultado.put("total_empleados_muestra", empleados.getContent().size());
+    //         resultado.put("total_empleados_bd", empleados.getTotalElements());
+    //         resultado.put("estados_encontrados", estadosPorCantidad);
+    //         resultado.put("empleados_muestra", empleados.getContent().stream()
+    //             .map(emp -> "Estado: " + emp.getEstado() + " - Nombre: " + emp.getNombre() + " - Empleado: " + emp.getNoEmple())
+    //             .collect(java.util.stream.Collectors.toList()));
             
-            return ResponseEntity.ok(resultado);
+    //         return ResponseEntity.ok(resultado);
             
-        } catch (Exception e) {
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Error al verificar estados: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(errorResponse);
-        }
-    }
+    //     } catch (Exception e) {
+    //         Map<String, Object> errorResponse = new HashMap<>();
+    //         errorResponse.put("error", "Error al verificar estados: " + e.getMessage());
+    //         return ResponseEntity.internalServerError().body(errorResponse);
+    //     }
+    // }
     
     @GetMapping("/estados")
     @Operation(
@@ -460,22 +460,22 @@ public class EmpleadoController {
         }
     }
     
-    @PostMapping("/estados/recargar")
-    @Operation(
-        summary = "Recargar cache de estados",
-        description = "Recarga el cache de estados desde la base de datos"
-    )
-    public ResponseEntity<Map<String, Object>> recargarEstados() {
-        try {
-            estadoEmpleadoService.recargarCache();
-            Map<String, Object> response = new HashMap<>();
-            response.put("mensaje", "Cache de estados recargado exitosamente");
-            response.put("estados", estadoEmpleadoService.getTodosLosEstados());
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Error al recargar cache de estados: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(errorResponse);
-        }
-    }
+    // @PostMapping("/estados/recargar")
+    // @Operation(
+    //     summary = "Recargar cache de estados",
+    //     description = "Recarga el cache de estados desde la base de datos"
+    // )
+    // public ResponseEntity<Map<String, Object>> recargarEstados() {
+    //     try {
+    //         estadoEmpleadoService.recargarCache();
+    //         Map<String, Object> response = new HashMap<>();
+    //         response.put("mensaje", "Cache de estados recargado exitosamente");
+    //         response.put("estados", estadoEmpleadoService.getTodosLosEstados());
+    //         return ResponseEntity.ok(response);
+    //     } catch (Exception e) {
+    //         Map<String, Object> errorResponse = new HashMap<>();
+    //         errorResponse.put("error", "Error al recargar cache de estados: " + e.getMessage());
+    //         return ResponseEntity.internalServerError().body(errorResponse);
+    //     }
+    // }
 }

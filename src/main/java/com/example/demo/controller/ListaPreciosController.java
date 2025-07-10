@@ -108,52 +108,52 @@ public class ListaPreciosController {
         }
     }
 
-    @GetMapping("/debug")
-    @Operation(summary = "Debug: Ver tipos de datos y primeros registros")
-    public ResponseEntity<?> debugListaPrecios(
-            @RequestParam(required = false, defaultValue = "1") Integer noCia) {
+    // @GetMapping("/debug")
+    // @Operation(summary = "Debug: Ver tipos de datos y primeros registros")
+    // public ResponseEntity<?> debugListaPrecios(
+    //         @RequestParam(required = false, defaultValue = "1") Integer noCia) {
         
-        try {
-            // Buscar el grupo de mercado de portal para la compañía
-            List<FacwebGrupoMercado> gruposPortal = grupoMercadoRepository.findByIndPortalAndNoCia("S", noCia);
+    //     try {
+    //         // Buscar el grupo de mercado de portal para la compañía
+    //         List<FacwebGrupoMercado> gruposPortal = grupoMercadoRepository.findByIndPortalAndNoCia("S", noCia);
             
-            if (gruposPortal.isEmpty()) {
-                return ResponseEntity.badRequest()
-                    .body("No se encontró grupo de mercado de portal para la compañía " + noCia);
-            }
+    //         if (gruposPortal.isEmpty()) {
+    //             return ResponseEntity.badRequest()
+    //                 .body("No se encontró grupo de mercado de portal para la compañía " + noCia);
+    //         }
             
-            Integer noGrupo = gruposPortal.get(0).getNoGrupo();
+    //         Integer noGrupo = gruposPortal.get(0).getNoGrupo();
             
-            // Obtener solo los primeros 3 resultados para debug
-            List<Object[]> resultados = servicioRepository.findTodosServiciosConPrecioPortal(noCia, noGrupo);
+    //         // Obtener solo los primeros 3 resultados para debug
+    //         List<Object[]> resultados = servicioRepository.findTodosServiciosConPrecioPortal(noCia, noGrupo);
             
-            if (resultados.isEmpty()) {
-                return ResponseEntity.ok("No hay resultados para la consulta");
-            }
+    //         if (resultados.isEmpty()) {
+    //             return ResponseEntity.ok("No hay resultados para la consulta");
+    //         }
             
-            // Analizar el primer resultado
-            Object[] primerResultado = resultados.get(0);
-            StringBuilder debug = new StringBuilder();
-            debug.append("Total resultados: ").append(resultados.size()).append("\n");
-            debug.append("Número de columnas: ").append(primerResultado.length).append("\n");
-            debug.append("Tipos de datos por columna:\n");
+    //         // Analizar el primer resultado
+    //         Object[] primerResultado = resultados.get(0);
+    //         StringBuilder debug = new StringBuilder();
+    //         debug.append("Total resultados: ").append(resultados.size()).append("\n");
+    //         debug.append("Número de columnas: ").append(primerResultado.length).append("\n");
+    //         debug.append("Tipos de datos por columna:\n");
             
-            for (int i = 0; i < primerResultado.length; i++) {
-                Object valor = primerResultado[i];
-                debug.append("Columna ").append(i).append(": ");
-                if (valor == null) {
-                    debug.append("null");
-                } else {
-                    debug.append(valor.getClass().getSimpleName()).append(" = ").append(valor);
-                }
-                debug.append("\n");
-            }
+    //         for (int i = 0; i < primerResultado.length; i++) {
+    //             Object valor = primerResultado[i];
+    //             debug.append("Columna ").append(i).append(": ");
+    //             if (valor == null) {
+    //                 debug.append("null");
+    //             } else {
+    //                 debug.append(valor.getClass().getSimpleName()).append(" = ").append(valor);
+    //             }
+    //             debug.append("\n");
+    //         }
             
-            return ResponseEntity.ok(debug.toString());
+    //         return ResponseEntity.ok(debug.toString());
             
-        } catch (Exception e) {
-            return ResponseEntity.status(500)
-                .body("Error en debug: " + e.getMessage() + "\nCausa: " + e.getCause());
-        }
-    }
+    //     } catch (Exception e) {
+    //         return ResponseEntity.status(500)
+    //             .body("Error en debug: " + e.getMessage() + "\nCausa: " + e.getCause());
+    //     }
+    // }
 }

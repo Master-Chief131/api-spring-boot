@@ -65,7 +65,8 @@ public class PrefacturaController {    @Autowired
     @Autowired
     private JdbcTemplate jdbcTemplate;
     @Autowired
-    private ObjectMapper objectMapper;    @PostMapping
+    private ObjectMapper objectMapper;    /* ENDPOINT DESHABILITADO - PREFACTURA MAL CONFIGURADA
+    @PostMapping
     @Operation(
         summary = "Registrar nueva prefactura",
         description = "Registra una nueva prefactura o documento de salida en el sistema mediante procedimiento almacenado. " +
@@ -191,6 +192,7 @@ public class PrefacturaController {    @Autowired
             return ResponseEntity.status(500).body("Error al registrar prefactura: " + e.getMessage());
         }
     }
+    */
 
     @PostMapping("/cotizacion")
     @Operation(

@@ -88,33 +88,33 @@ public class ClienteController {
     return repository.findById(id).orElse(null);
   }
   */
-  @PutMapping("/{noCia}/{noCliente}/{grupo}")
-  @Operation(
-    summary = "Actualizar cliente existente",
-    description = "Actualiza completamente los datos de un cliente existente"
-  )
-  @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Cliente actualizado exitosamente",
-                content = @Content(schema = @Schema(implementation = Cliente.class))),
-    @ApiResponse(responseCode = "404", description = "Cliente no encontrado"),
-    @ApiResponse(responseCode = "400", description = "Datos del cliente inválidos")
-  })
-  public Cliente update(
-      @Parameter(description = "Número de compañía", example = "1", required = true)
-      @PathVariable int noCia, 
-      @Parameter(description = "Número único del cliente", example = "12345", required = true)
-      @PathVariable int noCliente, 
-      @Parameter(description = "Grupo al que pertenece el cliente", example = "1", required = true)
-      @PathVariable String grupo, 
-      @Parameter(description = "Datos actualizados del cliente", required = true)
-      @RequestBody Cliente cliente) {
-    ClienteId id = new ClienteId();
-    id.setNoCia(noCia);
-    id.setNoCliente(noCliente);
-    id.setGrupo(grupo);
-    cliente.setId(id);
-    return repository.save(cliente);
-  }
+  // @PutMapping("/{noCia}/{noCliente}/{grupo}")
+  // @Operation(
+  //   summary = "Actualizar cliente existente",
+  //   description = "Actualiza completamente los datos de un cliente existente"
+  // )
+  // @ApiResponses(value = {
+  //   @ApiResponse(responseCode = "200", description = "Cliente actualizado exitosamente",
+  //               content = @Content(schema = @Schema(implementation = Cliente.class))),
+  //   @ApiResponse(responseCode = "404", description = "Cliente no encontrado"),
+  //   @ApiResponse(responseCode = "400", description = "Datos del cliente inválidos")
+  // })
+  // public Cliente update(
+  //     @Parameter(description = "Número de compañía", example = "1", required = true)
+  //     @PathVariable int noCia, 
+  //     @Parameter(description = "Número único del cliente", example = "12345", required = true)
+  //     @PathVariable int noCliente, 
+  //     @Parameter(description = "Grupo al que pertenece el cliente", example = "1", required = true)
+  //     @PathVariable String grupo, 
+  //     @Parameter(description = "Datos actualizados del cliente", required = true)
+  //     @RequestBody Cliente cliente) {
+  //   ClienteId id = new ClienteId();
+  //   id.setNoCia(noCia);
+  //   id.setNoCliente(noCliente);
+  //   id.setGrupo(grupo);
+  //   cliente.setId(id);
+  //   return repository.save(cliente);
+  // }
   /*
   @DeleteMapping("/{noCia}/{noCliente}/{grupo}")
   @Operation(
@@ -426,145 +426,145 @@ public class ClienteController {
     }
     return response;
   }
-  @PostMapping("/registro-portal-web")
-  @Operation(
-    summary = "Registro de cliente desde formulario web",
-    description = "Procesa el registro de cliente desde un formulario web HTML. " +
-                  "Convierte los datos del formulario al formato requerido y ejecuta el registro completo."
-  )
-  @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Cliente registrado exitosamente desde formulario web"),
-    @ApiResponse(responseCode = "400", description = "Datos del formulario inválidos o mal formateados"),
-    @ApiResponse(responseCode = "500", description = "Error interno del servidor durante el procesamiento")
-  })  public Map<String, Object> registrarDesdePortalWeb(
-      @Parameter(description = "Datos del formulario web en formato clave-valor", 
-                 required = true)
-      @RequestBody Map<String, Object> clienteData) {
-    Map<String, Object> response = new HashMap<>();
+  // @PostMapping("/registro-portal-web")
+  // @Operation(
+  //   summary = "Registro de cliente desde formulario web",
+  //   description = "Procesa el registro de cliente desde un formulario web HTML. " +
+  //                 "Convierte los datos del formulario al formato requerido y ejecuta el registro completo."
+  // )
+  // @ApiResponses(value = {
+  //   @ApiResponse(responseCode = "200", description = "Cliente registrado exitosamente desde formulario web"),
+  //   @ApiResponse(responseCode = "400", description = "Datos del formulario inválidos o mal formateados"),
+  //   @ApiResponse(responseCode = "500", description = "Error interno del servidor durante el procesamiento")
+  // })  public Map<String, Object> registrarDesdePortalWeb(
+  //     @Parameter(description = "Datos del formulario web en formato clave-valor", 
+  //                required = true)
+  //     @RequestBody Map<String, Object> clienteData) {
+  //   Map<String, Object> response = new HashMap<>();
     
-    try {
-      System.out.println("=== DEBUG: Datos recibidos del formulario HTML ===");
-      System.out.println(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(clienteData));
+  //   try {
+  //     System.out.println("=== DEBUG: Datos recibidos del formulario HTML ===");
+  //     System.out.println(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(clienteData));
       
-      // Crear objeto Cliente a partir de los datos del formulario
-      Cliente cliente = new Cliente();
+  //     // Crear objeto Cliente a partir de los datos del formulario
+  //     Cliente cliente = new Cliente();
       
-      // ID compuesto
-      ClienteId clienteId = new ClienteId();
-      clienteId.setNoCia(((Map<String, Object>) clienteData.get("id")).get("noCia") != null ? 
-          Integer.parseInt(((Map<String, Object>) clienteData.get("id")).get("noCia").toString()) : 1);
-      clienteId.setGrupo(((Map<String, Object>) clienteData.get("id")).get("grupo") != null ? 
-          ((Map<String, Object>) clienteData.get("id")).get("grupo").toString() : "1");
-      cliente.setId(clienteId);
+  //     // ID compuesto
+  //     ClienteId clienteId = new ClienteId();
+  //     clienteId.setNoCia(((Map<String, Object>) clienteData.get("id")).get("noCia") != null ? 
+  //         Integer.parseInt(((Map<String, Object>) clienteData.get("id")).get("noCia").toString()) : 1);
+  //     clienteId.setGrupo(((Map<String, Object>) clienteData.get("id")).get("grupo") != null ? 
+  //         ((Map<String, Object>) clienteData.get("id")).get("grupo").toString() : "1");
+  //     cliente.setId(clienteId);
       
-      // Datos básicos
-      cliente.setNombre((String) clienteData.get("nombre"));
-      cliente.setPersonaNj((String) clienteData.get("personaNj"));
-      cliente.setTipoP((String) clienteData.get("tipoP"));
-      cliente.setRucCedula((String) clienteData.get("rucCedula"));
-      cliente.setDv((String) clienteData.get("dv"));
-      cliente.setTelefono((String) clienteData.get("telefono"));
-      cliente.setTelefono2((String) clienteData.get("telefono2"));
-      cliente.setEmail1((String) clienteData.get("email1"));
-      cliente.setDireccion((String) clienteData.get("direccion"));
+  //     // Datos básicos
+  //     cliente.setNombre((String) clienteData.get("nombre"));
+  //     cliente.setPersonaNj((String) clienteData.get("personaNj"));
+  //     cliente.setTipoP((String) clienteData.get("tipoP"));
+  //     cliente.setRucCedula((String) clienteData.get("rucCedula"));
+  //     cliente.setDv((String) clienteData.get("dv"));
+  //     cliente.setTelefono((String) clienteData.get("telefono"));
+  //     cliente.setTelefono2((String) clienteData.get("telefono2"));
+  //     cliente.setEmail1((String) clienteData.get("email1"));
+  //     cliente.setDireccion((String) clienteData.get("direccion"));
       
-      // Campos de empresa
-      if (clienteData.get("noActividad") != null) {
-        cliente.setNoActividad(Integer.parseInt(clienteData.get("noActividad").toString()));
-      }
-      if (clienteData.get("noTipoEmpresa") != null) {
-        cliente.setNoTipoEmpresa(Integer.parseInt(clienteData.get("noTipoEmpresa").toString()));
-      }
+  //     // Campos de empresa
+  //     if (clienteData.get("noActividad") != null) {
+  //       cliente.setNoActividad(Integer.parseInt(clienteData.get("noActividad").toString()));
+  //     }
+  //     if (clienteData.get("noTipoEmpresa") != null) {
+  //       cliente.setNoTipoEmpresa(Integer.parseInt(clienteData.get("noTipoEmpresa").toString()));
+  //     }
       
-      // Origen y plazo por defecto
-      cliente.setNoOrigen(clienteData.get("noOrigen") != null ? 
-          Integer.parseInt(clienteData.get("noOrigen").toString()) : 9);
-      cliente.setNoPlazo(clienteData.get("noPlazo") != null ? 
-          Integer.parseInt(clienteData.get("noPlazo").toString()) : 6);
+  //     // Origen y plazo por defecto
+  //     cliente.setNoOrigen(clienteData.get("noOrigen") != null ? 
+  //         Integer.parseInt(clienteData.get("noOrigen").toString()) : 9);
+  //     cliente.setNoPlazo(clienteData.get("noPlazo") != null ? 
+  //         Integer.parseInt(clienteData.get("noPlazo").toString()) : 6);
       
-      // Datos de ubicación
-      cliente.setNoPais(clienteData.get("noPais") != null ? 
-          Integer.parseInt(clienteData.get("noPais").toString()) : 507);
-      cliente.setNoProvincia(clienteData.get("noProvincia") != null ? 
-          Integer.parseInt(clienteData.get("noProvincia").toString()) : 1);
-      cliente.setNoDistrito(clienteData.get("noDistrito") != null ? 
-          Integer.parseInt(clienteData.get("noDistrito").toString()) : 1);
-      cliente.setNoCorregimiento(clienteData.get("noCorregimiento") != null ? 
-          Integer.parseInt(clienteData.get("noCorregimiento").toString()) : 1);
+  //     // Datos de ubicación
+  //     cliente.setNoPais(clienteData.get("noPais") != null ? 
+  //         Integer.parseInt(clienteData.get("noPais").toString()) : 507);
+  //     cliente.setNoProvincia(clienteData.get("noProvincia") != null ? 
+  //         Integer.parseInt(clienteData.get("noProvincia").toString()) : 1);
+  //     cliente.setNoDistrito(clienteData.get("noDistrito") != null ? 
+  //         Integer.parseInt(clienteData.get("noDistrito").toString()) : 1);
+  //     cliente.setNoCorregimiento(clienteData.get("noCorregimiento") != null ? 
+  //         Integer.parseInt(clienteData.get("noCorregimiento").toString()) : 1);
       
-      // Datos adicionales para persona natural
-      if ("N".equals(clienteData.get("personaNj"))) {
-        cliente.setApellidoCont((String) clienteData.get("apellidoCont"));        cliente.setMovil((String) clienteData.get("movil"));
-        cliente.setIndSexo((String) clienteData.get("indSexo"));
-        if (clienteData.get("fechaNacimiento") != null) {
-          String fechaNacimientoStr = (String) clienteData.get("fechaNacimiento");
-          if (fechaNacimientoStr != null && !fechaNacimientoStr.isEmpty()) {
-            cliente.setFechaNacimiento(java.time.LocalDate.parse(fechaNacimientoStr));
-          }
-        }
-      } else {
-        // Para persona jurídica, configurar contacto
-        cliente.setNombreCont((String) clienteData.get("nombreCont"));
-        cliente.setApellidoCont((String) clienteData.get("apellidoCont"));
+  //     // Datos adicionales para persona natural
+  //     if ("N".equals(clienteData.get("personaNj"))) {
+  //       cliente.setApellidoCont((String) clienteData.get("apellidoCont"));        cliente.setMovil((String) clienteData.get("movil"));
+  //       cliente.setIndSexo((String) clienteData.get("indSexo"));
+  //       if (clienteData.get("fechaNacimiento") != null) {
+  //         String fechaNacimientoStr = (String) clienteData.get("fechaNacimiento");
+  //         if (fechaNacimientoStr != null && !fechaNacimientoStr.isEmpty()) {
+  //           cliente.setFechaNacimiento(java.time.LocalDate.parse(fechaNacimientoStr));
+  //         }
+  //       }
+  //     } else {
+  //       // Para persona jurídica, configurar contacto
+  //       cliente.setNombreCont((String) clienteData.get("nombreCont"));
+  //       cliente.setApellidoCont((String) clienteData.get("apellidoCont"));
         
-        // Configurar objeto contacto si existe
-        Map<String, Object> contactoMap = (Map<String, Object>) clienteData.get("contacto");
-        if (contactoMap != null) {
-          ContactoDTO contacto = new ContactoDTO();
-          contacto.setNombre((String) contactoMap.get("nombre"));
-          contacto.setApellido((String) contactoMap.get("apellido"));
-          contacto.setCedula((String) contactoMap.get("cedula"));
-          contacto.setCargo((String) contactoMap.get("cargo"));
-          contacto.setTelefono((String) contactoMap.get("telefono"));
-          contacto.setMovil((String) contactoMap.get("movil"));
-          contacto.setEmail((String) contactoMap.get("email"));
-          contacto.setExtension((String) contactoMap.get("extension"));
-          contacto.setDepartamento((String) contactoMap.get("departamento"));
-          contacto.setTelefonoOficina((String) contactoMap.get("telefonoOficina"));
-          contacto.setUsuarioCreacion((String) contactoMap.get("usuarioCreacion"));
-          contacto.setFechaCreacion((String) contactoMap.get("fechaCreacion"));
-          cliente.setContacto(contacto);
-        }
-      }      // Configurar objeto usuario
-      Map<String, Object> usuarioMap = (Map<String, Object>) clienteData.get("usuario");
-      if (usuarioMap != null) {
-        UsuarioDTO usuario = new UsuarioDTO();
-        usuario.setUsuario((String) usuarioMap.get("usuario"));
-        usuario.setNomUsuario((String) usuarioMap.get("nomUsuario"));
-        usuario.setApeUsuario((String) usuarioMap.get("apeUsuario"));
-        usuario.setEmail((String) usuarioMap.get("email"));
-        usuario.setClave((String) usuarioMap.get("clave"));
-        usuario.setIndActivo((String) usuarioMap.get("indActivo"));
-        usuario.setIndCliente((String) usuarioMap.get("indCliente"));
-        usuario.setIndVendedor((String) usuarioMap.get("indVendedor"));
-        usuario.setCreaCliente((String) usuarioMap.get("creaCliente"));
-        usuario.setAutorizaDescuento((String) usuarioMap.get("autorizaDescuento"));
-        usuario.setAutorizaCompra((String) usuarioMap.get("autorizaCompra"));
-        usuario.setVerImagenesPortal((String) usuarioMap.get("verImagenesPortal"));
-        usuario.setVerGraficasPortal((String) usuarioMap.get("verGraficasPortal"));
-        usuario.setIndVerPreciosInventario((String) usuarioMap.get("indVerPreciosInventario"));
-        usuario.setFcCambiaPrecio((String) usuarioMap.get("fcCambiaPrecio"));
-        usuario.setMontoAutoriza((String) usuarioMap.get("montoAutoriza"));
-        cliente.setUsuario(usuario);
-      }
+  //       // Configurar objeto contacto si existe
+  //       Map<String, Object> contactoMap = (Map<String, Object>) clienteData.get("contacto");
+  //       if (contactoMap != null) {
+  //         ContactoDTO contacto = new ContactoDTO();
+  //         contacto.setNombre((String) contactoMap.get("nombre"));
+  //         contacto.setApellido((String) contactoMap.get("apellido"));
+  //         contacto.setCedula((String) contactoMap.get("cedula"));
+  //         contacto.setCargo((String) contactoMap.get("cargo"));
+  //         contacto.setTelefono((String) contactoMap.get("telefono"));
+  //         contacto.setMovil((String) contactoMap.get("movil"));
+  //         contacto.setEmail((String) contactoMap.get("email"));
+  //         contacto.setExtension((String) contactoMap.get("extension"));
+  //         contacto.setDepartamento((String) contactoMap.get("departamento"));
+  //         contacto.setTelefonoOficina((String) contactoMap.get("telefonoOficina"));
+  //         contacto.setUsuarioCreacion((String) contactoMap.get("usuarioCreacion"));
+  //         contacto.setFechaCreacion((String) contactoMap.get("fechaCreacion"));
+  //         cliente.setContacto(contacto);
+  //       }
+  //     }      // Configurar objeto usuario
+  //     Map<String, Object> usuarioMap = (Map<String, Object>) clienteData.get("usuario");
+  //     if (usuarioMap != null) {
+  //       UsuarioDTO usuario = new UsuarioDTO();
+  //       usuario.setUsuario((String) usuarioMap.get("usuario"));
+  //       usuario.setNomUsuario((String) usuarioMap.get("nomUsuario"));
+  //       usuario.setApeUsuario((String) usuarioMap.get("apeUsuario"));
+  //       usuario.setEmail((String) usuarioMap.get("email"));
+  //       usuario.setClave((String) usuarioMap.get("clave"));
+  //       usuario.setIndActivo((String) usuarioMap.get("indActivo"));
+  //       usuario.setIndCliente((String) usuarioMap.get("indCliente"));
+  //       usuario.setIndVendedor((String) usuarioMap.get("indVendedor"));
+  //       usuario.setCreaCliente((String) usuarioMap.get("creaCliente"));
+  //       usuario.setAutorizaDescuento((String) usuarioMap.get("autorizaDescuento"));
+  //       usuario.setAutorizaCompra((String) usuarioMap.get("autorizaCompra"));
+  //       usuario.setVerImagenesPortal((String) usuarioMap.get("verImagenesPortal"));
+  //       usuario.setVerGraficasPortal((String) usuarioMap.get("verGraficasPortal"));
+  //       usuario.setIndVerPreciosInventario((String) usuarioMap.get("indVerPreciosInventario"));
+  //       usuario.setFcCambiaPrecio((String) usuarioMap.get("fcCambiaPrecio"));
+  //       usuario.setMontoAutoriza((String) usuarioMap.get("montoAutoriza"));
+  //       cliente.setUsuario(usuario);
+  //     }
       
-      // Configurar valores por defecto
-      cliente.setAccesoWeb((String) clienteData.get("accesoWeb"));
-      cliente.setUsuarioCreacion((String) clienteData.get("usuarioCreacion"));
-      cliente.setModuloOrigen((String) clienteData.get("moduloOrigen"));
+  //     // Configurar valores por defecto
+  //     cliente.setAccesoWeb((String) clienteData.get("accesoWeb"));
+  //     cliente.setUsuarioCreacion((String) clienteData.get("usuarioCreacion"));
+  //     cliente.setModuloOrigen((String) clienteData.get("moduloOrigen"));
       
-      // Llamar al método original de registro
-      return registrarDesdePortal(cliente);
+  //     // Llamar al método original de registro
+  //     return registrarDesdePortal(cliente);
       
-    } catch (Exception e) {
-      System.err.println("Error en registrarDesdePortalWeb: " + e.getMessage());
-      e.printStackTrace();
-      response.put("success", false);
-      response.put("mensaje", "Error al procesar datos del formulario: " + e.getMessage());
-      response.put("datos_recibidos", clienteData);
-      return response;
-    }
-  }
+  //   } catch (Exception e) {
+  //     System.err.println("Error en registrarDesdePortalWeb: " + e.getMessage());
+  //     e.printStackTrace();
+  //     response.put("success", false);
+  //     response.put("mensaje", "Error al procesar datos del formulario: " + e.getMessage());
+  //     response.put("datos_recibidos", clienteData);
+  //     return response;
+  //   }
+  // }
 
   private Map<String, Object> registrarContacto(Cliente cliente, int vSecuencial, java.sql.Connection conn) {
     Map<String, Object> contactoInfo = new HashMap<>();

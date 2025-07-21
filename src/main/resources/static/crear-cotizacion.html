@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>Crear Cotización</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="js/api-url-helper.js"></script>
+    <style>
+        .form-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        .detalle-item {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: white;
+        }
+        .detalle-header {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .btn-remove {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        .response-section {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .success {
+            background-color: #d1edff;
+            border-left: 4px solid #007bff;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+        .json-response {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .btn-regresar { 
+            background: #6c757d; 
+            color: white; 
+            text-decoration: none; 
+            padding: 8px 16px; 
+            border-radius: 4px; 
+            margin-bottom: 20px; 
+            display: inline-block;
+            transition: background 0.2s; 
+        }
+        .btn-regresar:hover { background: #5a6268; color: white; }
+    </style>
+</head>
+<body>    <div class="container mt-4">
+        <!-- Header -->
+        <div class="row">
+            <div class="col-12">
+                <a href="ejemplos.html" class="btn-regresar">← Regresar al Inicio</a>
+                <h1 class="mb-4">
+                    <i class="fas fa-file-contract"></i> Crear Cotización
+                </h1>
+                <p class="text-muted">Complete el formulario para crear una nueva cotización que será procesada por el procedimiento almacenado SOLI_ORDEN_COTIZACION.</p>
+            </div>
+        </div>
+
+        <form id="cotizacionForm">
+            <!-- Información de la Compañía -->
+            <div class="form-section">
+                <h4 class="section-title"><i class="fas fa-building"></i> Información de la Compañía</h4>
+                <div class="row">
+                    <div class="col-md-4">
+                        <label for="noCia" class="form-label">Compañía *</label>
+                        <input type="number" class="form-control" id="noCia" required value="1">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="noSucursal" class="form-label">Sucursal *</label>
+                        <input type="number" class="form-control" id="noSucursal" required value="1">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="noBodega" class="form-label">Bodega *</label>
+                        <input type="number" class="form-control" id="noBodega" required value="1">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información General -->
+            <div class="form-section">
+                <h4 class="section-title"><i class="fas fa-info-circle"></i> Información General</h4>
+                <div class="row">
+                    <div class="col-md-4">
+                        <label for="fecha" class="form-label">Fecha *</label>
+                        <input type="date" class="form-control" id="fecha" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="noVendedor" class="form-label">Vendedor *</label>
+                        <input type="text" class="form-control" id="noVendedor" required placeholder="Código del vendedor">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="tipoFactura" class="form-label">Tipo Factura *</label>
+                        <select class="form-select" id="tipoFactura" required>
+                            <option value="">Seleccionar</option>
+                            <option value="CON">Contado</option>
+                            <option value="CRE">Crédito</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <label for="observacion" class="form-label">Observación</label>
+                        <textarea class="form-control" id="observacion" rows="3" placeholder="Observaciones adicionales"></textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-12">
+                                <label for="estatus" class="form-label">Estatus</label>
+                                <select class="form-select" id="estatus">
+                                    <option value="A">Activo</option>
+                                    <option value="I">Inactivo</option>
+                                </select>
+                            </div>
+                            <div class="col-12 mt-2">
+                                <label for="moneda" class="form-label">Moneda</label>
+                                <select class="form-select" id="moneda">
+                                    <option value="1">Dólares</option>
+                                    <option value="2">Balboas</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información del Cliente -->
+            <div class="form-section">
+                <h4 class="section-title"><i class="fas fa-user"></i> Información del Cliente</h4>
+                <div class="row">
+                    <div class="col-md-4">
+                        <label for="noCliente" class="form-label">Cliente *</label>
+                        <input type="number" class="form-control" id="noCliente" required placeholder="Número de cliente">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="nomCliente" class="form-label">Nombre del Cliente *</label>
+                        <input type="text" class="form-control" id="nomCliente" required placeholder="Nombre completo">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="rucCedula" class="form-label">RUC/Cédula</label>
+                        <input type="text" class="form-control" id="rucCedula" placeholder="RUC o cédula">
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" placeholder="cliente@email.com">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="grupoCliente" class="form-label">Grupo Cliente</label>
+                        <input type="text" class="form-control" id="grupoCliente" placeholder="Grupo">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="indLocalidad" class="form-label">Localidad</label>
+                        <select class="form-select" id="indLocalidad">
+                            <option value="L">Local</option>
+                            <option value="E">Exterior</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información Adicional -->
+            <div class="form-section">
+                <h4 class="section-title"><i class="fas fa-cogs"></i> Información Adicional</h4>
+                <div class="row">
+                    <div class="col-md-4">
+                        <label for="fechaEntrega" class="form-label">Fecha de Entrega</label>
+                        <input type="date" class="form-control" id="fechaEntrega">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="tipoVenta" class="form-label">Tipo de Venta</label>
+                        <input type="number" class="form-control" id="tipoVenta" placeholder="1">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="noOrdenCompra" class="form-label">Orden de Compra</label>
+                        <input type="text" class="form-control" id="noOrdenCompra" placeholder="Número de OC">
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <label for="piliminar" class="form-label">Preliminar</label>
+                        <select class="form-select" id="piliminar">
+                            <option value="N">No</option>
+                            <option value="S">Sí</option>
+                            <option value="L">Lista</option>
+                            <option value="A">Aprobado</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="origenSolicitud" class="form-label">Origen Solicitud</label>
+                        <select class="form-select" id="origenSolicitud">
+                            <option value="PO">Portal Pedidos</option>
+                            <option value="PM">Portal Móvil</option>
+                            <option value="ER">ERP</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="usuario" class="form-label">Usuario</label>
+                        <input type="text" class="form-control" id="usuario" placeholder="Usuario que crea">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detalle de Productos -->
+            <div class="form-section">
+                <h4 class="section-title">
+                    <i class="fas fa-shopping-cart"></i> Detalle de Productos
+                    <button type="button" class="btn btn-success btn-sm float-end" onclick="agregarDetalle()">
+                        <i class="fas fa-plus"></i> Agregar Producto
+                    </button>
+                </h4>
+                <div id="detallesContainer">
+                    <!-- Los detalles se agregan dinámicamente aquí -->
+                </div>
+            </div>            <!-- Botones de Acción -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary btn-lg me-3">
+                        <i class="fas fa-paper-plane"></i> Enviar Cotización (Tradicional)
+                    </button>
+                    <button type="button" class="btn btn-success btn-lg me-3" onclick="enviarCotizacionApi()">
+                        <i class="fas fa-rocket"></i> Enviar con API_COTIZACION
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-lg me-3" onclick="limpiarFormulario()">
+                        <i class="fas fa-broom"></i> Limpiar
+                    </button>
+                    <button type="button" class="btn btn-info btn-lg" onclick="previewJSON()">
+                        <i class="fas fa-eye"></i> Preview JSON
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Loading -->
+        <div id="loading" class="loading">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Enviando...</span>
+            </div>
+            <p class="mt-2">Procesando cotización...</p>
+        </div>
+
+        <!-- Respuesta del Servidor -->
+        <div id="responseSection" style="display: none;"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let contadorDetalle = 0;
+
+        // Inicializar formulario
+        document.addEventListener('DOMContentLoaded', function() {
+            // Establecer fecha actual
+            document.getElementById('fecha').valueAsDate = new Date();
+            
+            // Agregar primer detalle por defecto
+            agregarDetalle();
+        });
+
+        function agregarDetalle() {
+            contadorDetalle++;
+            const container = document.getElementById('detallesContainer');
+            
+            const detalleHTML = `
+                <div class="detalle-item position-relative" id="detalle-${contadorDetalle}">
+                    <div class="detalle-header">
+                        Producto #${contadorDetalle}
+                        <button type="button" class="btn btn-danger btn-sm btn-remove" onclick="eliminarDetalle(${contadorDetalle})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label">Código de Artículo *</label>
+                            <input type="text" class="form-control articulo-input" name="noArticulo_${contadorDetalle}" required placeholder="Código">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Descripción</label>
+                            <input type="text" class="form-control" name="descripcion_${contadorDetalle}" placeholder="Descripción del producto">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Cantidad *</label>
+                            <input type="number" class="form-control cantidad-input" name="cantidad_${contadorDetalle}" required min="1" step="0.01" value="1">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Precio</label>
+                            <input type="number" class="form-control precio-input" name="precio_${contadorDetalle}" step="0.01" min="0" placeholder="0.00">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Subtotal</label>
+                            <input type="number" class="form-control subtotal-input" name="subtotal_${contadorDetalle}" step="0.01" readonly>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-3">
+                            <label class="form-label">Código de Barras</label>
+                            <input type="text" class="form-control" name="codBarra_${contadorDetalle}" placeholder="Código de barras">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Unidad</label>
+                            <input type="text" class="form-control" name="noUnidad_${contadorDetalle}" placeholder="UND">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">% Descuento</label>
+                            <input type="number" class="form-control descuento-input" name="porcentajeDescuento_${contadorDetalle}" step="0.01" min="0" max="100" value="0">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">% Impuesto</label>
+                            <input type="number" class="form-control impuesto-input" name="porcentajeImpuesto_${contadorDetalle}" step="0.01" min="0" value="7">
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.insertAdjacentHTML('beforeend', detalleHTML);
+            
+            // Agregar event listeners para cálculos automáticos
+            const detalleElement = document.getElementById(`detalle-${contadorDetalle}`);
+            const cantidadInput = detalleElement.querySelector('.cantidad-input');
+            const precioInput = detalleElement.querySelector('.precio-input');
+            const descuentoInput = detalleElement.querySelector('.descuento-input');
+            const subtotalInput = detalleElement.querySelector('.subtotal-input');
+            
+            [cantidadInput, precioInput, descuentoInput].forEach(input => {
+                input.addEventListener('input', () => calcularSubtotal(contadorDetalle));
+            });
+        }
+
+        function eliminarDetalle(id) {
+            const detalle = document.getElementById(`detalle-${id}`);
+            if (detalle) {
+                detalle.remove();
+            }
+            
+            // Verificar que quede al menos un detalle
+            const detalles = document.querySelectorAll('.detalle-item');
+            if (detalles.length === 0) {
+                agregarDetalle();
+            }
+        }
+
+        function calcularSubtotal(id) {
+            const detalle = document.getElementById(`detalle-${id}`);
+            if (!detalle) return;
+            
+            const cantidad = parseFloat(detalle.querySelector('.cantidad-input').value) || 0;
+            const precio = parseFloat(detalle.querySelector('.precio-input').value) || 0;
+            const descuento = parseFloat(detalle.querySelector('.descuento-input').value) || 0;
+            
+            const subtotalBruto = cantidad * precio;
+            const descuentoValor = subtotalBruto * (descuento / 100);
+            const subtotal = subtotalBruto - descuentoValor;
+            
+            detalle.querySelector('.subtotal-input').value = subtotal.toFixed(2);
+        }
+
+        function recopilarDatos() {
+            const formData = {
+                // Cabecera
+                noCia: document.getElementById('noCia').value,
+                noSucursal: document.getElementById('noSucursal').value,
+                noBodega: document.getElementById('noBodega').value,
+                noSolicitud: "", // Se genera automáticamente
+                fecha: document.getElementById('fecha').value,
+                noVendedor: document.getElementById('noVendedor').value,
+                noCliente: document.getElementById('noCliente').value,
+                tipoFactura: document.getElementById('tipoFactura').value,
+                porcentajeDescuento: parseFloat(document.getElementById('porcentajeDescuento')?.value) || null,
+                descuentoNominal: null,
+                subtotalNominal: null,
+                impuestoNominal: null,
+                totalNominal: null,
+                descuentoDolar: null,
+                subtotalDolar: null,
+                impuestoDolar: null,
+                totalDolar: null,
+                tipoCambio: document.getElementById('tipoCambio')?.value || null,
+                moneda: document.getElementById('moneda').value,
+                fechaCambio: null,
+                usuario: document.getElementById('usuario').value,
+                estatus: document.getElementById('estatus').value,
+                observacion: document.getElementById('observacion').value,
+                fechaEntrega: document.getElementById('fechaEntrega').value || null,
+                nomCliente: document.getElementById('nomCliente').value,
+                tipoVenta: parseInt(document.getElementById('tipoVenta').value) || null,
+                noSucursalV: document.getElementById('noSucursal').value, // Misma sucursal por defecto
+                piliminar: document.getElementById('piliminar').value,
+                noOrdenCompra: document.getElementById('noOrdenCompra').value,
+                alias: null,
+                noProveedor: null,
+                noClase: null,
+                ciaOferta: null,
+                proveOferta: null,
+                porcDescCia: null,
+                porcDescProve: null,
+                tipoOferta: null,
+                cantOfe: null,
+                artiOfe: null,
+                codigoPromo1: null,
+                codigoPromo2: null,
+                origenSolicitud: document.getElementById('origenSolicitud').value,
+                sucursalCliente: null,
+                noPlazo: null,
+                indLocalidad: document.getElementById('indLocalidad').value,
+                grupoCliente: document.getElementById('grupoCliente').value,
+                email: document.getElementById('email').value,
+                noReferido: null,
+                nomReferido: null,
+                rucCedula: document.getElementById('rucCedula').value,
+                
+                // Detalle
+                detalle: []
+            };
+
+            // Recopilar detalle de productos
+            const detalles = document.querySelectorAll('.detalle-item');
+            detalles.forEach(detalle => {
+                const id = detalle.id.split('-')[1];
+                const detalleData = {
+                    linea: null,
+                    noArticulo: detalle.querySelector(`[name="noArticulo_${id}"]`).value,
+                    cantidad: detalle.querySelector(`[name="cantidad_${id}"]`).value,
+                    codBarra: detalle.querySelector(`[name="codBarra_${id}"]`).value,
+                    descripcion: detalle.querySelector(`[name="descripcion_${id}"]`).value,
+                    precio: parseFloat(detalle.querySelector(`[name="precio_${id}"]`).value) || null,
+                    precioDolar: null,
+                    porcentajeDescuento: parseFloat(detalle.querySelector(`[name="porcentajeDescuento_${id}"]`).value) || null,
+                    subtotal: parseFloat(detalle.querySelector(`[name="subtotal_${id}"]`).value) || null,
+                    subtotalDolar: null,
+                    descuento: null,
+                    descuentoDolar: null,
+                    impuestoNominal: null,
+                    impuestoDolar: null,
+                    total: null,
+                    totalDolar: null,
+                    porcentajeImpuesto: parseFloat(detalle.querySelector(`[name="porcentajeImpuesto_${id}"]`).value) || null,
+                    noUnidad: detalle.querySelector(`[name="noUnidad_${id}"]`).value,
+                    costoPromedio: null,
+                    mtsXCaja: null,
+                    serie: null,
+                    noImpuesto: null,
+                    excento: null,
+                    precioNuevo: null,
+                    precioNuevoDolar: null,
+                    noBodega: formData.noBodega,
+                    tipoArticulo: null,
+                    noSucursal: formData.noSucursal,
+                    cantidadEq: null,
+                    noUnidadEq: null,
+                    noGrupoMercado: null
+                };
+                formData.detalle.push(detalleData);
+            });
+
+            return formData;
+        }
+
+        function previewJSON() {
+            const datos = recopilarDatos();
+            const jsonString = JSON.stringify(datos, null, 2);
+            
+            mostrarRespuesta('Preview del JSON a enviar:', jsonString, 'info');
+        }        async function enviarCotizacion(datos) {
+            const endpoint = '/api/prefactura-db/cotizacion';
+            const fullUrl = buildApiUrl(endpoint);
+            
+            console.log('Enviando cotización a:', fullUrl); // Para debugging
+            
+            const response = await fetch(fullUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(datos)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error ${response.status}: ${response.statusText}`);
+            }
+
+            return await response.json();
+        }
+
+        function mostrarRespuesta(titulo, contenido, tipo = 'success') {
+            const responseSection = document.getElementById('responseSection');
+            const claseCSS = tipo === 'success' ? 'success' : tipo === 'error' ? 'error' : '';
+            
+            responseSection.innerHTML = `
+                <div class="response-section ${claseCSS}">
+                    <h5><i class="fas fa-${tipo === 'success' ? 'check-circle' : tipo === 'error' ? 'exclamation-triangle' : 'info-circle'}"></i> ${titulo}</h5>
+                    <div class="json-response">${contenido}</div>
+                </div>
+            `;
+            responseSection.style.display = 'block';
+            
+            // Scroll hacia la respuesta
+            responseSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function limpiarFormulario() {
+            document.getElementById('cotizacionForm').reset();
+            document.getElementById('fecha').valueAsDate = new Date();
+            document.getElementById('detallesContainer').innerHTML = '';
+            document.getElementById('responseSection').style.display = 'none';
+            contadorDetalle = 0;
+            agregarDetalle();        }
+
+        // Función para enviar cotización usando el nuevo endpoint API_COTIZACION
+        async function enviarCotizacionApi() {
+            const loadingElement = document.getElementById('loading');
+            
+            try {
+                loadingElement.style.display = 'block';
+                
+                const formData = recopilarDatos();
+                
+                // Agregar campos específicos para API_COTIZACION
+                formData.origenProceso = 'A'; // A = API, W = Web, etc.
+                formData.noCotizacion = '0'; // 0 para nueva cotización
+                
+                const fullUrl = buildApiUrl('/api/prefactura-db/cotizacion-api');
+                
+                const response = await fetch(fullUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                
+                if (response.ok && result.estado === 'exitoso') {
+                    mostrarRespuesta(
+                        'Cotización procesada exitosamente con API_COTIZACION',
+                        `${result.mensaje}\n\nDetalle del proceso:\n${result.detalleProceso}\n\nNúmero de solicitud generada: ${result.noSolicitudGenerada}`,
+                        'success'
+                    );
+                } else {
+                    mostrarRespuesta(
+                        'Error al procesar cotización',
+                        result.mensaje || 'Error desconocido',
+                        'error'
+                    );
+                }
+                
+            } catch (error) {
+                mostrarRespuesta(
+                    'Error de conexión',
+                    'No se pudo conectar con el servidor: ' + error.message,
+                    'error'
+                );
+            } finally {
+                loadingElement.style.display = 'none';
+            }
+        }
+
+        // Manejar envío del formulario
+        document.getElementById('cotizacionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const loadingElement = document.getElementById('loading');
+            
+            try {
+                loadingElement.style.display = 'block';
+                
+                const datos = recopilarDatos();
+                const resultado = await enviarCotizacion(datos);
+                
+                mostrarRespuesta(
+                    'Cotización creada exitosamente',
+                    JSON.stringify(resultado, null, 2),
+                    'success'
+                );
+                
+            } catch (error) {
+                mostrarRespuesta(
+                    'Error al crear la cotización',
+                    error.message,
+                    'error'
+                );
+            } finally {
+                loadingElement.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

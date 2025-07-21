@@ -2,8 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Familias con Imagen</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Familias con Imagen</title>  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="images/logos/logo_icono.svg" type="image/svg+xml">
+  <script src="js/api-url-helper.js"></script>
   <style>
     body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0; }
     .container { max-width: 900px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 2em; }
@@ -12,44 +13,161 @@
     .familia-card { background: #e3f2fd; border-radius: 8px; box-shadow: 0 1px 4px #0001; padding: 1.5em; width: 220px; display: flex; flex-direction: column; align-items: center; transition: box-shadow 0.2s; }
     .familia-card:hover { box-shadow: 0 4px 16px #0002; }
     .familia-img { width: 120px; height: 120px; object-fit: contain; border-radius: 6px; background: #fff; border: 1px solid #b3c6e0; margin-bottom: 1em; }
-    .familia-nombre { font-size: 1.1em; font-weight: bold; color: #1976d2; margin-bottom: 0.5em; text-align: center; }
-    .familia-codigo { color: #555; font-size: 0.95em; margin-bottom: 0.5em; }
+    .familia-nombre { font-size: 1.1em; font-weight: bold; color: #1976d2; margin-bottom: 0.5em; text-align: center; }    .familia-codigo { color: #555; font-size: 0.95em; margin-bottom: 0.5em; }
     .sin-imagen { color: #b0b0b0; font-size: 0.9em; margin-bottom: 1em; }
+    .btn-regresar { 
+      display: inline-block; 
+      background: #1976d2; 
+      color: white; 
+      text-decoration: none; 
+      padding: 10px 20px; 
+      border-radius: 6px; 
+      margin-bottom: 20px; 
+      transition: background 0.2s; 
+    }    .btn-regresar:hover { background: #1565c0; color: white; }
+    
+    /* Estilos para el filtro */
+    .filtro-container { 
+      display: flex; 
+      gap: 10px; 
+      align-items: center; 
+      margin-bottom: 20px; 
+      justify-content: center; 
+    }
+    .filtro-input { 
+      padding: 10px; 
+      border: 1px solid #ddd; 
+      border-radius: 4px; 
+      font-size: 16px; 
+      min-width: 300px; 
+    }
+    .filtro-btn { 
+      padding: 10px 20px; 
+      background: #1976d2; 
+      color: white; 
+      border: none; 
+      border-radius: 4px; 
+      cursor: pointer; 
+      font-size: 16px; 
+    }
+    .filtro-btn:hover { background: #1565c0; }
+    .contador-resultados { 
+      text-align: center; 
+      color: #666; 
+      margin-bottom: 15px; 
+      font-style: italic; 
+    }
   </style>
 </head>
 <body>
 <div class="container">
+  <a href="ejemplos.html" class="btn-regresar">← Regresar al Inicio</a>
   <h2>Familias de Productos</h2>
+  
+  <!-- Filtro de búsqueda -->
+  <div class="filtro-container">
+    <input type="text" id="filtroInput" class="filtro-input" placeholder="Buscar por nombre o código de familia..." onkeyup="filtrarFamilias()">
+    <button class="filtro-btn" onclick="limpiarFiltro()">Limpiar</button>
+  </div>
+  
+  <div id="contadorResultados" class="contador-resultados"></div>
   <div id="familias" class="familias-grid"></div>
 </div>
+
 <script>
+let todasLasFamilias = []; // Variable global para almacenar todas las familias
+
 async function cargarFamilias() {
   const contenedor = document.getElementById('familias');
-  contenedor.innerHTML = '<div>Cargando...</div>';
+  contenedor.innerHTML = '<div>Cargando...</div>';  
+
   try {
-    const res = await fetch('/api/familias-producto');
+    const res = await fetch(buildApiUrl('/api/familias-producto'));
     const data = await res.json();
+    
     if (!Array.isArray(data) || data.length === 0) {
       contenedor.innerHTML = '<div>No hay familias para mostrar.</div>';
+      actualizarContador(0, 0);
       return;
     }
-    contenedor.innerHTML = '';
-    data.forEach(fam => {
-      const card = document.createElement('div');
-      card.className = 'familia-card';
-      if (fam.imagenUrl) {
-        card.innerHTML += `<img class="familia-img" src="${fam.imagenUrl}" alt="Imagen Familia">`;
-      } else {
-        card.innerHTML += `<div class="familia-img sin-imagen">Sin imagen</div>`;
-      }
-      card.innerHTML += `<div class="familia-nombre">${fam.nombre || ''}</div>`;
-      card.innerHTML += `<div class="familia-codigo">Código: ${fam.noFamilia || ''}</div>`;
-      contenedor.appendChild(card);
-    });
+    
+    todasLasFamilias = data; // Guardar todas las familias
+    mostrarFamilias(data);
+    actualizarContador(data.length, data.length);
+    
   } catch (err) {
     contenedor.innerHTML = '<div>Error al cargar familias.</div>';
+    actualizarContador(0, 0);
   }
 }
+
+function mostrarFamilias(familias) {
+  const contenedor = document.getElementById('familias');
+  contenedor.innerHTML = '';
+  
+  familias.forEach(fam => {
+    const card = document.createElement('div');
+    card.className = 'familia-card';
+    
+    if (fam.imagenUrl) {
+      card.innerHTML += `<img class="familia-img" src="${fam.imagenUrl}" alt="Imagen Familia">`;
+    } else {
+      card.innerHTML += `<div class="familia-img sin-imagen">Sin imagen</div>`;
+    }
+    
+    card.innerHTML += `<div class="familia-nombre">${fam.nombre || ''}</div>`;
+    card.innerHTML += `<div class="familia-codigo">Código: ${fam.noFamilia || ''}</div>`;
+    contenedor.appendChild(card);
+  });
+}
+
+function filtrarFamilias() {
+  const filtro = document.getElementById('filtroInput').value.toLowerCase().trim();
+  
+  if (filtro === '') {
+    mostrarFamilias(todasLasFamilias);
+    actualizarContador(todasLasFamilias.length, todasLasFamilias.length);
+    return;
+  }
+  
+  const familiasFiltradas = todasLasFamilias.filter(fam => {
+    const nombre = (fam.nombre || '').toLowerCase();
+    const codigo = (fam.noFamilia || '').toString().toLowerCase();
+    
+    return nombre.includes(filtro) || codigo.includes(filtro);
+  });
+  
+  mostrarFamilias(familiasFiltradas);
+  actualizarContador(familiasFiltradas.length, todasLasFamilias.length);
+}
+
+function limpiarFiltro() {
+  document.getElementById('filtroInput').value = '';
+  mostrarFamilias(todasLasFamilias);
+  actualizarContador(todasLasFamilias.length, todasLasFamilias.length);
+}
+
+function actualizarContador(mostradas, total) {
+  const contador = document.getElementById('contadorResultados');
+  if (mostradas === total) {
+    contador.textContent = `Mostrando ${total} familia${total !== 1 ? 's' : ''}`;
+  } else {
+    contador.textContent = `Mostrando ${mostradas} de ${total} familia${total !== 1 ? 's' : ''}`;
+  }
+}
+
+// Ejecutar búsqueda al presionar Enter
+document.addEventListener('DOMContentLoaded', function() {
+  const input = document.getElementById('filtroInput');
+  if (input) {
+    input.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        filtrarFamilias();
+      }
+    });
+  }
+});
+
 cargarFamilias();
 </script>
 </body>

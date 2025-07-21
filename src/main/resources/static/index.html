@@ -2,7 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>API CPTSOFT - DEMO</title>
+  <title>API CPTSOFT - DEMO</title>  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="images/logos/logo_icono.svg" type="image/svg+xml">
+  <script src="js/api-url-helper.js"></script>
   <style>
     body { font-family: Arial, sans-serif; margin: 40px; }
     h1 { color: #2c3e50; }
@@ -12,19 +14,25 @@
   </style>
 </head>
 <body>
-  <h1>Bienvenido a la API de Cptsoft</h1>
-  <div class="btn-group">
-    <button onclick="window.location.href='clientes.html'">Gestión de Clientes</button>
-    <button onclick="window.location.href='/api/familias-producto'">Ver Familias de Producto (JSON)</button>
-    <button onclick="window.location.href='/api/sucursales'">Ver Sucursales (JSON)</button>
-    <button onclick="window.location.href='/api/bodegas'">Ver Bodegas (JSON)</button>
-    <button onclick="window.location.href='/api/servicios'">Ver Servicios (JSON)</button>
-    <button onclick="window.location.href='/api/lista-precios'">Ver Lista de Precios (JSON)</button>
-    <button onclick="window.location.href='/api/articulos'">Ver Artículos (JSON)</button>
-    <button onclick="window.location.href='/api/existencias'">Ver Existencias (JSON)</button>
-    <button onclick="window.location.href='/api/ofertas'">Ver Ofertas (JSON)</button>
-    <button onclick="window.location.href='/swagger-ui.html'">Ver Documentación Swagger</button>
-    <button onclick="window.location.href='/v3/api-docs'">Ver Documentacion OpenApi (JSON)</button>
+  <h1>Bienvenido a la API de Cptsoft</h1>  <div class="btn-group">
+    <button onclick="window.location.href='registro-cliente.html'" style="background: #27ae60; border-color: #27ae60;">🆕 Registrar Nuevo Cliente</button>
+    <!-- <button onclick="window.location.href='clientes.html'">📋 Gestión de Clientes</button> -->
+    <button class="ejemplo-btn" onclick="window.location.href='buscar-cliente.html'">Buscar Cliente</button>
+    <button onclick="window.location.href='documentacion-api.html'">📚 Documentación API</button>
+    <button onclick="window.location.href=buildApiUrl('/api/familias-producto')">Ver Familias de Producto (JSON)</button>
+    <button onclick="window.location.href=buildApiUrl('/api/sucursales')">Ver Sucursales (JSON)</button>
+    <button onclick="window.location.href=buildApiUrl('/api/bodegas')">Ver Bodegas (JSON)</button>
+    <button onclick="window.location.href=buildApiUrl('/api/servicios')">Ver Servicios (JSON)</button>
+    <button onclick="window.location.href=buildApiUrl('/api/lista-precios')">Ver Lista de Precios (JSON)</button>
+    <button onclick="window.location.href=buildApiUrl('/api/articulos')">Ver Artículos (JSON)</button>
+    <button onclick="window.location.href=buildApiUrl('/api/existencias')">Ver Existencias (JSON)</button>
+    <button onclick="window.location.href=buildApiUrl('/api/ofertas')">Ver Ofertas (JSON)</button>
+    <button onclick="window.location.href=buildApiUrl('/api/cuentas/dto-paginado')">Ver Catálogo de Cuentas (JSON)</button>
+    <button onclick="window.location.href=buildApiUrl('/api/centros-costo/dto-paginado')">Ver Catálogo de Centros de Costo (JSON)</button>
+    <button onclick="window.location.href=buildApiUrl('/api/proveedores/dto-paginado')">Ver Catálogo de Proveedores (JSON)</button>
+    <button onclick="window.location.href=buildApiUrl('/api/empleados/dto-paginado')">Ver Catálogo de Empleados (JSON)</button>
+    <button onclick="window.location.href=buildApiUrl('/swagger-ui.html')">Ver Documentación Swagger</button>
+    <button onclick="window.location.href=buildApiUrl('/v3/api-docs')">Ver Documentacion OpenApi (JSON)</button>
   </div>
   <div style="margin-top: 30px; text-align: center;">
     <button onclick="window.location.href='ejemplos.html'" style="padding: 12px 28px; font-size: 18px; border-radius: 8px; background: #1976d2; color: #fff; border: none; cursor: pointer;">Ejemplos</button>

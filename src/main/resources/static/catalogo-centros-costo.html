@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="images/logos/logo_icono.svg" type="image/svg+xml">
+    <title>Catálogo de Centros de Costo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="js/api-url-helper.js"></script>
+    <style>
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .search-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .breadcrumb {
+            background: transparent;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        .breadcrumb-item a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .breadcrumb-item a:hover {
+            text-decoration: underline;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,123,255,0.3);
+        }
+        .pagination .page-link {
+            color: #007bff;
+            border-color: #dee2e6;
+        }
+        .pagination .page-item.active .page-link {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .badge {
+            font-size: 0.8em;
+        }
+        .table th {
+            background-color: #f8f9fa;
+            border-top: none;
+            font-weight: 600;
+            color: #495057;
+        }
+        .table-hover tbody tr:hover {
+            background-color: rgba(0,123,255,0.05);
+            cursor: pointer;
+        }
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        .text-info {
+            color: #17a2b8 !important;
+        }
+        .text-success {
+            color: #28a745 !important;
+        }
+        .text-warning {
+            color: #ffc107 !important;
+        }
+        .btn-regresar { 
+            background: #6c757d; 
+            color: white; 
+            text-decoration: none; 
+            padding: 8px 16px; 
+            border-radius: 4px; 
+            margin-bottom: 20px; 
+            display: inline-block;
+            transition: background 0.2s; 
+        }
+        .btn-regresar:hover { 
+            background: #5a6268; 
+            color: white; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <!-- Navegación -->
+        <a href="ejemplos.html" class="btn-regresar">← Volver a Ejemplos</a>
+        
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="index.html">Inicio</a></li>
+                <li class="breadcrumb-item"><a href="ejemplos.html">Ejemplos</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Catálogo de Centros de Costo</li>
+            </ol>
+        </nav>
+
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="text-primary">
+                    <i class="fas fa-sitemap"></i> Catálogo de Centros de Costo
+                </h1>
+                <p class="text-muted">Consulta los centros de costo operativos (activos y que permiten movimiento)</p>
+            </div>
+        </div>
+
+        <!-- Filtros de búsqueda -->
+        <div class="search-container">
+            <form id="searchForm">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="searchTerm" class="form-label">Buscar:</label>
+                        <input type="text" class="form-control" id="searchTerm" 
+                               placeholder="Código, descripción o encargado...">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="tipoGasto" class="form-label">Tipo de Gasto:</label>
+                        <select class="form-select" id="tipoGasto">
+                            <option value="">Todos</option>
+                            <option value="01">01 - Operativo</option>
+                            <option value="02">02 - Administrativo</option>
+                            <option value="03">03 - Financiero</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="relacionadoACuentas" class="form-label">Relacionado a:</label>
+                        <select class="form-select" id="relacionadoACuentas">
+                            <option value="">Todos</option>
+                            <option value="A">Administración</option>
+                            <option value="C">Costo</option>
+                            <option value="G">Gasto</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Buscar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Información de resultados -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <p class="mb-0 text-muted" id="resultInfo">Mostrando todos los centros de costo</p>
+            </div>
+            <div class="col-md-6 text-end">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle"></i> Solo se muestran centros activos y operativos
+                </small>
+            </div>
+        </div>
+
+        <!-- Contenedor de carga -->
+        <div class="loading-spinner" id="loadingSpinner">
+            <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+            <p>Cargando centros de costo...</p>
+        </div>
+
+        <!-- Tabla de centros de costo -->
+        <div class="table-container" id="tableContainer">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Descripción</th>
+                            <th>Encargado</th>
+                            <th>Nivel</th>
+                            <th>Tipo Gasto</th>
+                            <th>Relacionado A</th>
+                            <th>Movimiento</th>
+                        </tr>
+                    </thead>
+                    <tbody id="centrosCostoTableBody">
+                        <!-- Los datos se cargan dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Paginación -->
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <div>
+                <span class="text-muted" id="paginationInfo">Página 1 de 1 (0 registros)</span>
+            </div>
+            <nav aria-label="Navegación de páginas">
+                <ul class="pagination mb-0" id="pagination">
+                    <!-- Los enlaces de paginación se generan dinámicamente -->
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Modal para detalles del centro de costo -->
+    <div class="modal fade" id="centroCostoModal" tabindex="-1" aria-labelledby="centroCostoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="centroCostoModalLabel">
+                        <i class="fas fa-sitemap"></i> Detalles del Centro de Costo
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3" id="centroCostoDetails">
+                        <!-- Los detalles se cargan dinámicamente -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentPage = 0;
+        let pageSize = 20;
+        let totalPages = 0;
+        let totalElements = 0;
+        let currentSearch = '';
+        let currentFilters = {};
+
+        // Función para obtener la URL base de la API
+        function getApiBaseUrl() {
+            return window.ApiUrlHelper ? buildApiUrl('') : 'http://localhost:8080';
+        }
+
+        // Inicializar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCentrosCosto();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Formulario de búsqueda
+            document.getElementById('searchForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                currentPage = 0;
+                loadCentrosCosto();
+            });
+
+            // Click en filas de la tabla para mostrar detalles
+            document.getElementById('centrosCostoTableBody').addEventListener('click', function(e) {
+                const row = e.target.closest('tr');
+                if (row && row.dataset.centroCodigo) {
+                    showCentroCostoDetails(row.dataset.centroCompania, row.dataset.centroCodigo);
+                }
+            });
+        }
+
+        function loadCentrosCosto() {
+            showLoading(true);
+            
+            // Recopilar filtros
+            const searchTerm = document.getElementById('searchTerm').value.trim();
+            const tipoGasto = document.getElementById('tipoGasto').value;
+            const relacionadoACuentas = document.getElementById('relacionadoACuentas').value;
+            
+            // Construir URL
+            const baseUrl = getApiBaseUrl();
+            let url = `${baseUrl}/api/centros-costo/dto-paginado?page=${currentPage}&size=${pageSize}`;
+            
+            // Agregar filtros si existen
+            if (searchTerm) {
+                url += `&descripcion=${encodeURIComponent(searchTerm)}`;
+            }
+            if (tipoGasto) {
+                url += `&tipoGasto=${encodeURIComponent(tipoGasto)}`;
+            }
+            if (relacionadoACuentas) {
+                url += `&relacionadoACuentas=${encodeURIComponent(relacionadoACuentas)}`;
+            }
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    showLoading(false);
+                    displayCentrosCosto(data.content || []);
+                    updatePagination(data);
+                    updateResultInfo(searchTerm, data.totalElements || 0);
+                })
+                .catch(error => {
+                    showLoading(false);
+                    console.error('Error al cargar centros de costo:', error);
+                    showError('Error al cargar los centros de costo: ' + error.message);
+                });
+        }
+
+        function displayCentrosCosto(centrosCosto) {
+            const tableBody = document.getElementById('centrosCostoTableBody');
+            
+            if (centrosCosto.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No se encontraron centros de costo</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = centrosCosto.map(centro => `
+                <tr data-centro-compania="${centro.noCia}" data-centro-codigo="${centro.centro}" 
+                    title="Click para ver detalles">
+                    <td><strong>${centro.centro}</strong></td>
+                    <td>${centro.descripCc || '-'}</td>
+                    <td>${centro.encargadoCc || '-'}</td>
+                    <td><span class="badge bg-info">${centro.nivel || 0}</span></td>
+                    <td><span class="badge bg-secondary">${centro.tipoGasto || '-'}</span></td>
+                    <td><span class="badge ${getRelacionadoBadgeClass(centro.relacionadoACuentas)}">${getRelacionadoTexto(centro.relacionadoACuentas)}</span></td>
+                    <td><span class="badge ${centro.indMov === 'S' ? 'bg-success' : 'bg-warning'}">${centro.tipoMovimiento || 'N/A'}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function getRelacionadoBadgeClass(relacionado) {
+            switch(relacionado) {
+                case 'A': return 'bg-primary';
+                case 'C': return 'bg-success';
+                case 'G': return 'bg-warning';
+                default: return 'bg-secondary';
+            }
+        }
+
+        function getRelacionadoTexto(relacionado) {
+            switch(relacionado) {
+                case 'A': return 'Administración';
+                case 'C': return 'Costo';
+                case 'G': return 'Gasto';
+                default: return relacionado || '-';
+            }
+        }
+
+        function updatePagination(data) {
+            totalPages = data.totalPages || 0;
+            totalElements = data.totalElements || 0;
+            currentPage = data.number || 0;
+
+            const pagination = document.getElementById('pagination');
+            const paginationInfo = document.getElementById('paginationInfo');
+
+            paginationInfo.textContent = `Página ${currentPage + 1} de ${totalPages} (${totalElements} registros)`;
+
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+
+            let paginationHTML = '';
+
+            // Botón anterior
+            paginationHTML += `
+                <li class="page-item ${currentPage === 0 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${currentPage - 1})" aria-label="Anterior">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            `;
+
+            // Páginas
+            const startPage = Math.max(0, currentPage - 2);
+            const endPage = Math.min(totalPages - 1, currentPage + 2);
+
+            if (startPage > 0) {
+                paginationHTML += '<li class="page-item"><a class="page-link" href="#" onclick="changePage(0)">1</a></li>';
+                if (startPage > 1) {
+                    paginationHTML += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                paginationHTML += `
+                    <li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="changePage(${i})">${i + 1}</a>
+                    </li>
+                `;
+            }
+
+            if (endPage < totalPages - 1) {
+                if (endPage < totalPages - 2) {
+                    paginationHTML += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                }
+                paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${totalPages - 1})">${totalPages}</a></li>`;
+            }
+
+            // Botón siguiente
+            paginationHTML += `
+                <li class="page-item ${currentPage === totalPages - 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${currentPage + 1})" aria-label="Siguiente">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            `;
+
+            pagination.innerHTML = paginationHTML;
+        }
+
+        function changePage(page) {
+            if (page >= 0 && page < totalPages && page !== currentPage) {
+                currentPage = page;
+                loadCentrosCosto();
+            }
+        }
+
+        function updateResultInfo(searchTerm, total) {
+            const resultInfo = document.getElementById('resultInfo');
+            if (searchTerm) {
+                resultInfo.textContent = `Resultados para: "${searchTerm}" (${total} encontrados)`;
+            } else {
+                resultInfo.textContent = `Mostrando todos los centros de costo (${total} registros)`;
+            }
+        }
+
+        function showCentroCostoDetails(noCia, centro) {
+            const baseUrl = getApiBaseUrl();
+            const url = `${baseUrl}/api/centros-costo/${noCia}/${centro}`;
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(centroCosto => {
+                    displayCentroCostoDetails(centroCosto);
+                    new bootstrap.Modal(document.getElementById('centroCostoModal')).show();
+                })
+                .catch(error => {
+                    console.error('Error al cargar detalles del centro de costo:', error);
+                    alert('Error al cargar los detalles del centro de costo');
+                });
+        }
+
+        function displayCentroCostoDetails(centroCosto) {
+            const detailsContainer = document.getElementById('centroCostoDetails');
+            
+            detailsContainer.innerHTML = `
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Compañía:</label>
+                    <p class="form-control-plaintext">${centroCosto.noCia || 'N/A'}</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Código Centro:</label>
+                    <p class="form-control-plaintext">${centroCosto.centro || 'N/A'}</p>
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-bold">Descripción:</label>
+                    <p class="form-control-plaintext">${centroCosto.descripCc || 'N/A'}</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Encargado:</label>
+                    <p class="form-control-plaintext">${centroCosto.encargadoCc || 'N/A'}</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Nivel:</label>
+                    <p class="form-control-plaintext">${centroCosto.nivel || 'N/A'}</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Centro Padre:</label>
+                    <p class="form-control-plaintext">${centroCosto.padre || 'N/A'}</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Último Nivel:</label>
+                    <p class="form-control-plaintext">
+                        <span class="badge ${centroCosto.ultimoNivel === 'S' ? 'bg-success' : 'bg-secondary'}">
+                            ${centroCosto.ultimoNivel === 'S' ? 'Sí' : 'No'}
+                        </span>
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Activo:</label>
+                    <p class="form-control-plaintext">
+                        <span class="badge ${centroCosto.activo === 'S' ? 'bg-success' : 'bg-danger'}">
+                            ${centroCosto.activo === 'S' ? 'Activo' : 'Inactivo'}
+                        </span>
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Permite Movimiento:</label>
+                    <p class="form-control-plaintext">
+                        <span class="badge ${centroCosto.indMov === 'S' ? 'bg-success' : 'bg-warning'}">
+                            ${centroCosto.indMov === 'S' ? 'Sí' : 'No'}
+                        </span>
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Tipo de Gasto:</label>
+                    <p class="form-control-plaintext">${centroCosto.tipoGasto || 'N/A'}</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Relacionado a Cuentas:</label>
+                    <p class="form-control-plaintext">
+                        <span class="badge ${getRelacionadoBadgeClass(centroCosto.relacionadoACuentas)}">
+                            ${getRelacionadoTexto(centroCosto.relacionadoACuentas)}
+                        </span>
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Código Empleado:</label>
+                    <p class="form-control-plaintext">${centroCosto.codEmple || 'N/A'}</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Código Planilla:</label>
+                    <p class="form-control-plaintext">${centroCosto.codPla || 'N/A'}</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Tipo de Centro:</label>
+                    <p class="form-control-plaintext">${centroCosto.noTipoCentro || 'N/A'}</p>
+                </div>
+            `;
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingSpinner').style.display = show ? 'block' : 'none';
+            document.getElementById('tableContainer').style.display = show ? 'none' : 'block';
+        }
+
+        function showError(message) {
+            const tableBody = document.getElementById('centrosCostoTableBody');
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center py-4">
+                        <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                        <p class="text-danger">${message}</p>
+                        <button class="btn btn-outline-primary" onclick="loadCentrosCosto()">
+                            <i class="fas fa-redo"></i> Reintentar
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }
+    </script>
+</body>
+</html>

@@ -2,7 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Gestión de Clientes</title>
+  <title>Gestión de Clientes</title>  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="images/logos/logo_icono.svg" type="image/svg+xml">
+  <script src="js/api-url-helper.js"></script>
   <style>
     body { font-family: Arial, sans-serif; margin: 40px; }
     h1 { color: #2c3e50; }
@@ -35,7 +37,7 @@
     <button onclick="consultarCliente()">Consultar Cliente</button>
   </div>
   <br>
-  <h2>Registrar Nuevo Cliente</h2>
+  <!-- <h2>Registrar Nuevo Cliente</h2>
   <div class="form-group">
     <label for="personaNj">Persona:</label>
     <select id="personaNj">
@@ -115,19 +117,21 @@
     <input id="noCorregimiento" type="number" placeholder="Corregimiento">
   </div>
   <div class="form-group">
-    <label for="noOrigen">Origen:</label>
-    <input id="noOrigen" type="number" placeholder="Portal">
+    <label for="noOrigen">Origen (Portal):</label>
+    <input id="noOrigen" type="number" value="9" placeholder="Portal" readonly>
   </div>
   <div class="form-group">
     <label for="noPlazo">Plazo:</label>
-    <input id="noPlazo" type="number" placeholder="Corriente">
+    <input id="noPlazo" type="number" value="6" placeholder="Corriente">
   </div>
   <div class="actions">
     <button onclick="crearCliente()">Registrar Cliente</button>
-    <!-- <button onclick="consultarCliente()">Consultar Cliente</button> -->
-  </div>
+  </div> -->
   <div id="mensaje" style="margin-top:20px;color:green;font-weight:bold;"></div>
   <ul id="clientes-list"></ul>
+  <!-- <div style="margin-top: 30px; text-align: center;">
+    <button onclick="window.location.href='ejemplos.html'" style="padding: 12px 28px; font-size: 18px; border-radius: 8px; background: #888; color: #fff; border: none; cursor: pointer;">Volver</button>
+  </div> -->
   <script>
     function consultarCliente() {
       const noCia = parseInt(document.getElementById('noCia').value);
@@ -137,19 +141,18 @@
         document.getElementById('mensaje').innerText = 'Debes ingresar No. Compañía, No. Cliente y Grupo';
         return;
       }
-      window.location.href = `/api/clientes/buscar?noCia=${noCia}&noCliente=${noCliente}&grupo=${grupo}`;
+      window.location.href = buildApiUrl('/api/clientes/buscar?noCia=' + noCia + '&noCliente=' + noCliente + '&grupo=' + grupo);
+    }    async function cargarClientes() {
+      const res = await fetch(buildApiUrl('/api/clientes'));
+      const clientes = await res.json();
+      const lista = document.getElementById('clientes-list');
+      lista.innerHTML = '';
+      clientes.forEach(c => {
+        const li = document.createElement('li');
+        li.innerText = `${c.nombre} (${c.telefono})`;
+        lista.appendChild(li);
+      });
     }
-    // async function cargarClientes() {
-    //   const res = await fetch('/api/clientes');
-    //   const clientes = await res.json();
-    //   const lista = document.getElementById('clientes-list');
-    //   lista.innerHTML = '';
-    //   clientes.forEach(c => {
-    //     const li = document.createElement('li');
-    //     li.innerText = `${c.nombre} (${c.telefono})`;
-    //     lista.appendChild(li);
-    //   });
-    // }
     async function crearCliente() {
       const noCia = parseInt(document.getElementById('noCia').value);
       const noCliente = parseInt(document.getElementById('noCliente').value);
@@ -175,9 +178,8 @@
       const noOrigen = parseInt(document.getElementById('noOrigen').value);
       const noPlazo = parseInt(document.getElementById('noPlazo').value);
       const mensaje = document.getElementById('mensaje');
-      mensaje.innerText = '';
-      try {
-        await fetch('/api/clientes/registro-portal', {
+      mensaje.innerText = '';      try {
+        await fetch(buildApiUrl('/api/clientes/registro-portal'), {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({

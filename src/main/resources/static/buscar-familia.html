@@ -2,8 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Buscar Familias</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buscar Familias</title>  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="images/logos/logo_icono.svg" type="image/svg+xml">
+  <script src="js/api-url-helper.js"></script>
   <style>
     body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0; }
     .container { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 2em; }
@@ -15,12 +16,23 @@
     table { width: 100%; border-collapse: collapse; margin-top: 2em; }
     th, td { padding: 0.7em; border-bottom: 1px solid #e0e0e0; text-align: left; }
     th { background: #e3f2fd; color: #1976d2; }
-    tr:last-child td { border-bottom: none; }
-    .error { color: #c62828; background: #ffebee; padding: 1em; border-radius: 6px; margin-top: 2em; }
+    tr:last-child td { border-bottom: none; }    .error { color: #c62828; background: #ffebee; padding: 1em; border-radius: 6px; margin-top: 2em; }
+    .btn-regresar { 
+      display: inline-block; 
+      background: #6c757d; 
+      color: white; 
+      text-decoration: none; 
+      padding: 8px 16px; 
+      border-radius: 4px; 
+      margin-bottom: 20px; 
+      transition: background 0.2s; 
+    }
+    .btn-regresar:hover { background: #5a6268; color: white; }
   </style>
 </head>
 <body>
 <div class="container">
+  <a href="index.html" class="btn-regresar">← Regresar al Inicio</a>
   <h2>Buscar Familias</h2>
   <form id="buscarFamiliaForm">
     <label for="criterio">Buscar por nombre o código (opcional):</label>
@@ -28,19 +40,21 @@
     <button type="submit">Buscar</button>
   </form>
   <div id="resultado"></div>
+  <div style="margin-top: 30px; text-align: center;">
+    <button onclick="window.location.href='ejemplos.html'" style="padding: 12px 28px; font-size: 18px; border-radius: 8px; background: #888; color: #fff; border: none; cursor: pointer;">Volver</button>
+  </div>
 </div>
 <script>
   document.getElementById('buscarFamiliaForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const criterio = document.getElementById('criterio').value.trim();
     const resultado = document.getElementById('resultado');
-    resultado.innerHTML = '';
-    let url = '/api/familias-producto'; // Ajusta el endpoint si es necesario
+    resultado.innerHTML = '';    let url = '/api/familias-producto'; // Ajusta el endpoint si es necesario
     if (criterio) {
       url += `?q=${encodeURIComponent(criterio)}`;
     }
     try {
-      const res = await fetch(url);
+      const res = await fetch(buildApiUrl(url));
       const data = await res.json();
       if (!Array.isArray(data) || data.length === 0) {
         resultado.innerHTML = '<div class="error">No se encontraron familias.</div>';

@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="images/logos/logo_icono.svg" type="image/svg+xml">
+    <title>Catálogo de Empleados</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="js/api-url-helper.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .header-section {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border-radius: 0.5rem;
+        }
+        .card-header {
+            background-color: #495057;
+            color: white;
+            font-weight: 600;
+        }
+        .search-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .table-responsive {
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        .badge-activo {
+            background-color: #28a745;
+        }
+        .badge-inactivo {
+            background-color: #dc3545;
+        }
+        .badge-vacaciones {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .badge-incapacidad {
+            background-color: #fd7e14;
+        }
+        .badge-suspendido {
+            background-color: #dc3545;
+        }
+        .badge-masculino {
+            background-color: #007bff;
+        }
+        .badge-femenino {
+            background-color: #e83e8c;
+        }
+        .empleado-codigo {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #495057;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        .tipo-indicator {
+            display: inline-block;
+            width: 30px;
+            text-align: center;
+            font-weight: bold;
+            border-radius: 3px;
+            color: white;
+            font-size: 0.8rem;
+        }
+        .tipo-01 { background-color: #28a745; }
+        .tipo-02 { background-color: #007bff; }
+        .tipo-03 { background-color: #ffc107; color: #212529; }
+        .tipo-04 { background-color: #17a2b8; }
+        .pagination-sm .page-link {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+        .card-footer {
+            background-color: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+        }
+        #infoPaginacion {
+            color: #6c757d;
+            font-size: 0.875rem;
+        }
+        .email-link {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .email-link:hover {
+            text-decoration: underline;
+        }
+        .supervisor-badge {
+            background-color: #6f42c1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Section -->
+    <div class="header-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-0">
+                        <i class="fas fa-users me-2"></i>
+                        Catálogo de Empleados
+                    </h1>
+                    <p class="mb-0 mt-2 opacity-75">Consulta y gestión del catálogo de empleados/colaboradores activos</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-light" onclick="window.location.href='index.html'">
+                        <i class="fas fa-home me-1"></i>
+                        Volver al Inicio
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Filtros de Búsqueda -->
+        <div class="search-container">
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label for="filtroCompania" class="form-label">
+                        <i class="fas fa-building me-1"></i>Compañía
+                    </label>
+                    <select class="form-select" id="filtroCompania">
+                        <option value="">Todas las compañías</option>
+                        <option value="1">Compañía 1</option>
+                        <option value="2">Compañía 2</option>
+                        <option value="3">Compañía 3</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="filtroPlanilla" class="form-label">
+                        <i class="fas fa-file-alt me-1"></i>Planilla
+                    </label>
+                    <select class="form-select" id="filtroPlanilla">
+                        <option value="">Todas las planillas</option>
+                        <option value="01">Planilla 01</option>
+                        <option value="02">Planilla 02</option>
+                        <option value="03">Planilla 03</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="filtroDepto" class="form-label">
+                        <i class="fas fa-sitemap me-1"></i>Departamento
+                    </label>
+                    <select class="form-select" id="filtroDepto">
+                        <option value="">Todos los departamentos</option>
+                        <option value="ADM">Administración</option>
+                        <option value="VEN">Ventas</option>
+                        <option value="TEC">Técnico</option>
+                        <option value="FIN">Finanzas</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="filtroTipoEmp" class="form-label">
+                        <i class="fas fa-user-tie me-1"></i>Tipo Empleado
+                    </label>
+                    <select class="form-select" id="filtroTipoEmp">
+                        <option value="">Todos los tipos</option>
+                        <option value="01">Empleado</option>
+                        <option value="02">Ejecutivo</option>
+                        <option value="03">Temporal</option>
+                        <option value="04">Consultor</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label for="filtroEstado" class="form-label">
+                        <i class="fas fa-circle me-1"></i>Estado
+                    </label>
+                    <select class="form-select" id="filtroEstado">
+                        <option value="">Todos los estados</option>
+                        <!-- Los estados se cargan dinámicamente desde la API -->
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="filtroSexo" class="form-label">
+                        <i class="fas fa-venus-mars me-1"></i>Sexo
+                    </label>
+                    <select class="form-select" id="filtroSexo">
+                        <option value="">Todos</option>
+                        <option value="H">Masculino</option>
+                        <option value="F">Femenino</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="buscarTexto" class="form-label">
+                        <i class="fas fa-search me-1"></i>Búsqueda por texto
+                    </label>
+                    <input type="text" class="form-control" id="buscarTexto" 
+                           placeholder="Buscar por nombre, cédula, email, código...">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="tamanioPagina" class="form-label">
+                        <i class="fas fa-list me-1"></i>Registros por página
+                    </label>
+                    <select class="form-select" id="tamanioPagina">
+                        <option value="10">10</option>
+                        <option value="25" selected>25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <button class="btn btn-primary me-2" onclick="cargarEmpleados()">
+                        <i class="fas fa-search me-1"></i>Buscar
+                    </button>
+                    <button class="btn btn-secondary" onclick="limpiarFiltros()">
+                        <i class="fas fa-eraser me-1"></i>Limpiar Filtros
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-2">Cargando empleados...</p>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="row mb-4" id="estadisticas" style="display: none;">
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center">
+                        <h4 id="empleadosActivos">0</h4>
+                        <small>Empleados Activos</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body text-center">
+                        <h4 id="empleadosHombres">0</h4>
+                        <small>Hombres</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center">
+                        <h4 id="empleadosMujeres">0</h4>
+                        <small>Mujeres</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-secondary text-white">
+                    <div class="card-body text-center">
+                        <h4 id="supervisores">0</h4>
+                        <small>Supervisores</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Resultados -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    <i class="fas fa-table me-2"></i>Catálogo de Empleados
+                </span>
+                <div>
+                    <button class="btn btn-outline-light btn-sm me-2" onclick="exportarExcel()">
+                        <i class="fas fa-file-excel me-1"></i>Exportar Excel
+                    </button>
+                    <button class="btn btn-outline-light btn-sm" onclick="mostrarEstadisticas()">
+                        <i class="fas fa-chart-bar me-1"></i>Estadísticas
+                    </button>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th width="10%">Código</th>
+                            <th width="25%">Nombre</th>
+                            <th width="15%">Cédula</th>
+                            <th width="10%">Depto</th>
+                            <th width="10%">Puesto</th>
+                            <th width="15%">Email</th>
+                            <th width="8%">Sexo</th>
+                            <th width="7%">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaEmpleados">
+                        <!-- Los datos se cargarán aquí -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer d-flex justify-content-between align-items-center">
+                <div id="infoPaginacion">
+                    Mostrando 0 a 0 de 0 registros
+                </div>
+                <nav aria-label="Navegación de páginas">
+                    <ul class="pagination pagination-sm mb-0" id="paginacion">
+                        <!-- La paginación se generará aquí -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalles del Empleado -->
+    <div class="modal fade" id="modalDetalle" tabindex="-1" aria-labelledby="modalDetalleLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalDetalleLabel">
+                        <i class="fas fa-user me-2"></i>Detalles del Empleado
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="detalleContent">
+                    <!-- El contenido del detalle se cargará aquí -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Variables globales
+        let currentPage = 0;
+        let totalPages = 0;
+        let totalElements = 0;
+        const pageSize = 25;
+
+        // Configuración de la API
+        const API_BASE_URL = buildApiUrl('/api/empleados');
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarEstados(); // Cargar estados dinámicamente
+            cargarEmpleados();
+            
+            // Event listeners para filtros
+            document.getElementById('buscarTexto').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    cargarEmpleados();
+                }
+            });
+        });
+
+        // Función para cargar estados desde la API
+        async function cargarEstados() {
+            try {
+                const response = await fetch(buildApiUrl('/api/empleados/estados'));
+                if (response.ok) {
+                    const estados = await response.json();
+                    const selectEstado = document.getElementById('filtroEstado');
+                    
+                    // Limpiar opciones existentes (excepto la primera)
+                    while (selectEstado.children.length > 1) {
+                        selectEstado.removeChild(selectEstado.lastChild);
+                    }
+                    
+                    // Agregar los estados obtenidos de la API
+                    Object.entries(estados).forEach(([codigo, descripcion]) => {
+                        const option = document.createElement('option');
+                        option.value = codigo;
+                        option.textContent = descripcion;
+                        selectEstado.appendChild(option);
+                    });
+                    
+                    console.log('Estados cargados:', Object.keys(estados).length);
+                } else {
+                    console.error('Error al cargar estados:', response.statusText);
+                    // Fallback: mantener estados hardcodeados si falla la API
+                    cargarEstadosFallback();
+                }
+            } catch (error) {
+                console.error('Error al cargar estados:', error);
+                // Fallback: mantener estados hardcodeados si falla la API
+                cargarEstadosFallback();
+            }
+        }
+
+        // Función fallback para cargar estados hardcodeados
+        function cargarEstadosFallback() {
+            const selectEstado = document.getElementById('filtroEstado');
+            const estadosFallback = {
+                'A': 'Activo',
+                'V': 'Vacaciones', 
+                'LG': 'Licencia por Gravidez',
+                'LN': 'Licencia sin Sueldo',
+                'LR': 'Licencia Remunerada',
+                'L': 'Liquidación',
+                'I': 'Inactivo'
+            };
+            
+            Object.entries(estadosFallback).forEach(([codigo, descripcion]) => {
+                const option = document.createElement('option');
+                option.value = codigo;
+                option.textContent = descripcion;
+                selectEstado.appendChild(option);
+            });
+        }
+
+        // Función para cargar empleados
+        async function cargarEmpleados(page = 0) {
+            const loading = document.getElementById('loading');
+            const tabla = document.getElementById('tablaEmpleados');
+            
+            loading.style.display = 'block';
+            tabla.innerHTML = '';
+
+            try {
+                const buscarTexto = document.getElementById('buscarTexto').value.trim();
+                const compania = document.getElementById('filtroCompania').value || '1';
+                
+                let url;
+                let esResultadoBusqueda = false;
+                
+                if (buscarTexto) {
+                    // Para búsqueda por texto, usar el endpoint /buscar
+                    url = `${API_BASE_URL}/buscar?noCia=${compania}&termino=${encodeURIComponent(buscarTexto)}`;
+                    esResultadoBusqueda = true;
+                } else {
+                    // Para catálogo normal con filtros, usar el endpoint principal
+                    const params = new URLSearchParams({
+                        page: page,
+                        size: document.getElementById('tamanioPagina').value || 25,
+                        sort: 'noEmple,asc'
+                    });
+
+                    // Agregar filtros si están definidos
+                    if (compania) params.append('noCia', compania);
+
+                    const codPla = document.getElementById('filtroPlanilla').value;
+                    if (codPla) params.append('codPla', codPla);
+
+                    const depto = document.getElementById('filtroDepto').value;
+                    if (depto) params.append('depto', depto);
+
+                    const tipoEmp = document.getElementById('filtroTipoEmp').value;
+                    if (tipoEmp) params.append('tipoEmp', tipoEmp);
+
+                    const estado = document.getElementById('filtroEstado').value;
+                    if (estado) params.append('estado', estado);
+
+                    const sexo = document.getElementById('filtroSexo').value;
+                    if (sexo) params.append('sexo', sexo);
+
+                    url = `${API_BASE_URL}?${params.toString()}`;
+                }
+
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                // Manejar diferentes formatos de respuesta
+                let empleados = [];
+                if (esResultadoBusqueda) {
+                    // Respuesta de búsqueda: array simple o objeto con mensaje
+                    if (Array.isArray(data)) {
+                        empleados = data;
+                        currentPage = 0;
+                        totalPages = 1;
+                        totalElements = data.length;
+                    } else if (data.mensaje) {
+                        // Sin resultados
+                        empleados = [];
+                        currentPage = 0;
+                        totalPages = 0;
+                        totalElements = 0;
+                    }
+                } else {
+                    // Respuesta paginada normal
+                    empleados = data.content || [];
+                    currentPage = data.number || 0;
+                    totalPages = data.totalPages || 0;
+                    totalElements = data.totalElements || 0;
+                }
+
+                // Renderizar tabla
+                renderizarTabla(empleados);
+                
+                // Actualizar paginación
+                actualizarPaginacion();
+
+            } catch (error) {
+                console.error('Error al cargar empleados:', error);
+                tabla.innerHTML = `
+                    <tr>
+                        <td colspan="10" class="text-center text-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Error al cargar los datos: ${error.message}
+                        </td>
+                    </tr>
+                `;
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // Función para renderizar la tabla
+        function renderizarTabla(empleados) {
+            const tbody = document.getElementById('tablaEmpleados');
+            
+            if (empleados.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">
+                            <i class="fas fa-inbox me-2"></i>
+                            No se encontraron empleados
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = empleados.map(empleado => `
+                <tr onclick="verDetalle('${empleado.codPla}', '${empleado.noEmple}')" 
+                    style="cursor: pointer;" 
+                    title="Clic para ver detalles">
+                    <td class="empleado-codigo">${empleado.noEmple}</td>
+                    <td>
+                        <strong>${empleado.nombre || 'Sin nombre'}</strong>
+                    </td>
+                    <td>${empleado.cedula || 'N/A'}</td>
+                    <td>${empleado.depto || 'N/A'}</td>
+                    <td>${empleado.puesto || 'N/A'}</td>
+                    <td>
+                        ${empleado.email ? 
+                            `<a href="mailto:${empleado.email}" class="email-link" onclick="event.stopPropagation()">${empleado.email}</a>` : 
+                            'N/A'
+                        }
+                    </td>
+                    <td>
+                        <span class="badge ${empleado.sexo === 'H' ? 'badge-masculino' : empleado.sexo === 'F' ? 'badge-femenino' : 'bg-secondary'}">
+                            ${empleado.sexo === 'H' ? 'Masculino' : empleado.sexo === 'F' ? 'Femenino' : 'N/A'}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge ${getEstadoBadgeClass(empleado.estado)}">
+                            ${getEstadoDescripcion(empleado.estado)}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Función para obtener la clase CSS del badge según el estado
+        function getEstadoBadgeClass(estado) {
+            switch (estado) {
+                case 'A': return 'badge-activo';
+                case 'V': return 'badge-vacaciones';
+                case 'LG':
+                case 'LN':
+                case 'LR': return 'badge-incapacidad';
+                case 'L':
+                case 'I': return 'badge-suspendido';
+                default: return 'bg-secondary';
+            }
+        }
+
+        // Función para actualizar la paginación
+        function actualizarPaginacion() {
+            const paginacion = document.getElementById('paginacion');
+            const infoPaginacion = document.getElementById('infoPaginacion');
+            
+            // Actualizar información de paginación
+            const inicio = currentPage * parseInt(document.getElementById('tamanioPagina').value) + 1;
+            const fin = Math.min((currentPage + 1) * parseInt(document.getElementById('tamanioPagina').value), totalElements);
+            infoPaginacion.textContent = `Mostrando ${inicio} a ${fin} de ${totalElements} registros`;
+
+            // Generar controles de paginación
+            let paginacionHTML = '';
+            
+            // Botón anterior
+            paginacionHTML += `
+                <li class="page-item ${currentPage === 0 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="cargarEmpleados(${currentPage - 1})">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+            `;
+
+            // Páginas numeradas
+            const startPage = Math.max(0, currentPage - 2);
+            const endPage = Math.min(totalPages - 1, currentPage + 2);
+
+            for (let i = startPage; i <= endPage; i++) {
+                paginacionHTML += `
+                    <li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="cargarEmpleados(${i})">${i + 1}</a>
+                    </li>
+                `;
+            }
+
+            // Botón siguiente
+            paginacionHTML += `
+                <li class="page-item ${currentPage >= totalPages - 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="cargarEmpleados(${currentPage + 1})">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            `;
+
+            paginacion.innerHTML = paginacionHTML;
+        }
+
+        // Función para ver detalle del empleado
+        async function verDetalle(codPla, noEmple) {
+            try {
+                const noCia = '1'; // Asumiendo compañía 1 por defecto
+                const response = await fetch(`${API_BASE_URL}/${noCia}/${codPla}/${noEmple}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                const empleado = await response.json();
+                mostrarDetalle(empleado);
+
+            } catch (error) {
+                console.error('Error al cargar detalles:', error);
+                alert('Error al cargar los detalles del empleado');
+            }
+        }
+
+        // Función para mostrar el modal de detalle
+        function mostrarDetalle(empleado) {
+            const content = document.getElementById('detalleContent');
+            
+            content.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary"><i class="fas fa-user me-2"></i>Información Personal</h6>
+                        <table class="table table-sm">
+                            <tr><th width="40%">Código:</th><td>${empleado.noEmple}</td></tr>
+                            <tr><th>Nombre:</th><td>${empleado.nombre || 'N/A'}</td></tr>
+                            <tr><th>Cédula:</th><td>${empleado.cedula || 'N/A'}</td></tr>
+                            <tr><th>Sexo:</th><td>${empleado.sexo === 'H' ? 'Masculino' : empleado.sexo === 'F' ? 'Femenino' : 'N/A'}</td></tr>
+                            <tr><th>Estado Civil:</th><td>${empleado.estadoCivilDescripcion || empleado.estadoCivil || 'N/A'}</td></tr>
+                            <tr><th>Fecha Nacimiento:</th><td>${empleado.fNacimi ? new Date(empleado.fNacimi).toLocaleDateString('es-ES') : 'N/A'}</td></tr>
+                            <tr><th>Email:</th><td>${empleado.email ? `<a href="mailto:${empleado.email}">${empleado.email}</a>` : 'N/A'}</td></tr>
+                        </table>
+
+                        <h6 class="text-primary mt-3"><i class="fas fa-briefcase me-2"></i>Información Laboral</h6>
+                        <table class="table table-sm">
+                            <tr><th width="40%">Compañía:</th><td>${empleado.noCia || 'N/A'}</td></tr>
+                            <tr><th>Planilla:</th><td>${empleado.codPla || 'N/A'}</td></tr>
+                            <tr><th>Departamento:</th><td>${empleado.depto || 'N/A'}</td></tr>
+                            <tr><th>Puesto:</th><td>${empleado.puesto || 'N/A'}</td></tr>
+                            <tr><th>Tipo Empleado:</th><td>${empleado.tipoEmp || 'N/A'}</td></tr>
+                            <tr><th>Estado:</th><td><span class="badge ${getEstadoBadgeClass(empleado.estado)}">${getEstadoDescripcion(empleado.estado)}</span></td></tr>
+                            <tr><th>Fecha Ingreso:</th><td>${empleado.fIngreso ? new Date(empleado.fIngreso).toLocaleDateString('es-ES') : 'N/A'}</td></tr>
+                            ${empleado.fEgreso ? `<tr><th>Fecha Egreso:</th><td>${new Date(empleado.fEgreso).toLocaleDateString('es-ES')}</td></tr>` : ''}
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary"><i class="fas fa-map-marker-alt me-2"></i>Contacto y Ubicación</h6>
+                        <table class="table table-sm">
+                            <tr><th width="40%">Dirección:</th><td>${empleado.direccion || 'N/A'}</td></tr>
+                            <tr><th>Teléfono:</th><td>${empleado.telefono || 'N/A'}</td></tr>
+                            <tr><th>Apartado:</th><td>${empleado.apartado || 'N/A'}</td></tr>
+                        </table>
+
+                        <h6 class="text-primary mt-3"><i class="fas fa-dollar-sign me-2"></i>Información Salarial</h6>
+                        <table class="table table-sm">
+                            <tr><th width="40%">Salario:</th><td>${empleado.salario ? `$${Number(empleado.salario).toLocaleString('es-ES', {minimumFractionDigits: 2})}` : 'N/A'}</td></tr>
+                            <tr><th>Salario Base:</th><td>${empleado.base ? `$${Number(empleado.base).toLocaleString('es-ES', {minimumFractionDigits: 2})}` : 'N/A'}</td></tr>
+                            <tr><th>Horas/Semana:</th><td>${empleado.semana || 'N/A'}</td></tr>
+                        </table>
+
+                        <h6 class="text-primary mt-3"><i class="fas fa-info-circle me-2"></i>Información Adicional</h6>
+                        <table class="table table-sm">
+                            <tr><th width="40%">Educación:</th><td>${empleado.educa || 'N/A'}</td></tr>
+                            <tr><th>Tipo Sangre:</th><td>${empleado.sangre || 'N/A'}</td></tr>
+                            <tr><th>Usuario Sistema:</th><td>${empleado.usuario || 'N/A'}</td></tr>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            // Mostrar el modal
+            const modal = new bootstrap.Modal(document.getElementById('modalDetalle'));
+            modal.show();
+        }
+
+        // Función para obtener descripción del estado
+        function getEstadoDescripcion(estado) {
+            switch (estado) {
+                case 'A': return 'Activo';
+                case 'L': return 'Liquidación';
+                case 'I': return 'Inactivo';
+                case 'LG': return 'Licencia por Gravidez';
+                case 'LN': return 'Licencia sin Sueldo';
+                case 'LR': return 'Licencia Remunerada';
+                case 'V': return 'Vacaciones';
+                default: return 'N/A';
+            }
+        }
+
+        // Función para mostrar estadísticas
+        async function mostrarEstadisticas() {
+            try {
+                const compania = document.getElementById('filtroCompania').value || '1';
+                const response = await fetch(`${API_BASE_URL}/estadisticas?noCia=${compania}`);
+                
+                if (response.ok) {
+                    const stats = await response.json();
+                    document.getElementById('empleadosActivos').textContent = stats.empleados_activos || 0;
+                    document.getElementById('empleadosHombres').textContent = stats.empleados_hombres || 0;
+                    document.getElementById('empleadosMujeres').textContent = stats.empleados_mujeres || 0;
+                    document.getElementById('supervisores').textContent = stats.supervisores || 0;
+                    document.getElementById('estadisticas').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error al cargar estadísticas:', error);
+            }
+        }
+
+        // Función para limpiar filtros
+        function limpiarFiltros() {
+            document.getElementById('filtroCompania').value = '';
+            document.getElementById('filtroPlanilla').value = '';
+            document.getElementById('filtroDepto').value = '';
+            document.getElementById('filtroTipoEmp').value = '';
+            document.getElementById('filtroEstado').value = '';
+            document.getElementById('filtroSexo').value = '';
+            document.getElementById('buscarTexto').value = '';
+            cargarEmpleados();
+        }
+
+        // Función para exportar a Excel
+        function exportarExcel() {
+            const buscarTexto = document.getElementById('buscarTexto').value.trim();
+            const compania = document.getElementById('filtroCompania').value || '1';
+            
+            if (buscarTexto) {
+                // Para búsqueda por texto, usar el endpoint /buscar
+                const url = `${API_BASE_URL}/buscar?noCia=${compania}&termino=${encodeURIComponent(buscarTexto)}&export=excel`;
+                window.open(url, '_blank');
+            } else {
+                // Para catálogo normal con filtros
+                const params = new URLSearchParams({
+                    sort: 'noEmple,asc',
+                    export: 'excel'
+                });
+
+                if (compania) params.append('noCia', compania);
+
+                const codPla = document.getElementById('filtroPlanilla').value;
+                if (codPla) params.append('codPla', codPla);
+
+                const depto = document.getElementById('filtroDepto').value;
+                if (depto) params.append('depto', depto);
+
+                const tipoEmp = document.getElementById('filtroTipoEmp').value;
+                if (tipoEmp) params.append('tipoEmp', tipoEmp);
+
+                const estado = document.getElementById('filtroEstado').value;
+                if (estado) params.append('estado', estado);
+
+                const sexo = document.getElementById('filtroSexo').value;
+                if (sexo) params.append('sexo', sexo);
+
+                const url = `${API_BASE_URL}?${params.toString()}`;
+                window.open(url, '_blank');
+            }
+        }
+    </script>
+</body>
+</html>

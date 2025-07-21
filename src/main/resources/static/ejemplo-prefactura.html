@@ -2,8 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Ejemplo Prefactura Pedido</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ejemplo Prefactura Pedido</title>  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="images/logos/logo_icono.svg" type="image/svg+xml">
+  <script src="js/api-url-helper.js"></script>
   <style>
     body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0; }
     .container { max-width: 900px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 2em; }
@@ -139,6 +140,60 @@
       <button type="submit">Registrar Prefactura</button>
     </div>
   </form>
+  <div style="margin-top: 30px; text-align: center;">
+    <button onclick="window.location.href='ejemplos.html'" style="padding: 12px 28px; font-size: 18px; border-radius: 8px; background: #888; color: #fff; border: none; cursor: pointer;">Volver</button>
+  </div>
 </div>
+<script>
+    document.getElementById('prefacturaForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      // Recolectar datos del formulario
+      const formData = {
+        tipo_registro: document.getElementById('tipo_registro').value,
+        fecha: document.getElementById('fecha').value,
+        no_cia: document.getElementById('no_cia').value,
+        no_sucursal_v: document.getElementById('no_sucursal_v').value,
+        no_sucursal: document.getElementById('no_sucursal').value,
+        no_bodega: document.getElementById('no_bodega').value,
+        no_prefactura: document.getElementById('no_prefactura').value,
+        inter_compania: document.getElementById('inter_compania').value,
+        cia_destino: document.getElementById('cia_destino').value,
+        sucursal_destino: document.getElementById('sucursal_destino').value,
+        cliente: document.getElementById('cliente').value,
+        nom_cliente: document.getElementById('nom_cliente').value,
+        ruc_cedula: document.getElementById('ruc_cedula').value,
+        email: document.getElementById('email').value,
+        tipo_factura: document.getElementById('tipo_factura').value,
+        no_plazo: document.getElementById('no_plazo').value,
+        xreferido: document.getElementById('xreferido').value,
+        xno_vendedor: document.getElementById('xno_vendedor').value,
+        fetipo_venta: document.getElementById('fetipo_venta').value,
+        no_orden_compra: document.getElementById('no_orden_compra').value,
+        ind_localidad: document.getElementById('ind_localidad').value,
+        fecha_entrega: document.getElementById('fecha_entrega').value,
+        observacion: document.getElementById('observacion').value,
+        detalle: {
+          modo_lectura: document.getElementById('modo_lectura').value,
+          codigo_detalle: document.getElementById('codigo_detalle').value,
+          cantidad_detalle: document.getElementById('cantidad_detalle').value
+        }
+      };      // Cambia la URL al contexto correcto
+      const url = '/api/prefactura-db';
+      try {
+        const res = await fetch(buildApiUrl(url), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+        if (res.ok) {
+          alert('Prefactura registrada correctamente');
+        } else {
+          alert('Error al registrar prefactura');
+        }
+      } catch (err) {
+        alert('Error de conexión');
+      }
+    });
+  </script>
 </body>
 </html>

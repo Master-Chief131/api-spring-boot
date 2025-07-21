@@ -8,6 +8,9 @@
     h1, h2 { color: #1976d2; }
     h1 { text-align: center; }
     .endpoint { background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 1.5em; margin-bottom: 2em; }
+    .info-box { background: #e8f5e8; border: 1px solid #4caf50; border-radius: 8px; padding: 1em; margin-bottom: 2em; }
+    .url-examples { background: #f8f9fa; border-left: 4px solid #007bff; padding: 1em; margin: 1em 0; }
+    .url-examples p { margin: 0.5em 0; }
     .ok { color: #388e3c; font-weight: bold; }
     .warn { color: #fbc02d; font-weight: bold; }
     .fail { color: #c62828; font-weight: bold; }
@@ -21,11 +24,19 @@
     
 
     <h1>Documentación de Endpoints API CPTSOFT</h1>
-    <code>http://localhost:8088/Api-Prochem/index.html</code>
+    <div class="info-box">
+      <h3>URLs de Acceso</h3>
+      <p><strong>Desarrollo Local:</strong> <code>http://localhost:8080/index.html</code></p>
+      <p><strong>Tomcat:</strong> <code>http://localhost:8088/Api-cptsoft/index.html</code></p>
+    </div>
 
     <div class="endpoint" id="clientes">
       <h2>Registrar Cliente</h2>
-      <p><b>Método:</b> <code>POST</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/clientes/registro-portal</code></p>
+      <div class="url-examples">
+        <p><b>Método:</b> <code>POST</code></p>
+        <p><b>URL Desarrollo:</b> <code>http://localhost:8080/api/clientes/registro-portal</code></p>
+        <p><b>URL Tomcat:</b> <code>http://localhost:8088/Api-cptsoft/api/clientes/registro-portal</code></p>
+      </div>
       <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p> 
       <p>Permite registrar un cliente nuevo enviando un JSON con los datos requeridos. El sistema registra automáticamente el cliente, su contacto y su usuario web en una sola transacción.</p>
       
@@ -158,7 +169,11 @@
 
     <div class="endpoint" id="prefacturas">
       <h2>Registrar Prefactura</h2>
-      <p><b>Método:</b> <code>POST</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/prefactura-db</code></p>
+      <div class="url-examples">
+        <p><b>Método:</b> <code>POST</code></p>
+        <p><b>URL Desarrollo:</b> <code>http://localhost:8080/api/prefactura-db</code></p>
+        <p><b>URL Tomcat:</b> <code>http://localhost:8088/Api-cptsoft/api/prefactura-db</code></p>
+      </div>
       <p><b>Estado:</b> <span class="warn">Funciona, pero faltan validaciones y control de errores</span></p>
       <p>Permite registrar una prefactura enviando un JSON con cabecera y detalles. Llama un procedimiento almacenado y guarda en la base de datos, pero no valida todos los campos ni controla errores de negocio.</p>
       <b>Ejemplo de JSON:</b>
@@ -172,7 +187,11 @@
 
     <div class="endpoint">
       <h2>Consultar Clientes</h2>
-      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/clientes</code></p>
+      <div class="url-examples">
+        <p><b>Método:</b> <code>GET</code></p>
+        <p><b>URL Desarrollo:</b> <code>http://localhost:8080/api/clientes</code></p>
+        <p><b>URL Tomcat:</b> <code>http://localhost:8088/Api-cptsoft/api/clientes</code></p>
+      </div>
       <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
       <p>Devuelve una lista paginada de clientes. Permite filtrar por compañía.</p>
       <b>Parámetros:</b>
@@ -181,7 +200,11 @@
         <li><code>page</code> (opcional, default 0): número de página</li>
         <li><code>size</code> (opcional, default 20): tamaño de página</li>
       </ul>
-      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/clientes?noCia=1&page=0&size=10</code>
+      <b>Ejemplos:</b>
+      <ul class="params">
+        <li>Desarrollo: <code>http://localhost:8080/api/clientes?noCia=1&page=0&size=10</code></li>
+        <li>Tomcat: <code>http://localhost:8088/Api-cptsoft/api/clientes?noCia=1&page=0&size=10</code></li>
+      </ul>
       <b>Respuesta:</b> JSON con <code>content</code> (lista de clientes), <code>totalElements</code>, <code>totalPages</code>, etc.
     </div>
 
@@ -190,18 +213,46 @@
       <p><b>Método:</b> <code>GET</code></p>
       <p><b>Endpoints:</b></p>
       <ul class="params">
-        <li><code>http://localhost:8088/Api-Prochem/api/articulos</code> <span class="ok">Artículos</span></li>
-        <li><code>http://localhost:8088/Api-Prochem/api/existencias</code> <span class="ok">Existencias</span></li>
-        <li><code>http://localhost:8088/Api-Prochem/api/lista-precios</code> <span class="ok">Lista de Precios</span></li>
-        <li><code>http://localhost:8088/Api-Prochem/api/ofertas</code> <span class="ok">Ofertas</span></li>
-        <li><code>http://localhost:8088/Api-Prochem/api/familias-producto</code> <span class="ok">Familias</span></li>
-        <li><code>http://localhost:8088/Api-Prochem/api/sucursales</code> <span class="ok">Sucursales</span></li>
-        <li><code>http://localhost:8088/Api-Prochem/api/bodegas</code> <span class="ok">Bodegas</span></li>
-        <li><code>http://localhost:8088/Api-Prochem/api/servicios</code> <span class="ok">Servicios</span></li>
+        <li><b>Artículos:</b>
+          <br>Desarrollo: <code>http://localhost:8080/api/articulos</code>
+          <br>Tomcat: <code>http://localhost:8088/Api-cptsoft/api/articulos</code> <span class="ok">✓</span>
+        </li>
+        <li><b>Existencias:</b>
+          <br>Desarrollo: <code>http://localhost:8080/api/existencias</code>
+          <br>Tomcat: <code>http://localhost:8088/Api-cptsoft/api/existencias</code> <span class="ok">✓</span>
+        </li>
+        <li><b>Lista de Precios:</b>
+          <br>Desarrollo: <code>http://localhost:8080/api/lista-precios</code>
+          <br>Tomcat: <code>http://localhost:8088/Api-cptsoft/api/lista-precios</code> <span class="ok">✓</span>
+        </li>
+        <li><b>Ofertas:</b>
+          <br>Desarrollo: <code>http://localhost:8080/api/ofertas</code>
+          <br>Tomcat: <code>http://localhost:8088/Api-cptsoft/api/ofertas</code> <span class="ok">✓</span>
+        </li>
+        <li><b>Familias:</b>
+          <br>Desarrollo: <code>http://localhost:8080/api/familias-producto</code>
+          <br>Tomcat: <code>http://localhost:8088/Api-cptsoft/api/familias-producto</code> <span class="ok">✓</span>
+        </li>
+        <li><b>Sucursales:</b>
+          <br>Desarrollo: <code>http://localhost:8080/api/sucursales</code>
+          <br>Tomcat: <code>http://localhost:8088/Api-cptsoft/api/sucursales</code> <span class="ok">✓</span>
+        </li>
+        <li><b>Bodegas:</b>
+          <br>Desarrollo: <code>http://localhost:8080/api/bodegas</code>
+          <br>Tomcat: <code>http://localhost:8088/Api-cptsoft/api/bodegas</code> <span class="ok">✓</span>
+        </li>
+        <li><b>Servicios:</b>
+          <br>Desarrollo: <code>http://localhost:8080/api/servicios</code>
+          <br>Tomcat: <code>http://localhost:8088/Api-cptsoft/api/servicios</code> <span class="ok">✓</span>
+        </li>
       </ul>
       <p><b>Estado:</b> <span class="ok">Funcionan correctamente</span></p>
       <p>Devuelven datos paginados y permiten filtrar por compañía (parámetro <code>noCia</code>), página (<code>page</code>) y tamaño (<code>size</code>).</p>
-      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/articulos?noCia=1&page=0&size=20</code>
+      <b>Ejemplos:</b>
+      <ul class="params">
+        <li>Desarrollo: <code>http://localhost:8080/api/articulos?noCia=1&page=0&size=20</code></li>
+        <li>Tomcat: <code>http://localhost:8088/Api-cptsoft/api/articulos?noCia=1&page=0&size=20</code></li>
+      </ul>
       <b>Respuesta:</b> JSON paginado con los datos solicitados.
     </div>
 
@@ -210,10 +261,22 @@
       <p><b>Método:</b> <code>GET</code></p>
       <p><b>Endpoints:</b></p>
       <ul class="params">
-        <li><code>http://localhost:8088/Api-Prochem/api/cuentas/dto-paginado</code> <span class="ok">Catálogo de Cuentas</span></li>
-        <li><code>http://localhost:8088/Api-Prochem/api/empleados/dto-paginado</code> <span class="ok">Catálogo de Empleados</span></li>
-        <li><code>http://localhost:8088/Api-Prochem/api/proveedores/dto-paginado</code> <span class="ok">Catálogo de Proveedores</span></li>
-        <li><code>http://localhost:8088/Api-Prochem/api/centros-costo/dto-paginado</code> <span class="ok">Catálogo de Centros de Costo</span></li>
+        <li><b>Catálogo de Cuentas:</b>
+          <br>Desarrollo: <code>http://localhost:8080/api/cuentas/dto-paginado</code>
+          <br>Tomcat: <code>http://localhost:8088/Api-cptsoft/api/cuentas/dto-paginado</code> <span class="ok">✓</span>
+        </li>
+        <li><b>Catálogo de Empleados:</b>
+          <br>Desarrollo: <code>http://localhost:8080/api/empleados/dto-paginado</code>
+          <br>Tomcat: <code>http://localhost:8088/Api-cptsoft/api/empleados/dto-paginado</code> <span class="ok">✓</span>
+        </li>
+        <li><b>Catálogo de Proveedores:</b>
+          <br>Desarrollo: <code>http://localhost:8080/api/proveedores/dto-paginado</code>
+          <br>Tomcat: <code>http://localhost:8088/Api-cptsoft/api/proveedores/dto-paginado</code> <span class="ok">✓</span>
+        </li>
+        <li><b>Catálogo de Centros de Costo:</b>
+          <br>Desarrollo: <code>http://localhost:8080/api/centros-costo/dto-paginado</code>
+          <br>Tomcat: <code>http://localhost:8088/Api-cptsoft/api/centros-costo/dto-paginado</code> <span class="ok">✓</span>
+        </li>
       </ul>
       <p><b>Estado:</b> <span class="ok">Funcionan correctamente</span></p>
       <p>Devuelven datos paginados de catálogos administrativos. Permiten filtrar por compañía (parámetro <code>noCia</code>), página (<code>page</code>) y tamaño (<code>size</code>).</p>
@@ -223,7 +286,11 @@
         <li><code>page</code> (opcional, default 0): número de página</li>
         <li><code>size</code> (opcional, default 20): tamaño de página</li>
       </ul>
-      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/cuentas/dto-paginado?noCia=1&page=0&size=10</code>
+      <b>Ejemplos:</b>
+      <ul class="params">
+        <li>Desarrollo: <code>http://localhost:8080/api/cuentas/dto-paginado?noCia=1&page=0&size=10</code></li>
+        <li>Tomcat: <code>http://localhost:8088/Api-cptsoft/api/cuentas/dto-paginado?noCia=1&page=0&size=10</code></li>
+      </ul>
       <b>Respuesta:</b> JSON paginado con la estructura estándar Spring Boot: <code>content</code> (lista de registros), <code>totalElements</code>, <code>totalPages</code>, etc.
     </div>
 
@@ -234,7 +301,11 @@
 
     <div class="endpoint" id="buscar-cliente-id">
       <h2>Buscar Cliente por ID</h2>
-      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/clientes/buscar</code></p>
+      <div class="url-examples">
+        <p><b>Método:</b> <code>GET</code></p>
+        <p><b>URL Desarrollo:</b> <code>http://localhost:8080/api/clientes/buscar</code></p>
+        <p><b>URL Tomcat:</b> <code>http://localhost:8088/Api-cptsoft/api/clientes/buscar</code></p>
+      </div>
       <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
       <p>Busca un cliente específico utilizando su ID compuesto (número de compañía, número de cliente y grupo).</p>
       <b>Parámetros:</b>
@@ -243,26 +314,30 @@
         <li><code>noCliente</code> (query): número único del cliente (Integer)</li>
         <li><code>grupo</code> (query): grupo del cliente (String)</li>
       </ul>
-      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/clientes/buscar?noCia=1&noCliente=12345&grupo=1</code>
+      <b>Ejemplos:</b>
+      <ul class="params">
+        <li>Desarrollo: <code>http://localhost:8080/api/clientes/buscar?noCia=1&noCliente=12345&grupo=1</code></li>
+        <li>Tomcat: <code>http://localhost:8088/Api-cptsoft/api/clientes/buscar?noCia=1&noCliente=12345&grupo=1</code></li>
+      </ul>
       <b>Respuesta:</b> JSON con los datos del cliente encontrado o mensaje de error si no existe.
     </div>
 
     <div class="endpoint" id="buscar-cliente-cedula">
       <h2>Buscar Cliente por RUC/Cédula</h2>
-      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/clientes/buscar-por-ruc-cedula</code></p>
+      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>Desarrollo: http://localhost:8080/api/clientes/buscar-por-ruc-cedula | Tomcat: http://localhost:8088/Api-cptsoft/api/clientes/buscar-por-ruc-cedula</code></p>
       <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
       <p>Busca un cliente específico utilizando su número de RUC o cédula de identidad.</p>
       <b>Parámetros:</b>
       <ul class="params">
         <li><code>rucCedula</code> (query): número de RUC o cédula del cliente</li>
       </ul>
-      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/clientes/buscar-por-ruc-cedula?rucCedula=1234567890</code>
+      <b>Ejemplo:</b> <code>Desarrollo: http://localhost:8080/api/clientes/buscar-por-ruc-cedula | Tomcat: http://localhost:8088/Api-cptsoft/api/clientes/buscar-por-ruc-cedula?rucCedula=1234567890</code>
       <b>Respuesta:</b> JSON con los datos del cliente encontrado o mensaje de error si no existe.
     </div>
 
     <div class="endpoint" id="validar-cedula">
       <h2>Validar RUC/Cédula Existente</h2>
-      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/clientes/validar-ruc-cedula</code></p>
+      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>Desarrollo: http://localhost:8080/api/clientes/validar-ruc-cedula | Tomcat: http://localhost:8088/Api-cptsoft/api/clientes/validar-ruc-cedula</code></p>
       <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
       <p>Verifica si un RUC o cédula ya está registrado en la base de datos para una compañía específica.</p>
       <b>Parámetros:</b>
@@ -270,26 +345,26 @@
         <li><code>rucCedula</code> (query): RUC o cédula a validar</li>
         <li><code>noCia</code> (query): número de compañía</li>
       </ul>
-      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/clientes/validar-ruc-cedula?rucCedula=8-123-456&noCia=1</code>
+      <b>Ejemplo:</b> <code>Desarrollo: http://localhost:8080/api/clientes/validar-ruc-cedula | Tomcat: http://localhost:8088/Api-cptsoft/api/clientes/validar-ruc-cedula?rucCedula=8-123-456&noCia=1</code>
       <b>Respuesta:</b> JSON con información de validación y datos del cliente si existe.
     </div>
 
     <div class="endpoint" id="buscar-familia-id">
       <h2>Buscar Familia por ID</h2>
-      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/familias-producto/{no_familia}</code></p>
+      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>Desarrollo: http://localhost:8080/api/familias-producto/ | Tomcat: http://localhost:8088/Api-cptsoft/api/familias-producto/{no_familia}</code></p>
       <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
       <p>Devuelve los datos de una familia de productos específica según su ID.</p>
       <b>Parámetros:</b>
       <ul class="params">
         <li><code>no_familia</code> (path): número de la familia de productos</li>
       </ul>
-      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/familias-producto/1</code>
+      <b>Ejemplo:</b> <code>Desarrollo: http://localhost:8080/api/familias-producto/ | Tomcat: http://localhost:8088/Api-cptsoft/api/familias-producto/1</code>
       <b>Respuesta:</b> JSON con los datos de la familia o <code>null</code> si no existe.
     </div>
 
     <div class="endpoint" id="buscar-cuenta-id">
       <h2>Buscar Cuenta Específica</h2>
-      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/cuentas/{noCia}/{cuenta}</code></p>
+      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-cptsoft/api/cuentas/{noCia}/{cuenta}</code></p>
       <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
       <p>Devuelve los datos de una cuenta específica según los parámetros enviados.</p>
       <b>Parámetros:</b>
@@ -297,13 +372,13 @@
         <li><code>noCia</code> (path): número de compañía</li>
         <li><code>cuenta</code> (path): código de la cuenta</li>
       </ul>
-      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/cuentas/1/1105</code>
+      <b>Ejemplo:</b> <code>http://localhost:8088/Api-cptsoft/api/cuentas/1/1105</code>
       <b>Respuesta:</b> JSON con los datos de la cuenta o <code>null</code> si no existe.
     </div>
 
     <div class="endpoint" id="buscar-empleado-id">
       <h2>Buscar Empleado Específico</h2>
-      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/empleados/{noCia}/{noEmpleado}</code></p>
+      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-cptsoft/api/empleados/{noCia}/{noEmpleado}</code></p>
       <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
       <p>Devuelve los datos de un empleado específico según los parámetros enviados.</p>
       <b>Parámetros:</b>
@@ -311,13 +386,13 @@
         <li><code>noCia</code> (path): número de compañía</li>
         <li><code>noEmpleado</code> (path): número del empleado</li>
       </ul>
-      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/empleados/1/001</code>
+      <b>Ejemplo:</b> <code>http://localhost:8088/Api-cptsoft/api/empleados/1/001</code>
       <b>Respuesta:</b> JSON con los datos del empleado o <code>null</code> si no existe.
     </div>
 
     <div class="endpoint" id="buscar-proveedor-id">
       <h2>Buscar Proveedor Específico</h2>
-      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/proveedores/{noCia}/{noProveedor}/{noClase}</code></p>
+      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-cptsoft/api/proveedores/{noCia}/{noProveedor}/{noClase}</code></p>
       <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
       <p>Devuelve los datos de un proveedor específico según los parámetros enviados.</p>
       <b>Parámetros:</b>
@@ -326,13 +401,13 @@
         <li><code>noProveedor</code> (path): número del proveedor</li>
         <li><code>noClase</code> (path): número de clase del proveedor</li>
       </ul>
-      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/proveedores/1/12345/1</code>
+      <b>Ejemplo:</b> <code>http://localhost:8088/Api-cptsoft/api/proveedores/1/12345/1</code>
       <b>Respuesta:</b> JSON con los datos del proveedor o <code>null</code> si no existe.
     </div>
 
     <div class="endpoint" id="buscar-centro-costo-id">
       <h2>Buscar Centro de Costo Específico</h2>
-      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/centros-costo/{noCia}/{centro}</code></p>
+      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-cptsoft/api/centros-costo/{noCia}/{centro}</code></p>
       <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
       <p>Devuelve los datos de un centro de costo específico según los parámetros enviados.</p>
       <b>Parámetros:</b>
@@ -340,13 +415,13 @@
         <li><code>noCia</code> (path): número de compañía</li>
         <li><code>centro</code> (path): código del centro de costo</li>
       </ul>
-      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/centros-costo/1/ADM</code>
+      <b>Ejemplo:</b> <code>http://localhost:8088/Api-cptsoft/api/centros-costo/1/ADM</code>
       <b>Respuesta:</b> JSON con los datos del centro de costo o <code>null</code> si no existe.
     </div>
 
     <div class="endpoint" id="buscar-sucursal-id">
       <h2>Buscar Sucursal Específica</h2>
-      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/sucursales/{noCia}/{sucursal}</code></p>
+      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-cptsoft/api/sucursales/{noCia}/{sucursal}</code></p>
       <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
       <p>Devuelve los datos de una sucursal específica según los parámetros enviados.</p>
       <b>Parámetros:</b>
@@ -354,13 +429,13 @@
         <li><code>noCia</code> (path): número de compañía</li>
         <li><code>sucursal</code> (path): código de la sucursal</li>
       </ul>
-      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/sucursales/1/001</code>
+      <b>Ejemplo:</b> <code>http://localhost:8088/Api-cptsoft/api/sucursales/1/001</code>
       <b>Respuesta:</b> JSON con los datos de la sucursal o <code>null</code> si no existe.
     </div>
 
     <div class="endpoint" id="buscar-bodega-id">
       <h2>Buscar Bodega Específica</h2>
-      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-Prochem/api/bodegas/{noCia}/{bodega}</code></p>
+      <p><b>Método:</b> <code>GET</code> <b>URL:</b> <code>http://localhost:8088/Api-cptsoft/api/bodegas/{noCia}/{bodega}</code></p>
       <p><b>Estado:</b> <span class="ok">Funciona correctamente</span></p>
       <p>Devuelve los datos de una bodega específica según los parámetros enviados.</p>
       <b>Parámetros:</b>
@@ -368,7 +443,7 @@
         <li><code>noCia</code> (path): número de compañía</li>
         <li><code>bodega</code> (path): código de la bodega</li>
       </ul>
-      <b>Ejemplo:</b> <code>http://localhost:8088/Api-Prochem/api/bodegas/1/BOD01</code>
+      <b>Ejemplo:</b> <code>http://localhost:8088/Api-cptsoft/api/bodegas/1/BOD01</code>
       <b>Respuesta:</b> JSON con los datos de la bodega o <code>null</code> si no existe.
     </div>
 
@@ -414,12 +489,21 @@
     <div class="endpoint">
       <h2>📝 Notas Importantes</h2>
       <ul>
+        <li><strong>URLs por Entorno:</strong>
+          <ul>
+            <li><b>Desarrollo Local (puerto 8080):</b> <code>http://localhost:8080/api/[endpoint]</code> - Sin contexto de aplicación</li>
+            <li><b>Tomcat Producción (puerto 8088):</b> <code>http://localhost:8088/Api-cptsoft/api/[endpoint]</code> - Con contexto Api-cptsoft</li>
+          </ul>
+        </li>
+        <li><strong>Documentación Swagger:</strong>
+          <ul>
+            <li>Desarrollo: <code>http://localhost:8080/swagger-ui.html</code></li>
+            <li>Tomcat: <code>http://localhost:8088/Api-cptsoft/swagger-ui.html</code></li>
+          </ul>
+        </li>
         <li><strong>Endpoints de Consulta:</strong> Todos los endpoints <code>GET</code> funcionan correctamente y soportan paginación estándar Spring Boot: <code>page</code> (número de página, inicia en 0) y <code>size</code> (cantidad de registros por página).</li>
         <li><strong>Registro de Clientes:</strong> El endpoint <code>POST /api/clientes/registro-portal</code> maneja el registro completo (cliente, contacto, usuario) en una sola transacción y envía las credenciales por correo automáticamente.</li>
         <li><strong>Validación de Datos:</strong> Use el endpoint <code>/api/clientes/validar-ruc-cedula</code> para verificar si un RUC/cédula ya existe antes de intentar el registro.</li>
-        <li><strong>Contexto de Aplicación:</strong> El contexto base en Tomcat es <b>Api-Prochem/</b>, por lo que todas las URLs deben anteponerlo.</li>
-        <li><strong>Ambiente de Desarrollo:</strong> Para pruebas locales, usar siempre la URL base <code>http://localhost:8088/Api-Prochem/</code>.</li>
-        <li><strong>Documentación Swagger:</strong> Documentación interactiva disponible en <code>http://localhost:8088/Api-Prochem/swagger-ui.html</code> para probar endpoints y ver esquemas de datos.</li>
         <li><strong>Control de Errores:</strong> Los endpoints de registro incluyen control de transacciones y rollback automático en caso de error.</li>
         <li><strong>Seguridad:</strong> Las claves de usuario se encriptan automáticamente usando SHA + Base64 compatible con el sistema ERP.</li>
       </ul>
@@ -428,3 +512,4 @@
 
 </body>
 </html>
+

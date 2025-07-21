@@ -2,7 +2,7 @@
  * Utilidad para manejar URLs de API que funcionen tanto en desarrollo como en producción (Tomcat)
  * 
  * En desarrollo: http://localhost:8080/api/...
- * En Tomcat:     http://localhost:8088/Api-Demo/api/...
+ * En Tomcat:     http://localhost:8088/Api-[Nombre]/api/...
  */
 
 class ApiUrlHelper {
@@ -17,18 +17,51 @@ class ApiUrlHelper {
         const currentPath = window.location.pathname;
         const currentHost = window.location.origin;
         
-        // Si la URL contiene /Api-Demo/, estamos en Tomcat
-        if (currentPath.startsWith('/Api-Demo/')) {
-            return `${currentHost}/Api-Demo`;
+        // Buscar cualquier contexto que empiece con /Api-
+        const apiContextMatch = currentPath.match(/^\/Api-[^\/]+/);
+        if (apiContextMatch) {
+            const contextPath = apiContextMatch[0];
+            console.log('Contexto detectado automáticamente:', contextPath);
+            return `${currentHost}${contextPath}`;
         }
         
-        // Si estamos en puerto 8088 pero sin /Api-Demo/, asumir Tomcat
-        if (window.location.port === '8088' && !currentPath.startsWith('/Api-Demo/')) {
-            return `${currentHost}/Api-Demo`;
+        // Si estamos en puerto 8088 pero no detectamos contexto Api-, buscar en el DOM
+        if (window.location.port === '8088') {
+            // Intentar detectar desde otras URLs en la página
+            const detectedContext = this.detectContextFromDOM();
+            if (detectedContext) {
+                console.log('Contexto detectado desde DOM:', detectedContext);
+                return `${currentHost}${detectedContext}`;
+            }
+            
+            // Fallback: Si no se puede detectar, usar Api-cptsoft por defecto para producción
+            console.warn('No se pudo detectar el contexto automáticamente. Usando Api-cptsoft por defecto.');
+            return `${currentHost}/Api-cptsoft`;
         }
         
         // Desarrollo local o servidor embebido
+        console.log('Modo desarrollo detectado');
         return currentHost;
+    }
+
+    /**
+     * Intenta detectar el contexto desde elementos del DOM o metadatos
+     */
+    detectContextFromDOM() {
+        // Buscar en links, scripts o imágenes que contengan contextos Api-
+        const elements = document.querySelectorAll('link[href*="/Api-"], script[src*="/Api-"], img[src*="/Api-"]');
+        
+        for (const element of elements) {
+            const url = element.href || element.src;
+            if (url) {
+                const match = url.match(/\/Api-[^\/]+/);
+                if (match) {
+                    return match[0];
+                }
+            }
+        }
+        
+        return null;
     }
 
     /**
@@ -72,12 +105,16 @@ class ApiUrlHelper {
      * Información del entorno actual
      */
     getEnvironmentInfo() {
+        const isApiContext = /\/Api-[^\/]+/.test(this.baseUrl);
+        const contextMatch = this.baseUrl.match(/\/Api-[^\/]+/);
+        
         return {
             baseUrl: this.baseUrl,
             currentUrl: window.location.href,
             contextPath: window.location.pathname,
-            isProduction: this.baseUrl.includes('/Api-Demo'),
-            isDevelopment: !this.baseUrl.includes('/Api-Demo'),
+            detectedContext: contextMatch ? contextMatch[0] : null,
+            isProduction: isApiContext,
+            isDevelopment: !isApiContext,
             port: window.location.port,
             host: window.location.hostname
         };

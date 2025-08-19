@@ -254,6 +254,9 @@ public class InvwebArticulo implements Serializable {
     @Column(name = "usuario_ultima_produccion", length = 50)
     private String usuarioUltimaProduccion;
 
+    @Column(name = "ver_portal", length = 1)
+    private String verPortal;
+
     public Integer getNoCia() { return noCia; }
     public void setNoCia(Integer noCia) { this.noCia = noCia; }
     public String getNoArticulo() { return noArticulo; }
@@ -416,4 +419,6 @@ public class InvwebArticulo implements Serializable {
     public void setFechaUltimaProduccion(LocalDateTime fechaUltimaProduccion) { this.fechaUltimaProduccion = fechaUltimaProduccion; }
     public String getUsuarioUltimaProduccion() { return usuarioUltimaProduccion; }
     public void setUsuarioUltimaProduccion(String usuarioUltimaProduccion) { this.usuarioUltimaProduccion = usuarioUltimaProduccion; }
+    public String getVerPortal() { return verPortal; }
+    public void setVerPortal(String verPortal) { this.verPortal = verPortal; }
 }

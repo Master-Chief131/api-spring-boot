@@ -1,8 +1,12 @@
 package com.example.demo.controller;
 
 import com.example.demo.entity.InvwebArticulo;
+import com.example.demo.entity.InvwebArticuloDetalle;
+import com.example.demo.entity.SegwebModulo;
 import com.example.demo.repository.InvwebArticuloRepository;
+import com.example.demo.repository.InvwebArticuloDetalleRepository;
 import com.example.demo.repository.InvwebFamiliaRepository;
+import com.example.demo.repository.SegwebModuloRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,8 +39,21 @@ public class InvwebArticuloController {
     @Autowired
     private InvwebFamiliaRepository familiaRepository;
 
+    @Autowired
+    private InvwebArticuloDetalleRepository articuloDetalleRepository;
+
+    @Autowired
+    private SegwebModuloRepository moduloRepository;
+
     @Value("${app.base-url}")
     private String baseUrl;
+
+    public static class ImagenDetalleDTO {
+        public String nombre;
+        public String url;
+        public String tipoArchivo;
+        public String noArticulo;
+    }
 
     public static class ArticuloDTO {
         public String codigo;
@@ -49,6 +66,9 @@ public class InvwebArticuloController {
 
         @JsonProperty("imagen_url")
         public String imagenUrl;
+
+        @JsonProperty("imagenes_detalle")
+        public java.util.List<ImagenDetalleDTO> imagenesDetalle;
 
         public java.math.BigDecimal precioVenta;
         public Integer unidadVenta;
@@ -69,6 +89,13 @@ public class InvwebArticuloController {
     public ArticuloPage getArticulos(
             @Parameter(description = "Número de página (base 0)", example = "0") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Tamaño de página", example = "20") @RequestParam(defaultValue = "20") int size) {
+
+        // Obtener la ruta de visualización del módulo de inventario
+        SegwebModulo moduloInventario = moduloRepository.findModuloInventario().orElse(null);
+        String rutaVisualizacion = (moduloInventario != null && moduloInventario.getRutaVisualizacion() != null)
+                ? moduloInventario.getRutaVisualizacion()
+                : "/inventario/";
+
         // Obtener todas las familias con ver_portal = 'S' de una sola vez
         List<com.example.demo.entity.InvwebFamilia> familiasPortal = familiaRepository.findByVerPortal("S");
         java.util.Set<com.example.demo.entity.FamiliaId> familiasValidas = familiasPortal.stream()
@@ -84,12 +111,53 @@ public class InvwebArticuloController {
                     dto.nombreLargo = a.getNombreLargo();
                     dto.nombreCorto = a.getNombreCorto();
 
-                    // Construir URL completa de la imagen
+                    // Construir URL completa de la imagen principal
                     if (a.getRutaFoto() != null && !a.getRutaFoto().trim().isEmpty()) {
                         dto.imagenUrl = baseUrl + "/Articulos/" + a.getRutaFoto();
                     } else {
                         dto.imagenUrl = null;
                     }
+
+                    // Obtener imágenes de detalle del artículo
+                    List<InvwebArticuloDetalle> detalles = articuloDetalleRepository
+                            .findByNoCiaAndNoArticuloAndVerPortal(a.getNoCia(), a.getNoArticulo(), "S");
+
+                    dto.imagenesDetalle = detalles.stream()
+                            .filter(d -> d.getArchivo() != null && !d.getArchivo().trim().isEmpty())
+                            .map(d -> {
+                                ImagenDetalleDTO imgDto = new ImagenDetalleDTO();
+                                imgDto.nombre = d.getNombre();
+                                imgDto.tipoArchivo = d.getTipoArchivo();
+                                imgDto.noArticulo = d.getNoArticulo();
+
+                                // Normalizar el archivo: reemplazar backslashes por forward slashes
+                                String archivoNormalizado = d.getArchivo().replace("\\", "/");
+
+                                // Extraer solo servidor:puerto del baseUrl (sin el contexto de la aplicación)
+                                // Por ejemplo: http://localhost:8088/cptsoft-erp-prueba ->
+                                // http://localhost:8088
+                                String serverUrl = baseUrl;
+                                int contextIndex = serverUrl.indexOf("/", serverUrl.indexOf("://") + 3);
+                                if (contextIndex != -1) {
+                                    serverUrl = serverUrl.substring(0, contextIndex);
+                                }
+
+                                // Construir URL completa: serverUrl + rutaVisualizacion + archivo
+                                String url = serverUrl;
+                                if (!url.endsWith("/") && !rutaVisualizacion.startsWith("/")) {
+                                    url += "/";
+                                }
+                                url += rutaVisualizacion;
+                                if (!url.endsWith("/") && !archivoNormalizado.startsWith("/")) {
+                                    url += "/";
+                                }
+                                url += archivoNormalizado;
+
+                                imgDto.url = url;
+
+                                return imgDto;
+                            })
+                            .collect(java.util.stream.Collectors.toList());
 
                     dto.precioVenta = a.getPrecioVenta();
                     dto.unidadVenta = a.getNoUnidadVenta();

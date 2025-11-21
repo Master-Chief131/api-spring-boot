@@ -58,11 +58,13 @@ public class InvwebArticuloController {
     public static class ArticuloDTO {
         public String codigo;
 
-        @JsonProperty("nombre_largo")
-        public String nombreLargo;
+        public String nombre;
 
-        @JsonProperty("nombre_corto")
-        public String nombreCorto;
+        @JsonProperty("descripcion_larga")
+        public String descripcionLarga;
+
+        @JsonProperty("descripcion_corta")
+        public String descripcionCorta;
 
         @JsonProperty("imagen_url")
         public String imagenUrl;
@@ -108,8 +110,9 @@ public class InvwebArticuloController {
                 .map(a -> {
                     ArticuloDTO dto = new ArticuloDTO();
                     dto.codigo = a.getNoArticulo();
-                    dto.nombreLargo = a.getNombreLargo();
-                    dto.nombreCorto = a.getNombreCorto();
+                    dto.nombre = a.getNombreLargo();
+                    dto.descripcionLarga = a.getNombreCorto();
+                    dto.descripcionCorta = a.getReferencias();
 
                     // Construir URL completa de la imagen principal
                     if (a.getRutaFoto() != null && !a.getRutaFoto().trim().isEmpty()) {

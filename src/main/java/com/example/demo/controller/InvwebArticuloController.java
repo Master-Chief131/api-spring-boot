@@ -23,8 +23,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-// Import para Jackson JSON
-import com.fasterxml.jackson.annotation.JsonProperty;
+// Imports de DTOs
+import com.example.demo.dto.ArticuloDTO;
+import com.example.demo.dto.ImagenDetalleDTO;
+import com.example.demo.dto.ArticuloPage;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,38 +49,6 @@ public class InvwebArticuloController {
 
     @Value("${app.base-url}")
     private String baseUrl;
-
-    public static class ImagenDetalleDTO {
-        public String nombre;
-        public String url;
-        public String tipoArchivo;
-        public String noArticulo;
-    }
-
-    public static class ArticuloDTO {
-        public String codigo;
-
-        public String nombre;
-
-        @JsonProperty("descripcion_larga")
-        public String descripcionLarga;
-
-        @JsonProperty("descripcion_corta")
-        public String descripcionCorta;
-
-        @JsonProperty("imagen_url")
-        public String imagenUrl;
-
-        @JsonProperty("imagenes_detalle")
-        public java.util.List<ImagenDetalleDTO> imagenesDetalle;
-
-        public java.math.BigDecimal precioVenta;
-        public Integer unidadVenta;
-        public Integer tamano;
-        public Integer familia;
-        public Integer subfamilia;
-        public Integer subsubfamilia;
-    }
 
     @GetMapping
     @Operation(summary = "Obtener artículos del inventario", description = "Obtiene una lista paginada de artículos del inventario. Incluye artículos que cumplan al menos una de estas condiciones: "
@@ -185,19 +155,4 @@ public class InvwebArticuloController {
         return new ArticuloPage(content, page, size, total);
     }
 
-    public static class ArticuloPage {
-        public List<ArticuloDTO> content;
-        public int page;
-        public int size;
-        public int totalElements;
-        public int totalPages;
-
-        public ArticuloPage(List<ArticuloDTO> content, int page, int size, int totalElements) {
-            this.content = content;
-            this.page = page;
-            this.size = size;
-            this.totalElements = totalElements;
-            this.totalPages = (int) Math.ceil((double) totalElements / size);
-        }
-    }
 }

@@ -81,9 +81,9 @@ public class InvwebArticuloController {
     }
 
     @GetMapping
-    @Operation(summary = "Obtener artículos del inventario", description = "Obtiene una lista paginada de artículos del inventario. Solo incluye artículos de familias "
+    @Operation(summary = "Obtener artículos del inventario", description = "Obtiene una lista paginada de artículos del inventario. Incluye artículos que cumplan al menos una de estas condiciones: "
             +
-            "habilitadas para el portal (ver_portal = 'S').")
+            "1) Pertenecen a una familia con ver_portal = 'S', o 2) El artículo tiene ver_portal = 'S'.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de artículos obtenida exitosamente", content = @Content(schema = @Schema(implementation = ArticuloPage.class))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
@@ -105,8 +105,16 @@ public class InvwebArticuloController {
                 .collect(java.util.stream.Collectors.toSet());
         List<InvwebArticulo> articulos = articuloRepository.findAll();
         List<ArticuloDTO> articulosFiltrados = articulos.stream()
-                .filter(a -> a.getNoFamilia() != null && familiasValidas
-                        .contains(new com.example.demo.entity.FamiliaId(a.getNoCia(), a.getNoFamilia())))
+                .filter(a -> {
+                    // Incluir artículo si:
+                    // 1. Pertenece a una familia con ver_portal = 'S', O
+                    // 2. El artículo mismo tiene ver_portal = 'S'
+                    boolean familiaValida = a.getNoFamilia() != null &&
+                            familiasValidas
+                                    .contains(new com.example.demo.entity.FamiliaId(a.getNoCia(), a.getNoFamilia()));
+                    boolean articuloVisible = "S".equals(a.getVerPortal());
+                    return familiaValida || articuloVisible;
+                })
                 .map(a -> {
                     ArticuloDTO dto = new ArticuloDTO();
                     dto.codigo = a.getNoArticulo();

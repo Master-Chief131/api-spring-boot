@@ -79,11 +79,15 @@ public class InvwebArticuloController {
                     // Incluir artículo si:
                     // 1. Pertenece a una familia con ver_portal = 'S', O
                     // 2. El artículo mismo tiene ver_portal = 'S'
+                    // 3. PERO excluir si el artículo tiene ver_portal = 'O'
                     boolean familiaValida = a.getNoFamilia() != null &&
                             familiasValidas
                                     .contains(new com.example.demo.entity.FamiliaId(a.getNoCia(), a.getNoFamilia()));
                     boolean articuloVisible = "S".equals(a.getVerPortal());
-                    return familiaValida || articuloVisible;
+                    boolean articuloOculto = "O".equals(a.getVerPortal());
+
+                    // Incluir si (familia válida O artículo visible) Y NO está oculto
+                    return (familiaValida || articuloVisible) && !articuloOculto;
                 })
                 .map(a -> {
                     ArticuloDTO dto = new ArticuloDTO();
